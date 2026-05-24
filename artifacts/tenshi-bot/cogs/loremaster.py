@@ -4,7 +4,8 @@ import asyncio
 from groq import Groq
 from utils import embed_imperial, IMPERADOR_ID, SEP, RODAPE_IMPERIAL
 
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+_groq_key = os.environ.get("GROQ_API_KEY")
+groq_client = Groq(api_key=_groq_key) if _groq_key else None
 MODELO = "llama-3.3-70b-versatile"
 
 NICHOS = {
@@ -61,6 +62,8 @@ Use o nome do NPC como sua identidade. Linguagem medieval/imperial."""
 
 
 async def _gerar(prompt: str, system: str = SYS_LORE) -> str:
+    if not groq_client:
+        return "*[O Oráculo dorme... a chave de IA não foi configurada.]*"
     try:
         r = groq_client.chat.completions.create(
             model=MODELO,

@@ -23,6 +23,7 @@ from cogs.perfil_config import PerfilConfig
 from cogs.especies      import Especies
 from cogs.poderes       import Poderes
 from cogs.empregos      import Empregos
+from cogs.vizinhanca    import Vizinhanca
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -48,6 +49,7 @@ perfil_cfg  = PerfilConfig(bot)
 especies    = Especies(bot)
 poderes_cog = Poderes(bot)
 empregos    = Empregos(bot)
+vizinhanca  = Vizinhanca(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -68,6 +70,7 @@ async def on_ready():
         )
     )
     eventos.cog_load()
+    vizinhanca.cog_load()
     bot.loop.create_task(_loop_aniversario())
 
 
@@ -341,7 +344,7 @@ async def on_message(message):
     elif cmd in ("historico", "histórico", "history"):
         await financeiro.handle_historico(message)
 
-    # ── CASAS ─────────────────────────────────────────────────────────────────
+    # ── CASAS (mercado imobiliário geral) ─────────────────────────────────────
     elif cmd in ("casas", "imoveis", "propriedades"):
         await casas.handle_casas(message)
 
@@ -350,6 +353,31 @@ async def on_message(message):
 
     elif cmd in ("vender-casa", "vendercasa"):
         await casas.handle_vender_casa(message)
+
+    # ── VIZINHANÇA / CONDOMÍNIO ────────────────────────────────────────────────
+    elif cmd in ("portaria", "condominio", "condomínio", "residencias"):
+        await vizinhanca.handle_portaria(message)
+
+    elif cmd in ("meu-lar-cond", "meuların", "residencia", "residência"):
+        await vizinhanca.handle_meu_lar(message)
+
+    elif cmd in ("convidar",):
+        await vizinhanca.handle_convidar(message, args)
+
+    elif cmd in ("expulsar",):
+        await vizinhanca.handle_expulsar(message, args)
+
+    elif cmd in ("devolver-casa", "devolvercasa", "sair-casa"):
+        await vizinhanca.handle_devolver_casa(message)
+
+    elif cmd in ("moradores", "vizinhos"):
+        await vizinhanca.handle_moradores(message)
+
+    elif cmd in ("cronica-cond", "fofoca", "crônica-cond"):
+        await vizinhanca.handle_cronica_condominio(message)
+
+    elif cmd in ("descansar-lazer", "descanso-lazer", "relaxar"):
+        await vizinhanca.handle_descanso_lazer(message)
 
     # ── EMPRESA ───────────────────────────────────────────────────────────────
     elif cmd in ("empresa", "company", "corp", "enterprise", "negocio"):

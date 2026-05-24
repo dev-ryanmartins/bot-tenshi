@@ -94,8 +94,10 @@ AJUDA_TEXTO = f"""
 `mercado` `mercado-negro` `trabalhar` `leilao [item]`
 `emprestimo` `pagar-divida` `historico`
 
-**🏠 Propriedades**
+**🏠 Propriedades & Condomínio**
 `casas` `minha-casa` `vender-casa`
+`portaria` `residencia` `convidar @user` `expulsar @user`
+`devolver-casa` `moradores` `relaxar` `fofoca`
 
 **🏢 Tenshi Enterprise**
 `empresa criar/info/contratar/demitir/funcionarios/pagar`

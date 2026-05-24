@@ -15,6 +15,32 @@
     "ultimo_duelo": null,
     "vitorias_duelo": 0,
     "derrotas_duelo": 0,
-    "status_bonus": {}
+    "status_bonus": {},
+    "pegada": "imperial",
+    "avatar_desc": null,
+    "historia": null,
+    "habilidades": [],
+    "especie": null,
+    "atributos": {
+      "vida": 100,
+      "mana": 100,
+      "forca": 100,
+      "agilidade": 100
+    },
+    "poderes": [],
+    "ficha_aprovada": false,
+    "local_atual": "cidadela",
+    "missoes_completas": 0,
+    "ultimo_trabalho": null,
+    "conta_banco": 0,
+    "emprestimos": [],
+    "historico_financeiro": [],
+    "casa_id": null,
+    "empresa_id": null,
+    "cargo_empresa": null,
+    "salario": 0,
+    "familia_id": null,
+    "cargo_familia": null,
+    "ficha": {}
   }
 }

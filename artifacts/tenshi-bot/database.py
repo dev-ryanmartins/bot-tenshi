@@ -91,6 +91,9 @@ def _default_user() -> dict:
         "historico_financeiro": [],
         # Social
         "casa_id": None,
+        "casa_condominio": None,
+        "fadiga": 0,
+        "ultimo_descanso_lazer": None,
         "empresa_id": None,
         "cargo_empresa": None,
         "salario": 0,
@@ -479,7 +482,8 @@ LOJA_ITEMS = [
 # FACÇÕES
 # ─────────────────────────────────────────────
 
-FACCOES_FILE = "data/faccoes.json"
+FACCOES_FILE    = "data/faccoes.json"
+VIZINHANCA_FILE = "data/vizinhanca.json"
 
 def get_faccoes() -> dict:
     if not os.path.exists(FACCOES_FILE):
@@ -512,3 +516,99 @@ def add_pontos_faccao(faccao: str, pontos: int):
     if faccao in faccoes:
         faccoes[faccao]["pontos"] += pontos
         _save_faccoes(faccoes)
+
+# ─────────────────────────────────────────────
+# VIZINHANÇA / CONDOMÍNIO
+# ─────────────────────────────────────────────
+
+def get_vizinhanca() -> dict:
+    dados = _load(VIZINHANCA_FILE)
+    if not dados:
+        dados = {}
+        from datetime import datetime
+        for n in range(1, 19):
+            dados[str(n)] = {
+                "numero": n,
+                "nome": f"Casa-{n}",
+                "id_canal": None,
+                "id_dono": None,
+                "lista_moradores": [],
+                "status_aluguel": "disponivel",
+                "data_aquisicao": None,
+                "ultima_cobranca": None,
+            }
+        _save(VIZINHANCA_FILE, dados)
+    else:
+        for n in range(1, 19):
+            chave = str(n)
+            if chave not in dados:
+                dados[chave] = {
+                    "numero": n,
+                    "nome": f"Casa-{n}",
+                    "id_canal": None,
+                    "id_dono": None,
+                    "lista_moradores": [],
+                    "status_aluguel": "disponivel",
+                    "data_aquisicao": None,
+                    "ultima_cobranca": None,
+                }
+        _save(VIZINHANCA_FILE, dados)
+    return dados
+
+def save_vizinhanca(data: dict):
+    _save(VIZINHANCA_FILE, data)
+
+def registrar_casa_canal(numero: int, canal_id: str):
+    dados = get_vizinhanca()
+    chave = str(numero)
+    if chave in dados:
+        dados[chave]["id_canal"] = canal_id
+        _save(VIZINHANCA_FILE, dados)
+
+def get_casa_by_canal(canal_id: str) -> dict | None:
+    dados = get_vizinhanca()
+    for chave, casa in dados.items():
+        if str(casa.get("id_canal", "")) == str(canal_id):
+            return casa
+    return None
+
+def cobrar_condominio_semanal() -> list[dict]:
+    """Cobra taxa semanal de todas as casas. Retorna lista de despejados."""
+    from datetime import datetime
+    dados = get_vizinhanca()
+    despejados = []
+    TAXA = 50
+    for chave, casa in dados.items():
+        dono_id = casa.get("id_dono")
+        if not dono_id:
+            continue
+        ultima = casa.get("ultima_cobranca")
+        if ultima:
+            diff = (datetime.utcnow() - datetime.fromisoformat(ultima)).total_seconds()
+            if diff < 6 * 24 * 3600:
+                continue
+        user = get_user(int(dono_id))
+        total = user.get("moedas", 0) + user.get("conta_banco", 0)
+        if total >= TAXA:
+            if user["moedas"] >= TAXA:
+                user["moedas"] -= TAXA
+            else:
+                resto = TAXA - user["moedas"]
+                user["moedas"] = 0
+                user["conta_banco"] = user.get("conta_banco", 0) - resto
+            casa["ultima_cobranca"] = datetime.utcnow().isoformat()
+            save_user(int(dono_id), user)
+        else:
+            despejados.append({"casa": int(chave), "dono_id": dono_id, "dados": dict(casa)})
+            n = int(chave)
+            dados[chave] = {
+                "numero": n, "nome": f"Casa-{n}",
+                "id_canal": casa.get("id_canal"),
+                "id_dono": None, "lista_moradores": [],
+                "status_aluguel": "disponivel",
+                "data_aquisicao": None, "ultima_cobranca": None,
+            }
+            user["casa_condominio"] = None
+            save_user(int(dono_id), user)
+    _save(VIZINHANCA_FILE, dados)
+    return despejados

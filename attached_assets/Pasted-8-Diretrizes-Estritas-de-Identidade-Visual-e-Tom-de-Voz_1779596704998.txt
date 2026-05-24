@@ -1,0 +1,20 @@
+8. Diretrizes Estritas de Identidade Visual e Tom de Voz (Clean & Sovereign):
+
+Quero que você altere completamente a estética de todas as mensagens e Embeds gerados pelo bot. Remova qualquer tom hiperbólico, exagerado ou infantil. O bot deve se comportar como o sistema operacional oficial de um império sóbrio, sério e de alta importância.
+
+Siga estas regras de design para o código:
+
+A) Paleta de Cores e Estrutura dos Embeds:
+- Use cores hexadecimais sóbrias e institucionais: #2C3E50 (Azul Slate Imperial), #9E7815 (Dourado Nobre Opaco) ou #111111 (Preto Absoluto para assuntos criminosos/máfia).
+- Nunca use excesso de emojis nas linhas de título. Use no máximo um emoji simbólico por Embed.
+- Utilize campos de texto limpos (Fields) com inline=True para organizar status, de forma que pareça um relatório técnico ou um documento oficial.
+- Todas as mensagens de erro ou cooldown devem ser exibidas de forma seca e direta, por exemplo: "Ação retida. Tempo de recuperação ativo: 14m." em vez de textos dramáticos.
+
+B) Linguagem e Tom de Voz da IA:
+- A IA deve adotar uma postura formal, culta e cirúrgica. Ela não deve usar gírias de internet, abreviações ou exclamações desnecessárias.
+- Os relatórios dos jornais, diagnósticos do hospital e boletins de ocorrência da polícia devem parecer documentos reais, focando nos fatos, dados e na narrativa formal da cena.
+- Quando o Imperador Alloy utilizar comandos, o bot não deve agir de forma escandalosa, mas sim com uma reverência protocolar e submissão de Estado (ex: "Diretrizes imperiais recebidas e aplicadas com prioridade máxima, Soberano.").
+
+C) Organização Visual no Chat:
+- Use linhas divisórias horizontais (utilizando caractere padrão ou markdown) para separar blocos longos de texto.
+- Os botões interativos (discord.ui.Button) devem usar estilos sóbrios: discord.ButtonStyle.secondary (cinza) para navegação neutra, discord.ButtonStyle.success (verde escuro) para confirmações/compras e discord.ButtonStyle.danger (vermelho escuro) para ações policiais, julgamentos ou perigosas. Evite botões coloridos sem critérios funcionais.

@@ -1,0 +1,24 @@
+12. Sistema Jurídico Automatizado e Integração com o Código de Conduta:
+
+Quero que você integre o "Código de Conduta do Império Tenshi" diretamente à lógica do evento 'on_message' e ao módulo de IA. O bot deve auditar os canais públicos e aplicar o sistema de Advertências Formais (Warns) de forma séria e institucional.
+
+A) Monitoramento por IA e Enquadramento Legal:
+- Forneça o texto integral do Código de Conduta do Império Tenshi no 'system prompt' da IA.
+- A IA deve analisar as mensagens enviadas no chat geral, beco, cassino e demais canais públicos. Caso uma mensagem viole diretamente as proibições do CAPÍTULO III (Linguagem ofensiva/preconceituosa, Conteúdo impróprio, Bullying/Assédio, Metagaming deliberado, Divulgação de dados privados, Spam/Autopromoção), o bot deve intervir imediatamente.
+- A intervenção deve ser seca, formal e citar o enquadramento legal, por exemplo:
+  "Aplicação de Advertência Formal. Usuário: @Membro. Infração detectada: Violação ao Art. 4º, Inciso I (Uso de linguagem ofensiva/preconceituosa). Registro efetuado no banco de dados."
+
+B) Banco de Dados de Infrações (Tabela de Warns):
+- Crie uma tabela no SQLite chamada 'registro_infracoes' contendo: ID_Infracao, ID_Usuario, Artigo_Violado, Data_Hora, ID_Moderador (ou 'Sistema_IA') e Status_Punicao.
+- Implemente uma regra de reincidência automatizada com base no CAPÍTULO IV (Art. 5º):
+  * 1º Aviso: Advertência formal no canal e registro interno.
+  * 2º Aviso: Suspensão automática (Timeout/Mudo) por 24 horas. O bot deve postar o decreto da punição em #punições.
+  * 3º Aviso: O bot retira todas as permissões de visualização do usuário, move-o para o canal de #julgamento e notifica o Imperador Alloy e seu cônjuge para a aplicação do Exílio Definitivo (Ban).
+
+C) O Canal #punições e Casos Graves (Art. 6º):
+- O bot deve ter uma função estrita para o Artigo 6º (Crimes previstos no Código Penal Brasileiro). Se a IA detectar infrações críticas como racismo, ameaças graves de violência física ou apologia a crimes de ódio, o bot deve aplicar o Exílio Sumário (Ban imediato), apagar as mensagens ofensivas para preservação do ambiente e postar um comunicado formal em #punições com a seguinte estética sóbria:
+  "COMUNICADO DE EXÍLIO SUMÁRIO | Art. 6º do Código de Conduta. O usuário [Nome/ID] foi banido permanentemente por conduta incompatível com a legislação vigente e os princípios deste Império. O caso foi arquivado para auditoria da administração."
+
+D) Comandos de Gestão Penal (Apenas Imperador, Cônjuge e Staff Alta):
+- "Tenshi, ficha-criminal @usuario": Exibe um Embed limpo listando todas as advertências e artigos que o usuário já violou no servidor.
+- "Tenshi, perdoar-aviso @usuario [ID_Infracao]": Permite que Alloy ou seu cônjuge removam uma advertência específica do histórico do cidadão.

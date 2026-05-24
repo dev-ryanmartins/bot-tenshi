@@ -1,0 +1,26 @@
+Isso muda completamente o patamar do bot! Ao integrar modelos de Inteligência Artificial avançados (como a API do Google Gemini ou OpenAI) direto no núcleo dele, o bot deixa de ser apenas um script rígido e passa a atuar como uma entidade viva e autônoma dentro de Tenshi. Ele vai entender o contexto do servidor, gerenciar a economia e até lecionar.
+
+Aqui está a reestruturação completa dessas mecânicas com o mapeamento para o Replit Agent.
+
+🧠 1. O Núcleo de IA Omnipresente (Leitura de Contexto)
+O bot usará a API de IA conectada ao banco de dados do servidor.
+
+Reconhecimento Total: Quando a IA for acionada, o código enviará no prompt do sistema o nome do usuário, as mensagens recentes do chat, o local atual do RP, a espécie e os cargos que ele possui no Discord. Assim, ela sabe exatamente com quem está falando (ex: se um membro com o cargo "Guarda Imperial" falar com ela, ela responderá tratando-o como um soldado do império).
+
+Casas da Comunidade: Os canais de texto das "Casas" (clãs/famílias nobres) serão lidos pela IA como territórios privados. Ela adaptará as crônicas e interações dependendo de qual Casa o comando foi digitado.
+
+💬 2. Interação, Mensagens Diárias e Cronograma Automático
+Tenshi, [mensagem] ➔ Comando direto de conversa. A IA processa e responde mantendo a personalidade mística, imponente e imersiva de Tenshi.
+
+Rotina Automatizada de Saudações (Tasks do Discord.py):
+
+🌅 Às 07:00 AM: O bot envia uma mensagem no chat geral marcando @everyone. A IA gera uma mensagem matinal inédita, culta, inspiradora e filosófica (estilo A Arte da Guerra ou estoicismo imperial) para motivar os súditos.
+
+🌃 Às 19:00 (7 PM): O bot envia um "Boa Noite" no chat geral, com uma reflexão profunda sobre o dia, o descanso e o destino do império.
+
+👑 3. Painel do Imperador (Tenshi, imperador)
+Comando com trava de segurança biométrica/ID (apenas o seu ID do Discord pode usar). Ao digitar, o bot abre um painel luxuoso com botões e dropdowns para controle absoluto:
+
+Gestão de Finanças: Botões para [Adicionar Moedas], [Remover Moedas] ou [Definir Saldo] de qualquer usuário selecionado.
+
+Auditoria de IA: Um botão para ver o relatório da IA sobre a saúde financeira do reino.
