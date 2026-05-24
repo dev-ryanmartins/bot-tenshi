@@ -40,6 +40,7 @@ from cogs.eras                 import Eras
 from cogs.clima_ia             import ClimaIA
 from cogs.academia             import Academia
 from cogs.infraestrutura_critica import InfraestruturaCritica
+from cogs.npcs                   import NPCs
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -82,6 +83,7 @@ eras_cog    = Eras(bot)
 clima_cog   = ClimaIA(bot)
 academia    = Academia(bot)
 infra       = InfraestruturaCritica(bot)
+npcs_cog    = NPCs(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
