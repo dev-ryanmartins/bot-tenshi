@@ -8,6 +8,7 @@ import re
 from datetime import datetime, timedelta
 from database import get_user, save_user, registrar_infracao, get_infrações, remover_infracao
 from utils import SEP, RODAPE_IMPERIAL, IMPERADOR_ID
+from ia_router import ia_analitica, ia_rapida
 
 COR_IMPERIAL = 0x2C3E50
 COR_PRETO    = 0x111111

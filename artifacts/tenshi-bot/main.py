@@ -995,6 +995,27 @@ async def on_message(message):
                  "aconselhar-estratégia", "conselheiro", "conselho-estrategico"):
         await psicologia.handle_aconselhar(message, args)
 
+    # ── STATUS DOS MOTORES DE IA ───────────────────────────────────────────────
+    elif cmd in ("status-ia", "status_ia", "motores-ia", "ia-status"):
+        from ia_router import status_motores
+        motores = status_motores()
+        linhas = []
+        for key, info in motores.items():
+            icone = "🟢" if info["ativo"] else "🔴"
+            linhas.append(f"{icone} **{key}** — `{info['modelo']}`")
+        embed = discord.Embed(
+            title="🧠 ⚙️ MOTORES DE IA — PAINEL IMPERIAL",
+            description=(
+                f"*Status em tempo real dos 8 motores de inteligência artificial.*\n{SEP}\n\n"
+                + "\n".join(linhas) +
+                f"\n\n{SEP}\n**🟢 Ativo** = chave configurada  •  **🔴 Inativo** = sem chave\n"
+                f"Use o fallback `GROQ_API_KEY` garante que o bot nunca fique sem IA."
+            ),
+            color=0x1A1A2E
+        )
+        embed.set_footer(text=f"⚙️ 8 Modelos Groq  •  {RODAPE_IMPERIAL}")
+        await message.channel.send(embed=embed)
+
     else:
         await message.channel.send(embed=embed_imperial(
             "❓ Não Reconhecido",

@@ -2,6 +2,7 @@ import discord
 import asyncio
 from utils import embed_imperial, IMPERADOR_ID, SEP, RODAPE_IMPERIAL
 from database import get_user, save_user
+from ia_router import ia_soberana, ia_analitica
 
 
 # ─────────────────────────────────────────────────────────────────────────────

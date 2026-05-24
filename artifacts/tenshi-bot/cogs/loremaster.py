@@ -1,12 +1,8 @@
 import discord
 import os
 import asyncio
-from groq import Groq
 from utils import embed_imperial, IMPERADOR_ID, SEP, RODAPE_IMPERIAL
-
-_groq_key = os.environ.get("GROQ_API_KEY")
-groq_client = Groq(api_key=_groq_key) if _groq_key else None
-MODELO = "llama-3.3-70b-versatile"
+from ia_router import ia_narrativa, ia_rapida, ia_analitica
 
 NICHOS = {
     "militar": {
@@ -117,9 +113,6 @@ async def _gerar(prompt: str, system: str = SYS_LORE,
     Protocol 23: Era Atual injetada em todos os prompts.
     Protocol 24: PT-BR estrito obrigatório em todas as saídas.
     """
-    if not groq_client:
-        return "*[O Oráculo dorme... a chave de IA não foi configurada.]*"
-
     era_ctx   = _build_era_context()
     sys_final = system
     if user_data:
@@ -130,16 +123,7 @@ async def _gerar(prompt: str, system: str = SYS_LORE,
     sys_final = f"{sys_final}\n\n{_PTBR_ENFORCE}"
 
     try:
-        r = groq_client.chat.completions.create(
-            model=MODELO,
-            messages=[
-                {"role": "system", "content": sys_final},
-                {"role": "user",   "content": prompt}
-            ],
-            max_tokens=800,
-            temperature=temperatura,
-        )
-        return r.choices[0].message.content.strip()
+        return await ia_narrativa(sys_final, prompt, max_tokens=800)
     except Exception as e:
         return f"*O Oráculo guarda silêncio por um momento... ({str(e)[:60]})*"
 

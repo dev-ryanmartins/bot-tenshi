@@ -8,6 +8,7 @@ import random
 from datetime import datetime, timedelta
 from database import get_user, save_user, calcular_nivel
 from utils import embed_imperial, SEP, RODAPE_IMPERIAL, CORES_PEGADA
+from ia_router import ia_rapida, ia_analitica
 
 COOLDOWN_TRABALHO = 45 * 60  # 45 minutos
 

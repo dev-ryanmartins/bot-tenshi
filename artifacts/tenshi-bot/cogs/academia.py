@@ -11,6 +11,7 @@ from design import (embed_doc, embed_soberano_decreto, embed_judicial,
                     embed_sucesso, embed_perigo_doc, embed_admin_doc,
                     fmt_moedas, COR_GERAL, COR_DECRETO, COR_JUDICIAL,
                     COR_ADMIN, COR_SUCESSO, COR_PERIGO, rodape_padrao)
+from ia_router import ia_analitica, ia_rapida
 
 ACADEMIA_FILE = "data/academia.json"
 CLUBES_FILE   = "data/clubes.json"

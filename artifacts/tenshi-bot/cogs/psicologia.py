@@ -8,12 +8,8 @@ import discord
 import os
 import asyncio
 import random
-from groq import Groq
 from utils import IMPERADOR_ID, SEP, RODAPE_IMPERIAL
-
-_groq_key = os.environ.get("GROQ_API_KEY")
-_groq_client = Groq(api_key=_groq_key) if _groq_key else None
-MODELO = "llama-3.3-70b-versatile"
+from ia_router import ia_analitica
 
 COR_ESTRATEGIA = 0x1A1A2E
 COR_DOURADO    = 0xB8860B
@@ -206,24 +202,8 @@ def _selecionar_autores_relevantes(dilema: str) -> list[tuple[str, str, list[str
 
 
 async def _chamar_groq(prompt_sistema: str, mensagem_usuario: str) -> str:
-    """Chama o Groq de forma assíncrona via thread."""
-    if not _groq_client:
-        return "⚠️ **Motor de IA offline.** Configure a variável `GROQ_API_KEY` nos secrets."
-
-    def _sync():
-        r = _groq_client.chat.completions.create(
-            model=MODELO,
-            messages=[
-                {"role": "system", "content": prompt_sistema},
-                {"role": "user",   "content": mensagem_usuario},
-            ],
-            max_tokens=1200,
-            temperature=0.75,
-        )
-        return r.choices[0].message.content.strip()
-
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _sync)
+    """Chama a IA analítica para pareceres estratégicos."""
+    return await ia_analitica(prompt_sistema, mensagem_usuario, max_tokens=1200)
 
 
 class Psicologia:

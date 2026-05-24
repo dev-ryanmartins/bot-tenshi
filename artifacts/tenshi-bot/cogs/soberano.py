@@ -16,6 +16,7 @@ from design import (embed_doc, embed_soberano_decreto, embed_admin_doc,
                     embed_crime_doc, fmt_moedas,
                     COR_GERAL, COR_DECRETO, COR_JUDICIAL, COR_CRIME,
                     COR_ADMIN, COR_SUCESSO, COR_PERIGO, COR_NEUTRO, rodape_padrao)
+from ia_router import ia_soberana, ia_narrativa, ia_relatorio
 
 # ─── ESTADO GLOBAL SOBERANO ───────────────────────────────────────────────────
 _economia_congelada    = False
