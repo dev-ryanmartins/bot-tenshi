@@ -188,8 +188,8 @@ async def on_message(message):
     conteudo       = message.content.strip()
     conteudo_lower = conteudo.lower()
 
-    # Saudação automática ao Imperador
-    if message.author.id == IMPERADOR_ID:
+    # Saudação automática ao Imperador (apenas em mensagens sem prefixo de comando)
+    if message.author.id == IMPERADOR_ID and not conteudo_lower.startswith(PREFIXO):
         await _saudar_imperador_se_necessario(message)
 
     # Invasão ativa
@@ -296,9 +296,6 @@ async def on_message(message):
 
     elif cmd in ("descansar", "rest"):
         await rpg.handle_descansar(message)
-
-    elif cmd in ("clima", "weather", "tempo"):
-        await rpg.handle_clima(message)
 
     elif cmd in ("trabalhar", "trabalho", "work"):
         # Atalho rápido para emprego

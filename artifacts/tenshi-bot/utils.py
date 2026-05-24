@@ -81,55 +81,96 @@ SITE_URL = "https://c5d65469-a79e-48a4-aa38-def706fcc844-00-3g7sob5uug1rk.janewa
 AJUDA_TEXTO = f"""
 {SEP}
 **🏛️ PERGAMINHOS IMPERIAIS DE TENSHI**
-*Prefixo: `Tenshi,`  •  RP de texto narrativo*
+*Prefixo: `Tenshi,`  •  RP de texto narrativo  •  7 Motores de IA*
 🌐 **Site oficial:** {SITE_URL}
 {SEP}
 
 **🎭 Identidade & Perfil**
-`status` `ficha` `pegada [tema]` `inventario` `conquistas`
+`status` `ficha` `criar-ficha` `pegada [tema]` `inventario` `conquistas` `especies` `viajar [local]` `local`
+
+**✨ Poderes de RP**
+`poderes` `meus-poderes`
 
 **⚡ Jornada Imperial**
-`treinar [ação narrativa]` `missao` `meditar` `descansar`
-`oraculo [pergunta]` `clima`
+`treinar [ação]` `missao` `meditar` `descansar` `interagir [ação]` `dado [d4/d6/d10/d20/d100]`
+`trabalhar` `emprego` `profissao [classe]` `clima`
 
-**💰 Economia & Comércio**
-`carteira` `banco` `depositar` `sacar` `transferir @user`
-`mercado` `mercado-negro` `trabalhar` `leilao [item]`
-`emprestimo` `pagar-divida` `historico`
-
-**🏠 Propriedades & Condomínio**
-`casas` `minha-casa` `vender-casa`
-`portaria` `residencia` `convidar @user` `expulsar @user`
-`devolver-casa` `moradores` `relaxar` `fofoca`
-
-**🏢 Tenshi Enterprise**
-`empresa criar/info/contratar/demitir/funcionarios/pagar`
-
-**👨‍👩‍👧 Família & Máfia**
-`familia criar/entrar/info/membros/missao/depositar`
-
-**⚔️ Facções**
-`entrar [facção]` `ranking`
+**📖 LoreMaster IA** *(Gerado por IA)*
+`cronica [militar/politico/esoterico/mafia/enterprise]`
+`evento-lore` `oraculo [pergunta]` `falar [NPC]` `lore-historico` `quadro-avisos`
 
 **🔮 Místico**
-`tarot` `runa` `astros` `destino @user` `sacrificio`
+`tarot` `runa` `astros` `destino @user` `sacrificio [item]` `ritual-protecao`
 
 **⚔️ Combate Narrativo**
-`duelo @user` `aceitar-duelo` `invocar-chefe [criatura]`
-`apostar [v] @user` `dado [d6/d20]`
+`duelo @user` `aceitar-duelo` `basquete @user` `futebol @user` `dado [tipo]`
+`invocar-chefe [criatura]` *(admin)* `invasao` *(admin)*
 
-**📖 LoreMaster IA**
-`cronica [militar/politico/esoterico/mafia/enterprise]`
-`evento-lore` `falar [NPC]` `lore-historico`
+**💰 Economia & Comércio**
+`carteira` `mercado` `mercado-negro` `comprar [item]` `leilao [item]` `sorteio-real` `trabalhar` `emprego`
 
-**🛡️ Moderação Imperial**
-`julgamento @user` `masmorra-prender @user [tempo]`
-`exilar @user` `anistia-real` `decreto [msg]`
-`promover @user [cargo]` `punir-audacia @user`
-`clear [n]` `ban` `kick` `mute`
+**🏦 Banco & Finanças**
+`banco` `depositar [v]` `sacar [v]` `transferir @user [v]` `emprestimo [v]` `pagar-divida` `historico`
+`poupanca [v]` `comprar-acoes [v]` `seguro-vida` `aposentar`
+
+**🏠 Propriedades & Condomínio**
+`casas` `minha-casa` `vender-casa` `portaria` `residencia` `convidar @user` `expulsar @user`
+`devolver-casa` `moradores` `relaxar` `fofoca` `trancar-casa` `destrancar-casa`
+
+**🚗 Garagem, Esportes & Pets**
+`garagem` `vender-veiculo` `abastecer [v]` `basquete @user` `futebol @user`
+`pet-shop` `meu-pet` `vender-pet` `pool-party` *(admin)*
+
+**💑 Social & Cotidiano**
+`casar @user` `divorcio` `lavanderia` `sintetizar [item]` `cartaz [filme]`
+`psicologo [texto]` `beber [bebida]` `jornal-cotidiano` `correio` `estacoes`
+`entrevista [cargo]` `socorrer @user` `vdd`
+
+**🕵️ Crime & Inteligência**
+`assaltar @user` `mercado-negro-beco` `subornar-porteiro @user`
+`grampear-call` `iniciar-festa [local]` `registrar-perola [msg]`
+
+**⚖️ Jurídico & Clero**
+`ficha-criminal @user` `warn @user` `perdoar-aviso @user` `mandado @user`
+`pagar-fianca` `imunidade-diplomatica` `padre [rito]` `sindicancia @user`
+`laudo-medico` `desintoxicacao` `doacao-sangue` `diagnostico-ia`
+
+**🌍 Geopolítica & Estado**
+`dominar [canal]` `territorio` `rebeliao` `visto` `cidadania` `exilio @user`
+`auditoria-bancaria` `necrolo` `aposentar` `buscar-protocolo`
+`set-era [nome]` `era` `decreto-marcial [ação]` `aconselhar-estrategia [sit.]`
+
+**🏗️ Infraestrutura Crítica**
+`status-energia` `inflacao` `comprar-acoes [v]` `poupanca [v]`
+`checar-cameras` `biometria` `rastrear-perfil @user` `enviar-carga [tipo]`
+`titulo-propriedade` `alugar-comercio`
+
+**🎓 Tenshi Academy**
+`matricular [mat.]` `trancar-matricula [mat.]` `presenca [mat.]` `iniciar-aula [mat.]`
+`ler-apostila [mat.]` `prestar-exame [mat.]` `historico-escolar` `segunda-via-diploma`
+`entrar-clube [nome]` `cofre-clube`
+
+**🏢 Empresa**
+`empresa criar/info/contratar/demitir/funcionarios/pagar`
+
+**👨‍👩‍👧 Família, Máfia & Facções**
+`familia criar/entrar/info/membros/missao/depositar` `entrar [facção]` `ranking`
+
+**🛡️ Moderação Imperial** *(Admin)*
+`decreto [msg]` `promover @user [cargo]` `punir-audacia @user` `julgamento @user`
+`masmorra-prender @user [min]` `exilar @user` `anistia-real` `trancar-portoes`
+`tesouro [v]` `veto [ação]` `ban` `kick` `mute [min]` `clear [n]` `warn @user`
+
+**👑 Prerrogativas Soberanas** *(Imperador)*
+`emitir-moeda` `confiscar-fortuna` `congelar-banco` `perdoar-divida` `isencao-fiscal`
+`set-status @user` `apagar-ficha` `conceder-item` `imortalidade`
+`estado-de-sitio` `dissolver-mafia` `anistia-geral` `exilio-supremo`
+`atualizar-diretriz` `apagar-memoria-ia` `forcar-cronica` `censo-imperial`
+`reset-era` `irradiar [msg]` `congelar-economia` `exportar-banco` `desligar`
 
 **🔧 Utilitários**
-`top` `servidor` `ping` `backup` `ajuda`
+`top` `servidor` `ping` `backup` `status-ia` `aniversario` `ajuda`
 {SEP}
+*🌐 Guia completo: {SITE_URL}*
 *{RODAPE_IMPERIAL}*
 """
