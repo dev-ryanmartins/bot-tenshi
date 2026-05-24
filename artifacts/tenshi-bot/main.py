@@ -3,7 +3,7 @@ import os
 import asyncio
 from datetime import datetime
 
-from keep_alive import keep_alive
+from keep_alive import keep_alive, set_bot
 from utils import PREFIXO, embed_imperial, AJUDA_TEXTO, IMPERADOR_ID, SEP, RODAPE_IMPERIAL
 from database import get_user, save_user
 
@@ -49,6 +49,7 @@ intents.members = True
 intents.guilds   = True
 
 bot = discord.Client(intents=intents)
+set_bot(bot)
 
 # ── Módulos ───────────────────────────────────────────────────────────────────
 rpg         = RPG(bot)

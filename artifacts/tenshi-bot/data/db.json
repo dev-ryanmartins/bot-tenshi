@@ -41,6 +41,9 @@
     "salario": 0,
     "familia_id": null,
     "cargo_familia": null,
-    "ficha": {}
+    "ficha": {},
+    "casa_condominio": null,
+    "fadiga": 0,
+    "ultimo_descanso_lazer": null
   }
 }

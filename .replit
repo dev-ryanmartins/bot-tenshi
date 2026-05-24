@@ -62,3 +62,6 @@ channel = "stable-25_05"
 
 [userenv.shared]
 IMPERADOR_ID = "619302798751694849"
+ADMIN_USERNAME = "alloy"
+ADMIN_PASSWORD = "Tenshi@Imperial2026"
+ADMIN_SECRET = "f80dbd6ec5e68165fd602692a1fb343862aab0f485241dea5328db2a6ea63ecd"
