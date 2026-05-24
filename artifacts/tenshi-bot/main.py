@@ -41,6 +41,7 @@ from cogs.clima_ia             import ClimaIA
 from cogs.academia             import Academia
 from cogs.infraestrutura_critica import InfraestruturaCritica
 from cogs.npcs                   import NPCs
+from cogs.psicologia             import Psicologia
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -84,6 +85,7 @@ clima_cog   = ClimaIA(bot)
 academia    = Academia(bot)
 infra       = InfraestruturaCritica(bot)
 npcs_cog    = NPCs(bot)
+psicologia  = Psicologia(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -226,6 +228,10 @@ async def on_message(message):
         # Logging para crônicas do cotidiano
         if any(c in canal_nome.lower() for c in ("geral", "praça", "praca")):
             cotidiano.registrar_mensagem_geral(canal_nome, conteudo[:200])
+        # Canal de Psicologia Estratégica — resposta automática da IA
+        if "psicologia" in canal_nome.lower() and "estrategia" in canal_nome.lower():
+            await psicologia.handle_canal_psicologia(message)
+            return
         await loremaster.handle_lore_natural(message, conteudo)
         return
 
@@ -981,6 +987,13 @@ async def on_message(message):
 
     elif cmd in ("decreto-climatico", "decreto_climatico", "forçar-clima"):
         await infra.cmd_decreto_climatico(message, args)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÓDULO 30 — PSICOLOGIA ESTRATÉGICA & CONSELHEIRO IMPERIAL
+    # ══════════════════════════════════════════════════════════════════════════
+    elif cmd in ("aconselhar-estrategia", "aconselhar_estrategia",
+                 "aconselhar-estratégia", "conselheiro", "conselho-estrategico"):
+        await psicologia.handle_aconselhar(message, args)
 
     else:
         await message.channel.send(embed=embed_imperial(
