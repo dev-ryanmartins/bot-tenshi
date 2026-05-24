@@ -1,0 +1,23 @@
+11. Módulo de Inteligência, Dinâmicas de Voz e Auditoria Automatizada:
+
+Quero que você adicione as seguintes mecânicas finais ao bot do Império Tenshi, integrando-as com os canais existentes e mantendo a linguagem técnica, limpa e imponente.
+
+A) Sistema de Espionagem e Contrabando (#chat-máfia, #beco e #portaria):
+- Comando "Tenshi, subornar-porteiro [Casa-X]". Um membro da Máfia pode pagar uma quantia massiva em moedas na #portaria para o bot liberar o acesso de leitura na respectiva casa por 1 hora, permitindo espionar o RP alheio.
+- Comando "Tenshi, grampear-call". Permite que um membro autorizado use moedas para fazer o bot registrar quem entrou e saiu de uma Staff Call ou chamada de Casa, gerando um relatório em texto das movimentações.
+
+B) Integração de Status com Chamadas de Voz (Calls -> #mudinhos, #conversas, #jogos):
+- Crie uma tarefa em segundo plano (background task) que monitora o tempo que os usuários passam conectados nas chamadas de voz.
+- Estar na call #mudinhos concede regeneração passiva de fadiga (Fadiga diminui 5% a cada 10 minutos).
+- Estar nas calls de #conversas ou #jogos concede um bônus passivo de +5% de Poder de Luta por hora, simulando a união e o treino da comunidade.
+
+C) Sistema de Festas Automatizado (Categoria Festas -> #festa-do-pijama, #balada):
+- Quando um ADM ativar o comando "Tenshi, iniciar-festa [balada / pijama / aniversario]", o bot altera as permissões das respectivas chamadas de voz para o público e envia um comunicado formal em Embed.
+- Durante a festa, o bot assume o controle e lança rodadas de perguntas e interações de "Verdade ou Desafio" formais e interpretativas através do canal #vdd-ou-desafio utilizando botões interativos.
+
+D) Jornalismo Investigativo Avançado e Registro de Pérolas (#jornal-policial, #pérolas-do-rp):
+- Sempre que um julgamento for concluído na moderação, a IA do bot deve formatar um "Acórdão Imperial" detalhado e arquivá-lo publicamente para consulta.
+- Comando "Tenshi, registrar-perola [Mensagem_ID]". Permite que a Staff salve diálogos marcantes ou históricos do servidor. O bot formata a mensagem original em um Embed luxuoso e a envia de forma definitiva para o canal #pérolas-do-rp.
+
+E) Sistema de Correio e Logs Confidenciais (#logs-correio):
+- Garanta que toda interação feita no sistema de Correio Anônimo passe por uma verificação de IA para bloquear links maliciosos ou termos que quebrem as diretrizes do Discord. O relatório limpo deve ser espelhado imediatamente no canal secreto #logs-correio para fins de auditoria de segurança da Staff.

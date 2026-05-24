@@ -1,0 +1,71 @@
+21. Módulo de Alta Burocracia, Logística Ferroviária Expandida e Segurança de Estado (50 Funcionalidades Inéditas):
+
+Implemente este bloco final de 50 funcionalidades mecânicas no bot do Império Tenshi. O código deve utilizar Cogs modulares, persistência estrita no banco SQLite e o motor de IA para variação e modulação contextual absoluta de todas as saídas de texto.
+
+--- BLOCO 1: SINALIZAÇÃO E ENGENHARIA FERROVIÁRIA (#estação-de-trem) ---
+1. Sistema de Linhas Concorrentes: O bot gerencia o tráfego da estação. Se duas viagens de trem ocorrerem para o mesmo destino simultaneamente, a IA calcula um tempo de espera (cooldown) de 5 minutos por engarrafamento de linha.
+2. Manutenção de Trilhos Rúnicos: Engenheiros da Tenshi Enterprise podem executar o comando "Tenshi, reparar-trilhos" para remover falhas na linha, recebendo moedas do Tesouro Real.
+3. Descarregamento Automático de Cargas: Trens cargueiros que chegam na estação transferem automaticamente minérios da máfia para o #depósito-dos-clubes ou para o #banco.
+4. Bilhetagem Eletrônica por Cargo: O bot verifica os cargos do usuário. Estudantes da Tenshi Academy têm 50% de desconto automático na passagem de trem para a estação-4-escola.
+5. Painel de Horários em Tempo Real: Um Embed estático atualizado pelo bot que exibe quais usuários estão atualmente em trânsito e o tempo restante para a chegada na respectiva estação.
+
+--- BLOCO 2: ADMINISTRAÇÃO PATRIMONIAL E LEILÕES PÚBLICOS (#portaria e #banco) ---
+6. Registro de Títulos de Propriedade: O bot gera um código hash único para cada casa comprada (casa-1 a casa-18), funcionando como uma escritura digital no SQLite.
+7. Sistema de Despejo por Inadimplência Condominial: Se o saldo bancário do morador zerar e não cobrir a taxa semanal, os itens do inventário guardados na casa são movidos automaticamente para o depósito público do banco.
+8. Imposto sobre Transmissão de Bens (ITBI): Transferir a propriedade de uma casa para outro jogador via comando cobra uma taxa de 5% sobre o valor venal do imóvel, revertida para o Trono.
+9. Sistema de Hipoteca Imobiliária: O banco pode conceder grandes empréstimos utilizando a casa do usuário como garantia. Se a dívida caducar, o Trono assume a propriedade.
+10. Histórico de Ocupação de Imóveis: Comando que exibe a lista de todos os ex-proprietários de uma determinada casa e os crimes ou eventos associados àquele perímetro.
+
+--- BLOCO 3: INTELIGÊNCIA PENAL E OPERAÇÕES TÁTICAS (#departamento-policial e #beco) ---
+11. Sistema de Fiança Judicial: Magistrados ou o Trono podem definir um valor em moedas para liberar um preso do departamento policial antes do tempo de timeout expirar.
+12. Banco de Dados de Balística e Armas: Quando uma arma é forjada no laboratório, ela recebe uma assinatura digital. Se for usada em um assalto no beco, a perícia pode rastrear o criador do item.
+13. Mandado de Condução Coercitiva: Comando que força um usuário a ser movido temporariamente para o canal de julgamento ou sala do conselho estudantil para prestar depoimentos.
+14. Sistema de Recompensa por Captura de Mafiosos: O Trono pode colocar um prêmio automático na cabeça de membros da máfia que executarem contratos ilegais de alto nível.
+15. Protocolo de Destruição de Evidências: Membros da máfia podem tentar usar comandos no beco para apagar vestígios de crimes do banco de dados antes que a perícia policial chegue.
+
+--- BLOCO 4: LOGÍSTICA DE VEÍCULOS E INFRAESTRUTURA DE GARAGEM (#garagem) ---
+16. Sistema de Desgaste de Pneus/Componentes: Veículos usados em viagens perdem durabilidade. O reparo deve ser feito na garagem usando ferro coletado da sucata.
+17. Customização Estética de Placas e Nomes: Permite ao dono do veículo pagar uma taxa para dar um nome personalizado ao seu transporte, exibido no comando status.
+18. Sistema de Guincho Automático: Veículos deixados em estações ou canais públicos por mais de 48 horas sem uso são rebocados para a garagem, cobrando uma taxa de liberação.
+19. Capacidade de Carga Expandida: Carros pesados liberam slots extras no comando inventário do usuário, permitindo carregar mais consumíveis da cafeteria.
+20. Sistema de Alarme Automotivo: Proteção mecânica comprada na lojinha que diminui em 50% a chance de um membro da máfia roubar o veículo de dentro da garagem.
+
+--- BLOCO 5: MEDICINA FORENSE, TOXICOLOGIA E DETOX (#hospital) ---
+21. Autópsia Forense por IA: Quando um personagem sofre morte definitiva, a IA gera um laudo detalhado indicando os atributos do assassino, a arma usada e o horário exato do óbito.
+22. Sistema de Sequelas Temporárias: Perder um duelo com menos de 5% de HP deixa o usuário com o status "Fraturado", diminuindo sua agilidade em 20% mesmo após sair do hospital.
+23. Farmácia de Manipulação Hospitalar: Alquimistas contratados do hospital podem criar remédios específicos para zerar o status de quarentena de forma imediata.
+24. Registro de Doadores de Órgãos Místicos: Jogadores podem assinar um termo no hospital. Se morrerem, uma porcentagem de seus pontos de atributo é distribuída para o clube que patrocinavam.
+25. Sistema de Internação Compulsória: A polícia pode internar usuários com nível de embriaguez extrema do bar para evitar que poluam o chat geral com caracteres embaralhados.
+
+--- BLOCO 6: PROTOCOLOS LITÚRGICOS E ALTA SOCIEDADE (#casamento e #regas) ---
+26. Contrato de Separação Obrigatória de Bens: Aplicado automaticamente se um dos noivos tiver histórico criminal ativo no jornal policial, protegendo o patrimônio da outra parte.
+27. Sistema de Herança de Pets: Em caso de morte do personagem, o pet cadastrado no banco de dados é transferido automaticamente para o inventário do cônjuge.
+28. Protocolo de Luto Oficial: Comando de Alloy que altera a cor de todos os Embeds do bot para preto absoluto por 24 horas em sinal de respeito ao falecimento de uma alta patente.
+29. Registro de Títulos Nobiliárquicos Hereditários: Permite que os títulos de nobreza concedidos por Alloy passem para o cônjuge ou aliados em caso de reset de era.
+30. Sistema de Banimento Político da Corte: O Soberano pode retirar os direitos de voto e participação de um usuário em votações oficiais sem precisar bani-lo do servidor.
+
+--- BLOCO 7: ENGENHARIA REVERSA E SEGURANÇA DIGITAL (#laboratório e #clube-de-programação) ---
+31. Decodificação de Grampos Eletrônicos: Programadores avançados podem tentar descobrir quem instalou um grampo eletrônico em uma call de voz usando ferramentas do clube.
+32. Sistema de Antivírus de Rede Condominial: Donos de casas de elite podem rodar varreduras digitais para remover spywares instalados por membros da máfia.
+33. Engenharia Reversa de Implantes Cibernéticos: Permite desmontar melhorias corporativas no laboratório para recuperar 50% dos materiais raros investidos.
+34. Sistema de Resposta a Incidentes Cibernéticos (CSIRT): Alerta automático enviado para a staff se a IA detectar tentativas em massa de comandos de hack contra o banco central.
+35. Síntese de Aditivos de Combustível Místico: Alquimistas podem criar compostos que aumentam a durabilidade dos veículos na garagem em até 30%.
+
+--- BLOCO 8: CORREIO E CONTRATOS ANÔNIMOS (#criar-correio e #logs-correio) ---
+36. Sistema de Rastreamento de Selos Postais: Cada correio anônimo recebe um número de rastreio. A staff pode usar esse número em #logs-correio para auditar a rota da mensagem.
+37. Filtro Antispam por IA no Correio: A IA bloqueia o envio de mensagens repetitivas ou links de convite através do correio anônimo automaticamente.
+38. Sistema de Cobrança Postal: Enviar cartas anônimas consome uma pequena taxa de moedas para evitar flood no canal #correio-anônimo.
+39. Arquivamento de Cartas Históricas: O bot salva as cartas anônimas mais marcantes do servidor em um banco de dados de memórias imperiais acessível pela staff.
+40. Contratos de Entrega Veloz: Permite pagar uma taxa extra de moedas para que o correio anônimo ignore o cooldown padrão de envio e chegue instantaneamente ao destino.
+
+--- BLOCO 9: SUPREMACIA E SOBERANIA SUPREMA (Exclusivos do Imperador Alloy) ---
+41. "Tenshi, congelar-tudo": Trava a escrita de todas as categorias, canais de voz, transferências bancárias e sistemas de RPG simultaneamente em caso de crise máxima.
+42. "Tenshi, expurgar-criminosos": Deleta o histórico de warns e infrações apenas de usuários leais, mantendo o banco de dados limpo e focado em alvos estratégicos.
+43. "Tenshi, revogar-alvara-geral": Fecha instantaneamente todos os comércios da cidade (cafeteria, sorveteria, bar) e transfere os estoques para o Trono.
+44. "Tenshi, auditoria-geral-banco": Gera uma planilha em texto com o saldo exato de todas as carteiras e contas poupança do servidor para controle fiscal absoluto.
+45. "Tenshi, override-permissao @usuario [Canal]": Concede acesso de visualização de um canal trancado para um usuário específico de forma manual e vitalícia.
+46. "Tenshi, status-sistema": Fornece o diagnóstico em tempo real da CPU do Replit, latência com os servidores do Discord e integridade dos arquivos do SQLite.
+47. "Tenshi, reset-parcial-economia": Mantém os itens e casas dos usuários, mas zera todas as carteiras e saldos do banco para controle de inflação.
+48. "Tenshi, decreto-clomatico [Clima]": Força a alteração do clima global no canal #clima para qualquer condição desejada de forma imediata.
+49. "Tenshi, bans-lista": Exibe a lista completa de usuários exilados definitivamente com os respectivos IDs e artigos violados do Código de Conduta.
+50. "Tenshi, soberania-total": Ativa um protocolo de segurança máxima no código que impede que qualquer linha dos Cogs de Alloy seja modificada ou anulada por erros do sistema, garantindo a execução prioritária de suas ordens.

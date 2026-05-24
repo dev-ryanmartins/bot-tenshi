@@ -1,0 +1,59 @@
+20. Módulo de Operações de Contingência, Logística Urbana Especializada e Alta Sociedade (40 Funcionalidades Inéditas):
+
+Implemente este bloco de 40 funcionalidades mecânicas no bot do Império Tenshi. O código deve utilizar Cogs dedicados, persistência estrita no banco SQLite e o motor de IA para variação e modulação contextual absoluta de todas as saídas de texto.
+
+--- BLOCO 1: INFRAESTRUTURA DE COMUNICAÇÕES E CRIPTOGRAFIA (#tenshi-enterprise e #clube-de-programação) ---
+1. Sistema de Criptografia Rúnica de Mensagens: Permite que membros do Trono ou alta liderança enviem códigos embaralhados que apenas usuários com o cargo correspondente (Chave Decodificadora) conseguem ler no chat.
+2. Manutenção de Repetidores de Sinal: Engenheiros da Tenshi Enterprise podem executar patrulhas técnicas para consertar torres de transmissão. Falhas não reparadas aumentam o tempo de resposta da IA em canais periféricos.
+3. Protocolo de Bloqueio de Frequência (Jammer): Comando exclusivo da polícia ou Trono para desativar temporariamente o uso de comandos eletrônicos ou tecnológicos na categoria Máfia ou Beco por 30 minutos.
+4. Registro de Logs de Dispositivos: O bot rastreia o "modelo místico" do dispositivo usado pelos usuários nas ações de hack, gerando evidências digitais para investigações policiais.
+5. Sistema de Backup de Dados em Nuvem Mística: Uma rotina automatizada que salva snapshots semanais do progresso acadêmico dos alunos da academia para evitar perda de diplomas em caso de ataques de malware no RPG.
+
+--- BLOCO 2: DINÂMICAS IMOBILIÁRIAS COMERCIAIS E NEGÓCIOS (#portaria e #loja) ---
+6. Aluguel de Espaços Comerciais: Usuários podem alugar a #cafeteria, #sorveteria ou o #bar por uma semana. O locatário recebe 5% de todas as moedas gastas por outros membros naquele estabelecimento durante o contrato.
+7. Sistema de Licenciamento de Franquias: Para gerenciar um comércio da cidade, o cidadão deve pagar uma taxa de alvará de funcionamento diretamente ao Trono de Alloy via #portaria.
+8. Reputação Comercial do Estabelecimento: Avaliações automatizadas da IA baseadas no fluxo de clientes aumentam ou diminuem a eficácia dos consumíveis vendidos no local.
+9. Contratos de Fornecimento Alquímico: Comerciantes da cafeteria podem assinar contratos com membros do clube de ciências para comprar reagentes em lote com desconto automático no banco.
+10. Execução de Despejo Comercial Comercial: O não pagamento da taxa de alvará faz o bot confiscar o estoque do comércio e fechar o canal para o público até a regularização.
+
+--- BLOCO 3: INTELIGÊNCIA OPERACIONAL DA MÁFIA E CONTRABANDO (#chat-máfia e #beco) ---
+11. Rotas de Fuga Subterrâneas: Membros da Máfia podem comprar mapas no mercado negro que liberam comandos ocultos de fuga rápida, anulando prisões automáticas no #beco.
+12. Sistema de Falsificação de Diplomas: Especialistas em programação ou falsificadores da máfia podem tentar criar certificados falsos para burlar a contratação de empregos na #portaria, sob risco de prisão sumária por fraude.
+13. Contratos de Proteção de Cargas: Comerciantes podem contratar mafiosos como escolta para garantir que suas mercadorias despachadas de trem não sejam confiscadas na alfândega.
+14. Sistema de Agiotagem Clandestina: Permite que a máfia empreste Moedas Imperiais para usuários comuns com taxas extorsivas, utilizando comandos de coerção mística para confiscar bens passivamente caso o alvo não pague.
+15. Lavagem de Riquezas via Cassino: Mecânica que permite apostar moedas de origem ilegal em jogos específicos do #cassino para transformá-las em fundos limpos e auditados pelo banco.
+
+--- BLOCO 4: TRANSPORTE DE CARGAS PERIGOSAS E AVIAÇÃO RESTRITA (#garagem) ---
+16. Transporte de Reagentes Instáveis: Veículos pesados cadastrados na garagem podem transportar materiais explosivos ou tóxicos. Acidentes climáticos no trem geram explosões que danificam o inventário do condutor.
+17. Sistema de Radar Aéreo e Defesa de Perímetro: O Trono ou generais podem instalar defesas automáticas que interceptam e barram viagens de veículos aéreos não autorizados sobre a Cidadela Branca.
+18. Licenciamento Anual de Veículos: Todo veículo deve passar por uma inspeção mecânica paga na garagem. Veículos sem licença sofrem penalidades severas de consumo de combustível místico.
+19. Despacho Internacional de Bagagens: Permite enviar itens diretamente para o inventário de jogadores que estão em localizações distantes (viajando pelo mundo), cobrando tarifas logísticas proporcionais à distância do RP.
+20. Sistema de Pedágio Automatizado por Tag: Veículos de luxo podem instalar um chip que debita automaticamente as taxas de estrada direto da conta corrente do banco, evitando paradas na viagem de trem.
+
+--- BLOCO 5: MEDICINA LEGAL, TOXICOLOGIA E DETOX (#hospital) ---
+21. Exame de Dosagem de Substâncias: A polícia pode forçar um usuário a fazer um teste no hospital para verificar se ele está sob efeito de substâncias proibidas do mercado negro ou bebidas do bar.
+22. Protocolo de Desintoxicação Clínica: Usuários com alto nível de embriaguez do bar ou envenenamento severo podem pagar um tratamento de choque na #enfermaria para resetar os modificadores de texto imediatamente.
+23. Banco de Sangue e Doações Místicas: Jogadores podem doar vida (HP) no hospital em troca de Moedas Imperiais. O sangue armazenado é usado para acelerar a recuperação de aliados de alta patente internados.
+24. Certidão de Óbito e Inventário Forense: Quando um personagem morre definitivamente, o hospital emite um relatório detalhado com a causa mortis, enviando os pertences resgatados para o cofre de auditoria do Trono.
+25. Sistema de Triagem por Gravidade: Pacientes que chegam na ambulância com menos de 10% de HP têm prioridade absoluta no atendimento da enfermaria, jogando jogadores com fadiga leve para o final da fila de cooldown.
+
+--- BLOCO 6: PROTOCOLOS DA ALTA CORTE E DINÂMICAS DE PRESTÍGIO (#casamento) ---
+26. Contrato de Sucessão Imperial: O casamento de Alloy pode incluir uma cláusula de herança política, garantindo que em caso de ausência temporária do Soberano, o cônjuge assuma a regência total do bot com o comando 'Tenshi, regente'.
+27. Registro de Divórcio Litigioso: Caso uma das partes recuse o divórcio por botões, o processo vai para o tribunal dos Magistrados. O juiz de IA decide a partilha de moedas com base no histórico de comportamento e fidelidade dos envolvidos no Código de Conduta.
+28. Protocolo de Baile de Gala Imperial: Comando de evento que altera temporariamente o design do #GERAL para o modo 'Salão Nobre', onde apenas mensagens com formatação refinada (Embeds ou aspas de bloco) são permitidas por 1 hora.
+29. Sistema de Patrocínio de Clubes: Famílias nobres ou o casal real podem investir moedas diretamente no depósito dos clubes da academia para aumentar permanentemente a eficácia dos bônus de seus membros.
+30. Concessão de Asilo Político Interno: O Soberano pode decretar que um usuário foragido da máfia ou da polícia receba abrigo na Sala do Trono, suspendendo temporariamente qualquer mandado de busca ou prisão contra ele.
+
+--- BLOCO 7: ALTA TECNOLOGIA, ENGENHARIA REVERSA E INTELIGÊNCIA ARTIFICIAL (#laboratório) ---
+31. Engenharia Reversa de Armas Máfia: Permite ao clube de ciências desmontar itens ilegais apreendidos pela polícia no #laboratório para aprender a receita de forja e criar versões legalizadas para o império.
+32. Calibração de Armaduras de Guarda: Especialistas em programação podem ajustar os scripts dos autômatos de guarda das casas para aumentar sua taxa de sucesso contra ladroes em até 15%.
+33. Sistema de Hack a Contas Bancárias Individuais: Comandos avançados no clube de programação permitem tentar desviar quantias pequenas de carteiras de usuários inativos, gerando alertas imediatos para a perícia policial.
+34. Instalação de Firewall de Rede Condominial: Donos de casas de elite podem comprar proteção digital na portaria para anular tentativas de espionagem ou grampos eletrônicos em seus chats privados.
+35. Síntese de Combustível de Alta Performance: Alquimistas seniores podem combinar reagentes raros para criar supercombustíveis que anulam completamente o cooldown do comando de viagem por 24 horas.
+
+--- BLOCO 8: FERRAMENTAS DE SUPREMACIA TOTAL E SOBERANIA (Exclusivos de Alloy) ---
+36. "Tenshi, congelar-banco-central": Interrompe instantaneamente todas as operações do banco, impedindo qualquer transação comercial no servidor durante auditorias de alta segurança.
+37. "Tenshi, expurgar-fichas-inativas [dias]": Faz uma limpa profunda no SQLite, deletando dados de usuários que não registram atividade de comandos no prazo estipulado, liberando armazenamento no Replit.
+38. "Tenshi, decreto-marcial": Altera o system prompt de todas as instâncias de IA nos canais da cidade, fazendo-as adotar uma postura extremamente fria, agressiva e policialesca para conter crises de RP.
+39. "Tenshi, confiscar-veiculo @usuario": Remove instantaneamente o direito de posse de qualquer carro ou moto cadastrado na garagem do alvo, transferindo-o para a frota privada do Trono.
+40. "Tenshi, reescrever-registro [ID_Protocolo] [Novo_Texto]": Permite ao Soberano alterar manualmente qualquer histórico criminal ou log salvo pelo sistema para fins de reestruturação narrativa ou política de Estado.

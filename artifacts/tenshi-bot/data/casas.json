@@ -1,0 +1,74 @@
+{
+  "chalé_sombras": {
+    "nome": "Chalé das Sombras",
+    "emoji": "🏚️",
+    "tipo": "Modesta",
+    "preco": 300,
+    "dono": null,
+    "descricao": "Uma cabana humilde nas bordas do Império. Simples, mas segura.",
+    "comodos": 2
+  },
+  "mansão_imperial": {
+    "nome": "Mansão Imperial",
+    "emoji": "🏛️",
+    "tipo": "Nobre",
+    "preco": 1500,
+    "dono": "619302798751694849",
+    "descricao": "Uma mansão de mármore branco com jardins eternos e salões dourados.",
+    "comodos": 10
+  },
+  "torre_esotérica": {
+    "nome": "Torre Esotérica",
+    "emoji": "🗼",
+    "tipo": "Mística",
+    "preco": 800,
+    "dono": null,
+    "descricao": "Uma torre negra que toca as nuvens, onde segredos antigos pulsam nas paredes.",
+    "comodos": 5
+  },
+  "forte_fronteira": {
+    "nome": "Forte da Fronteira",
+    "emoji": "🏰",
+    "tipo": "Militar",
+    "preco": 600,
+    "dono": null,
+    "descricao": "Uma fortaleza nas bordas do Império. Construída para guerreiros, por guerreiros.",
+    "comodos": 6
+  },
+  "villa_nobreza": {
+    "nome": "Villa da Nobreza",
+    "emoji": "🏡",
+    "tipo": "Luxuosa",
+    "preco": 1000,
+    "dono": null,
+    "descricao": "Uma villa elegante com vinhedos, lagoa particular e aposentos imponentes.",
+    "comodos": 8
+  },
+  "palácio_sombrio": {
+    "nome": "Palácio Sombrio",
+    "emoji": "🏯",
+    "tipo": "Lendária",
+    "preco": 3000,
+    "dono": null,
+    "descricao": "O palácio mais imponente de Tenshi. Apenas os mais poderosos ousam habitá-lo.",
+    "comodos": 20
+  },
+  "cabana_floresta": {
+    "nome": "Cabana da Floresta Negra",
+    "emoji": "🌲",
+    "tipo": "Rústica",
+    "preco": 200,
+    "dono": null,
+    "descricao": "Escondida entre árvores milenares. Perfeita para quem busca paz e mistério.",
+    "comodos": 2
+  },
+  "covil_mafia": {
+    "nome": "Covil da Máfia",
+    "emoji": "🏢",
+    "tipo": "Clandestina",
+    "preco": 900,
+    "dono": null,
+    "descricao": "Um QG secreto com entradas ocultas, cofres e salas de reunião blindadas.",
+    "comodos": 7
+  }
+}

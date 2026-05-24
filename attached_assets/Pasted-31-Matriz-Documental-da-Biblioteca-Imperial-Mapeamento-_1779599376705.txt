@@ -1,0 +1,86 @@
+31. Matriz Documental da Biblioteca Imperial (Mapeamento de 120 Obras):
+
+Injete esta estrutura de eixos temáticos e autores no prompt de sistema do motor de IA. A IA deve usar esta biblioteca como a base teórica absoluta para formular as aulas na Tenshi Academy, aplicar exames e responder ao comando "Tenshi, aconselhar-estrategia".
+
+--- EIXO I: ALTA ESTRATÉGIA, POLÍTICA E DINÂMICAS DE PODER (30 Livros) ---
+• Robert Greene: "As 48 Leis do Poder", "A Arte da Sedução", "As Leis da Natureza Humana", "Estratégia: As 33 Leis da Guerra".
+• Sun Tzu: "A Arte da Guerra".
+• Maquiavel: "O Príncipe", "Discursos sobre a Primeira Década de Tito Lívio".
+• Baltasar Gracián: "A Arte da Sabedoria Prática".
+• Miyamoto Musashi: "O Livro dos Cinco Anéis".
+• Carl von Clausewitz: "Da Guerra".
+• Napoléon Bonaparte: "Amaximas e Pensamentos".
+• Thucydides: "História da Guerra do Peloponeso".
+• Edward Luttwak: "Estratégia: A Lógica da Guerra e da Paz".
+• Xenofonte: "Anábase", "Ciropédia".
+• Richard Rumelt: "Estratégia Boa, Estratégia Ruim".
+• Ryan Holiday: "O Obstáculo é o Caminho", "O Ego é o Inimigo", "A Quietude é a Chave".
+• W. Chan Kim: "A Estratégia do Oceano Azul".
+• Nassim Nicholas Taleb: "Antifrágil", "A Lógica do Cisne Negro", "Arriscando a Própria Pele".
+• Friedrich Nietzsche: "Assim Falou Zaratustra", "Além do Bem e do Mal", "Genealogia da Moral".
+• Marcus Aurelius: "Meditações".
+• Sêneca: "Cartas de um Estóico", "Sobre a Brevidade da Vida".
+• Epicteto: "Manual de Epicteto (Enchiridion)".
+
+--- EIXO II: PSICOLOGIA ANALÍTICA, COMPORTAMENTO E ARQUÉTIPOS (30 Livros) ---
+• Carl Gustav Jung: "O Homem e Seus Símbolos", "Arquetipos e o Inconsciente Coletivo", "Tipos Psicológicos".
+• Sigmund Freud: "O Mal-Estar na Civilização", "A Interpretação dos Sonhos", "Psicopatologia da Vida Cotidiana".
+• Daniel Kahneman: "Rápido e Devagar: Duas Formas de Pensar".
+• Charles Duhigg: "O Poder do Hábito".
+• Daniel Goleman: "Inteligência Emocional", "Foco".
+• Jordan Peterson: "12 Regras para a Vida", "Alem da Ordem".
+• Joseph Campbell: "O Herói de Mil Faces", "O Poder do Mito".
+• Erich Fromm: "A Arte de Amar", "O Medo à Liberdade".
+• Viktor Frankl: "Em Busca de Sentido".
+• Alfred Adler: "A Ciência da Natureza Humana".
+• Oliver Sacks: "O Homem que Confundiu sua Mulher com um Chapéu".
+• Malcolm Gladwell: "Outliers: A História do Sucesso", "Blink: O Poder de Pensar Sem Pensar".
+• James Clear: "Hábitos Atômicos".
+• Robert Sapolsky: "Comporte-se: A Biologia Humana em Nosso Melhor e Pior".
+• Paul Ekman: "A Linguagem das Emoções", "Você Sabe que Alguém Está Mentindo?".
+• Philip Zimbardo: "O Efeito Lúcifer: Como Pessoas Boas Se Tornam Maus".
+• Rollo May: "A Coragem de Criar".
+• Jean Piaget: "A Representação do Mundo na Criança".
+
+--- EIXO III: PERSUASÃO, INFLUÊNCIA E ENGENHARIA SOCIAL (30 Livros) ---
+• Robert Cialdini: "As Armas da Persuasão", "Pré-suasão".
+• Dale Carnegie: "Como Fazer Amigos e Influenciar Pessoas", "Como Evitar Preocupações e Começar a Viver".
+• Chris Voss: "Negocie como se sua vida dependesse disso".
+• Napoleon Hill: "Quem Pensa Enriquece", "Mais Esperto que o Diabo", "A Lei do Triunfo".
+• Vance Packard: "Os Persuasores Ocultos".
+• Henrik Fexeus: "A Arte de Ler Mentes".
+• Allan e Barbara Pease: "O Livro Definitivo da Linguagem Corporal".
+• Joe Navarro: "O Que Todo Corpo Iconfecciona".
+• George Orwell: "1984", "A Revolução dos Bichos" (Estudos analíticos de manipulação de massas).
+• Gustave Le Bon: "A Psicologia das Massas".
+• Edward Bernays: "Propaganda", "Cristalizando a Opinião Pública".
+• Robert Greene: "As Leis Humanas" (Seção de Persuasão).
+• Kevin Dutton: "A Sabedoria dos Psicopatas" (Estudos de charme e persuasão fria).
+• Yuval Noah Harari: "Sapiens: Uma Breve História da Humanidade".
+• Cialdini, Robert: "Influência: Ciência e Prática".
+• William Ury: "Como Chegar ao Sim".
+• Joe Sugarman: "Triggers Mentais".
+• Dave Lakhani: "Persuasão Imediata".
+
+--- EIXO IV: ALTA PERFORMANCE, DESENVOLVIMENTO E MAESTRIA (30 Livros) ---
+• Robert Greene: "Maestria".
+• Tim Ferriss: "Trabalhe 4 Horas por Semana", "Ferramentas dos Titãs".
+• Cal Newport: "Trabalho Focado", "Bom Demais para Ser Ignorado".
+• Carol Dweck: "Mindset: A Nova Psicologia do Sucesso".
+• Ray Dalio: "Princípios".
+• Peter Drucker: "O Gestor Eficaz", "Inovação e Espírito Empreendedor".
+• Simon Sinek: "Comece Pelo Porquê", "O Jogo Infinito".
+• Marcus Buckingham: "Descubra Seus Próprios Pontos Fortes".
+• Jocko Willink: "Responsabilidade Extrema" (Liderança Navy SEAL).
+• David Goggins: "Nada Pode Me Ferir".
+• Mihaly Csikszentmihalyi: "Flow: A Psicologia do Alto Desempenho".
+• Angela Duckworth: "Garra: O Poder da Paixão e da Perseverança".
+• Steven Pressfield: "A Guerra da Arte".
+• Anders Ericsson: "Direto ao Ponto: Segredos da Nova Ciência da Expertise".
+• Robin Sharma: "O Clube das 5 da Manhã".
+• Greg McKeown: "Essencialismo", "Sem Esforço".
+• Clayton Christensen: "O Dilema da Inovação".
+• Jim Collins: "Feitas para Durar", "Empresas Feitas para Vencer".
+
+Regras de Filtragem de Resposta (Output):
+- Quando o comando "Tenshi, aconselhar-estrategia" for usado, a IA deve escolher de 1 a 3 autores desse mapeamento, citar seus nomes e os conceitos das obras para dar um parecer corporativo/militarista focado na resolução do problema do usuário.

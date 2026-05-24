@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "D2dHleTnsQ0zhXcqdqOH7"
+uri = "file://artifacts/tenshi-site/public/hero-bg.png"
+type = "image"
+title = "Dark medieval imperial court hall"

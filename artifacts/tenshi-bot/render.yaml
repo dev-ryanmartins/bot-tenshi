@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: bot-tenshi
+    runtime: python
+    rootDir: artifacts/tenshi-bot
+    buildCommand: pip install --no-user -r requirements.txt
+    startCommand: python main.py
+    plan: free
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: IMPERADOR_ID
+        value: "619302798751694849"
+      - key: PIP_USER
+        value: "0"

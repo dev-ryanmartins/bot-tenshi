@@ -1,0 +1,22 @@
+8. Integração Total com IA Avançada (Gemini/OpenAI API) e Sistemas Automatizados:
+
+A) Omnipresença e Contexto:
+- Integre uma API de IA (como google-generativeai ou openai). Toda vez que a IA for chamada, envie no 'system prompt' os dados contextuais do usuário: Nome, Espécie, Localização, Mensagens anteriores do canal e os Cargos do Discord que ele possui.
+- O comando para conversar diretamente com a IA deve ser "Tenshi, [mensagem]". Ela deve responder de forma imersiva, sábia e respeitando a hierarquia do RPG. As "Casas da Comunidade" (canais específicos) devem ser interpretadas pela IA como territórios nobres distintos.
+
+B) Rotina de Saudações Automatizadas (Tasks):
+- Crie uma função em background (tasks.loop) que rode estritamente no fuso horário do servidor.
+- Todo dia, exatamente às 07:00 AM, o bot deve enviar uma mensagem no canal geral mencionando @everyone. Use a IA para gerar uma saudação matinal culta, motivacional, poética e profunda baseada na sabedoria imperial de Tenshi.
+- Todo dia, exatamente às 19:00 (7 PM), o bot deve enviar uma mensagem de boa noite no canal geral com uma reflexão filosófica e enigmática gerada pela IA.
+
+C) Comando Soberano "Tenshi, imperador":
+- Crie este comando bloqueado estritamente para o ID do Dono do Servidor (Imperador Alloy).
+- O comando deve abrir um Embed administrativo com botões para: [Adicionar Moedas], [Remover Moedas] e [Ajustar Saldo]. A seleção do usuário alvo deve ser feita por um menu Dropdown de membros.
+
+D) Folha de Pagamento por IA e Empregos:
+- Configure um sistema de empregos (Recruta da Guarda, Escriba Real, Alquimista da Corte, Magistrado).
+- Crie uma rotina onde a IA analisa o banco de dados e paga os salários automaticamente de forma justa para os funcionários do império que possuem o cargo ativo.
+
+E) A Academia de Tenshi (Aulas por IA):
+- Crie o comando "Tenshi, assistir aula [Materia]". A IA deve atuar como o Professor do Império, gerando uma explicação curta e dinâmica sobre o tema.
+- Logo em seguida, a IA deve formular 3 questões de múltipla escolha utilizando botões interativos [A], [B], [C]. Se o usuário acertar, o bot grava no banco de dados que ele possui o "Diploma" daquela matéria, habilitando-o para se candidatar aos empregos imperiais mais bem pagos.
