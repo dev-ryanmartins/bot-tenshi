@@ -398,7 +398,7 @@ function HomePage() {
       <nav className={`sticky top-0 z-50 border-b ${S.border} bg-[#08090a]/90 backdrop-blur-md`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded bg-violet-600 flex items-center justify-center text-white font-black text-xs">T</div>
+            <img src="/tenshi-logo.png" alt="Tenshi" className="w-8 h-8 rounded object-cover opacity-90" />
             <span className="font-semibold text-sm tracking-tight">Bot Tenshi</span>
             <span className="text-[#3a3b42] text-xs font-mono hidden sm:block">v2.0</span>
           </div>
@@ -421,6 +421,11 @@ function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(109,40,217,0.15),transparent)] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <img
+              src="/tenshi-logo.png"
+              alt="Império de Tenshi"
+              className="w-24 h-24 mx-auto mb-8 object-contain opacity-95 drop-shadow-[0_0_40px_rgba(139,92,246,0.25)]"
+            />
             <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-xs font-medium text-violet-300 bg-violet-950/50 border border-violet-800/40 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
               Bot RPG para Discord · Império de Tenshi
@@ -620,7 +625,7 @@ function HomePage() {
       <footer className={`border-t ${S.border} py-10`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded bg-violet-600 flex items-center justify-center text-white font-black text-xs">T</div>
+            <img src="/tenshi-logo.png" alt="Tenshi" className="w-6 h-6 object-contain opacity-80" />
             <span className="text-sm font-semibold">Bot Tenshi</span>
           </div>
           <p className="text-xs text-[#3a3b42]">© 2016–2026 Império de Tenshi · Desenvolvido por Alloy Tenshi</p>
@@ -673,7 +678,7 @@ function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
     <div className={`min-h-screen ${S.bg} ${S.text} font-sans antialiased flex items-center justify-center px-4`}>
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2 mb-8">
-          <div className="w-7 h-7 rounded bg-violet-600 flex items-center justify-center text-white font-black text-xs">T</div>
+          <img src="/tenshi-logo.png" alt="Tenshi" className="w-7 h-7 object-contain opacity-90" />
           <span className="font-semibold text-sm">Bot Tenshi</span>
         </div>
         <h1 className="text-xl font-bold mb-1">Painel do Criador</h1>
@@ -757,7 +762,7 @@ function AdminPanel({ token, onLogout }: { token: string; onLogout: () => void }
       {/* Nav */}
       <nav className={`border-b ${S.border} h-14 flex items-center px-6`}>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-violet-600 flex items-center justify-center text-white font-black text-xs">T</div>
+          <img src="/tenshi-logo.png" alt="Tenshi" className="w-6 h-6 object-contain opacity-90" />
           <span className="font-semibold text-sm">Bot Tenshi</span>
           <span className="text-[#3a3b42] text-xs">/ admin</span>
         </div>
