@@ -94,8 +94,10 @@ FUNDACAO_TENSHI = datetime(2016, 6, 6)
 _imperador_saudado: set = set()
 _aniversario_anunciado: set = set()
 
-# ── Guard contra mensagens duplicadas ─────────────────────────────────────────
+# ── Guard 1: dedup por ID de mensagem (mesma msg processada 2x) ───────────────
 from collections import deque as _deque
+import time as _time
+
 _seen_msg_ids: set = set()
 _seen_msg_deque: _deque = _deque(maxlen=300)
 
@@ -106,6 +108,18 @@ def _ja_processou(mid: int) -> bool:
         _seen_msg_ids.discard(_seen_msg_deque[0])
     _seen_msg_deque.append(mid)
     _seen_msg_ids.add(mid)
+    return False
+
+# ── Guard 2: cooldown 2s por (user, cmd) — evita "digitou 2x rápido" ──────────
+_cmd_timestamps: dict = {}  # (user_id, cmd) -> float
+
+def _em_cooldown(user_id: int, cmd: str) -> bool:
+    key = (user_id, cmd)
+    agora = _time.monotonic()
+    ultimo = _cmd_timestamps.get(key, 0.0)
+    if agora - ultimo < 2.0:
+        return True
+    _cmd_timestamps[key] = agora
     return False
 
 
@@ -259,6 +273,10 @@ async def on_message(message):
 
     cmd  = partes[0].lower()
     args = partes[1:]
+
+    # Guard 2 — cooldown 2s por usuário por comando
+    if _em_cooldown(message.author.id, cmd):
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # ROTEADOR CENTRAL

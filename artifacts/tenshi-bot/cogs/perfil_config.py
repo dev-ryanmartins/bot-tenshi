@@ -4,6 +4,10 @@ from utils import (embed_imperial, CORES_PEGADA, EMOJI_PEGADA, NOME_PEGADA,
                    calcular_nivel, IMPERADOR_ID, SEP, RODAPE_IMPERIAL,
                    barra_progresso, CORES_DESTAQUE)
 
+# Rastreia a última mensagem de status enviada por usuário
+# para poder apagá-la antes de enviar uma nova
+_status_msgs: dict = {}  # user_id -> discord.Message
+
 PEGADAS_VALIDAS = ["imperial", "familia", "mafia", "enterprise"]
 
 TITULOS_NIVEL = {
@@ -266,9 +270,18 @@ class PerfilConfig:
         user_db["nivel"] = nivel
         save_user(message.author.id, user_db)
 
+        # Apaga a mensagem de status anterior deste usuário neste canal, se existir
+        prev = _status_msgs.get(message.author.id)
+        if prev is not None:
+            try:
+                await prev.delete()
+            except Exception:
+                pass
+
         embed = await _build_perfil_embed(self.bot, message.author)
         view  = StatusView(self.bot, message.author.id, message.author, "perfil")
-        await message.channel.send(embed=embed, view=view)
+        sent  = await message.channel.send(embed=embed, view=view)
+        _status_msgs[message.author.id] = sent
 
     async def handle_inventario(self, message):
         embed = _build_inventario_embed(message.author)
