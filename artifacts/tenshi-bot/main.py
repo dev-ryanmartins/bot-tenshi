@@ -99,13 +99,15 @@ from collections import deque as _deque
 import time as _time
 
 _seen_msg_ids: set = set()
-_seen_msg_deque: _deque = _deque(maxlen=300)
+_seen_msg_deque: _deque = _deque(maxlen=500)
 
 def _ja_processou(mid: int) -> bool:
     if mid in _seen_msg_ids:
         return True
-    if len(_seen_msg_deque) == 300:
-        _seen_msg_ids.discard(_seen_msg_deque[0])
+    # Remove o mais antigo do set quando a fila está cheia
+    if len(_seen_msg_deque) >= 500:
+        oldest = _seen_msg_deque[0]
+        _seen_msg_ids.discard(oldest)
     _seen_msg_deque.append(mid)
     _seen_msg_ids.add(mid)
     return False
@@ -122,9 +124,15 @@ def _em_cooldown(user_id: int, cmd: str) -> bool:
     _cmd_timestamps[key] = agora
     return False
 
+# ── Guard 3: flag para garantir que on_ready só inicializa tarefas UMA VEZ ────
+_bg_tasks_initialized: bool = False
+_task_aniversario = None
+
 
 @bot.event
 async def on_ready():
+    global _bg_tasks_initialized, _task_aniversario
+
     print(f"⚜️  Bot Tenshi v2 online | {bot.user.name} ({bot.user.id})")
     print(f"🏛️  Servidores: {len(bot.guilds)}")
     print(f"👑  Imperador ID: {IMPERADOR_ID}")
@@ -134,16 +142,23 @@ async def on_ready():
             name="o Império de Tenshi | Tenshi, ajuda"
         )
     )
-    eventos.cog_load()
-    vizinhanca.cog_load()
-    cotidiano.cog_load()
-    temporadas.cog_load()
-    intel.cog_load()
-    estado.cog_load()
-    eras_cog.cog_load()
-    clima_cog.cog_load()
-    infra.cog_load()
-    bot.loop.create_task(_loop_aniversario())
+
+    # Garante que as tarefas de background só são criadas UMA VEZ.
+    # on_ready pode disparar múltiplas vezes em reconexões — sem este guard,
+    # cada reconexão criaria novas tarefas duplicadas causando embeds duplos.
+    if not _bg_tasks_initialized:
+        _bg_tasks_initialized = True
+        eventos.cog_load()
+        vizinhanca.cog_load()
+        cotidiano.cog_load()
+        temporadas.cog_load()
+        intel.cog_load()
+        estado.cog_load()
+        eras_cog.cog_load()
+        clima_cog.cog_load()
+        infra.cog_load()
+        _task_aniversario = bot.loop.create_task(_loop_aniversario())
+        print("✅ Tarefas de background inicializadas.")
 
 
 async def _loop_aniversario():
