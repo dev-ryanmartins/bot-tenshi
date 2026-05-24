@@ -94,6 +94,20 @@ FUNDACAO_TENSHI = datetime(2016, 6, 6)
 _imperador_saudado: set = set()
 _aniversario_anunciado: set = set()
 
+# ── Guard contra mensagens duplicadas ─────────────────────────────────────────
+from collections import deque as _deque
+_seen_msg_ids: set = set()
+_seen_msg_deque: _deque = _deque(maxlen=300)
+
+def _ja_processou(mid: int) -> bool:
+    if mid in _seen_msg_ids:
+        return True
+    if len(_seen_msg_deque) == 300:
+        _seen_msg_ids.discard(_seen_msg_deque[0])
+    _seen_msg_deque.append(mid)
+    _seen_msg_ids.add(mid)
+    return False
+
 
 @bot.event
 async def on_ready():
@@ -183,6 +197,8 @@ async def _anunciar_aniversario(anos: int):
 @bot.event
 async def on_message(message):
     if message.author.bot:
+        return
+    if _ja_processou(message.id):
         return
 
     conteudo       = message.content.strip()
