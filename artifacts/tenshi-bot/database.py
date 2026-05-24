@@ -59,6 +59,13 @@ def _default_user() -> dict:
         "avatar_desc": None,
         "historia": None,
         "habilidades": [],
+        # Espécie e atributos
+        "especie": None,
+        "atributos": {"vida": 100, "mana": 100, "forca": 100, "agilidade": 100},
+        "poderes": [],
+        "ficha_aprovada": False,
+        # Localização
+        "local_atual": "cidadela",
         # RPG
         "nivel": 1,
         "xp": 0,
@@ -67,11 +74,13 @@ def _default_user() -> dict:
         "faccao": None,
         "faccao_pontos": 0,
         "status_bonus": {},
+        "missoes_completas": 0,
         # Cooldowns
         "ultimo_treino": None,
         "ultima_missao": None,
         "ultimo_tarot": None,
         "ultimo_duelo": None,
+        "ultimo_trabalho": None,
         # PvP
         "vitorias_duelo": 0,
         "derrotas_duelo": 0,
