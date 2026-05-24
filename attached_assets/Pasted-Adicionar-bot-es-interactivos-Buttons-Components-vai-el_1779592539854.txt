@@ -1,0 +1,58 @@
+Adicionar botões interactivos (Buttons/Components) vai elevar o bot de Tenshi a um nível profissional. No Discord moderno, em vez de o usuário ficar digitando texto para tudo, o bot exibe Embeds luxuosos com botões embaixo, tornando a navegação rápida, limpa e visualmente incrível.
+
+Aqui está como integrar o sistema de botões (utilizando as discord.ui.View do Discord.py) para as principais mecânicas do seu bot.
+
+🎛️ Mapeamento de Botões para as Funcionalidades
+🗂️ No comando Tenshi, status (Ficha de Personagem)
+Em vez de digitar vários comandos para ver inventário ou habilidades, o bot mostra a ficha e coloca 4 botões embaixo:
+
+[🎒 Inventário] ➔ Altera o Embed atual para mostrar os itens e armas do jogador.
+
+[⚔️ Habilidades] ➔ Abre a árvore de classes para gastar pontos de atributo.
+
+[🏆 Conquistas] ➔ Exibe os títulos de prestígio conquistados.
+
+[🔄 Voltar] ➔ Retorna ao visual da ficha principal.
+
+🔮 No comando Tenshi, tarot ou Tenshi, runa
+[🃏 Puxar Carta] ➔ Um botão inicial que, ao ser clicado, ativa uma animação em texto ("Embaralhando o deck...") e depois revela o Tarot.
+
+[🔥 Sacrificar] ➔ Se a carta for uma maldição, gera um botão rápido para queimar moedas e tentar purificar o destino.
+
+🏪 No comando Tenshi, mercado (Lojas e Leilões)
+Em vez de digitar códigos complexos para comprar coisas, o bot gera uma vitrine:
+
+[⬅️ Anterior] e [➡️ Próximo] ➔ Para navegar entre as páginas de itens à venda.
+
+[💰 Comprar Item] ➔ Abre um menu de seleção (Dropdown) para escolher qual item da página o jogador quer levar.
+
+[🔨 Dar Lance] (No sistema de Leilão) ➔ Um botão que aumenta automaticamente o lance atual em +100 Moedas Imperiais.
+
+⚔️ No comando Tenshi, duelar @usuario (Sistema de Turnos)
+Quando o combate começa, o bot limpa o chat e atualiza o mesmo Embed a cada turno, disponibilizando botões de ação para o jogador da vez:
+
+[⚔️ Atacar] ➔ Executa o ataque básico baseado no Poder de Luta.
+
+[🛡️ Defender] ➔ Aumenta a defesa para o próximo turno inimigo.
+
+[🧪 Usar Poção] ➔ Abre as opções de consumíveis de cura do inventário.
+
+[🏳️ Render-se] ➔ Encerra a luta, declarando vitória do oponente.
+
+🏰 No comando Tenshi, cronica [nicho] (Mestre de RPG)
+O bot gera o gancho da história e coloca botões com opções de caminhos para o jogador decidir o rumo:
+
+[🚪 Investigar os Sussurros] ➔ Avança a lore para um caminho místico.
+
+[🛡️ Chamar a Guarda] ➔ Direciona a história para um combate militar.
+
+[💰 Subornar o Informante] ➔ Abre a rota do nicho político/econômico.
+
+⚖️ No comando Tenshi, julgamento @usuario (Moderação Imersiva)
+Para os moderadores e Alloy decidirem o destino de um infrator de forma rápida:
+
+[🟩 Culpado (Masmorra)] ➔ Aplica o timeout temático de prisão.
+
+[🟥 Traidor (Exílio)] ➔ Aplica o banimento definitivo.
+
+[🕊️ Inocente (Absolver)] ➔ Fecha o caso e limpa o canal de julgamento.

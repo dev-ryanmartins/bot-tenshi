@@ -1,0 +1,131 @@
+Entendi perfeitamente o seu objetivo. Para fazer o bot responder a comandos de texto próprios e imersivos (usando linguagem natural e o prefixo Tenshi,), nós precisamos mapear essas 60 funcionalidades em estruturas de comandos claras para o código do bot.
+
+Abaixo está a lista exata de como cada comando deve ser digitado no chat para ativar as 60 funções que listamos.
+
+🏛️ 1. Sistema Imperial & Reconhecimento de Alloy
+(Automático) – O bot detecta a entrada de Alloy em canais e saúda o Imperador.
+
+Tenshi, decreto [mensagem] – Posta um comunicado imperial magnífico com bordas douradas.
+
+Tenshi, veto [ID do Evento/Usuário] – Alloy cancela instantaneamente qualquer ação do bot.
+
+Tenshi, promover @usuario [Cargo] – Gerencia e altera os cargos de RPG automaticamente.
+
+Tenshi, registrar-ata – O bot compila e formata as decisões tomadas na Sala do Trono.
+
+Tenshi, punir-audacia @usuario – Aplica silenciamento automático em quem faltar com o respeito.
+
+Tenshi, tesouro [sacar/depositar/confiscar] [quantia] @usuario – Modifica o saldo do Banco Central.
+
+🔮 2. Misticismo, Tarot & Runas
+Tenshi, tarot – Puxa uma carta diária (Marseille/Santa Muerte) com conselhos de lore.
+
+Tenshi, runa – Sorteia uma runa que altera temporariamente os status do jogador.
+
+Tenshi, astros – Mostra qual constelação está ativa e quais classes ganharam bônus.
+
+Tenshi, destino @usuario – Faz uma leitura emparelhada para ver o futuro entre dois personagens.
+
+Tenshi, sacrificio [item/moedas] – Queima recursos para tentar remover uma maldição do perfil.
+
+Tenshi, oraculo [pergunta] – O bot responde de forma enigmática e poética sobre o futuro.
+
+Tenshi, meditar – Chance rara de despertar uma habilidade mágica única e permanente.
+
+Tenshi, ritual-protecao – Membros de uma facção trancam o canal contra espionagem por 24h.
+
+⚔️ 3. Motor de RPG, Atributos & Evolution
+Tenshi, status (ou @usuario) – Exibe a Ficha de Personagem completa com o design limpo.
+
+Tenshi, treinar [descrição da ação] – Concede XP e Poder de Luta com base na narrativa digitada.
+
+Tenshi, habilidades – Abre o menu para escolher e evoluir os caminhos da árvore de classes.
+
+Tenshi, descansar – Coloca o personagem em repouso para recuperar a barra de fadiga/mana.
+
+Tenshi, inventario – Lista todos os itens consumíveis, armas e relíquias guardadas.
+
+Tenshi, forjar [nome do item] – Consome materiais coletados para criar uma arma customizada.
+
+Tenshi, conquistas – Mostra os títulos de prestígio e tags estéticas desbloqueadas.
+
+Tenshi, reviver @usuario – Inicia o ritual ou cooldown necessário para trazer uma ficha da morte.
+
+Tenshi, profissao [trabalhar/evoluir] – Acessa o menu de Alquimista, Ferreiro ou Escriba.
+
+🎭 4. Gerador de Lore & Nichos de RP
+Tenshi, cronica politico – Gera ganchos de intrigas palacianas, nobreza e disputas de herança.
+
+Tenshi, cronica militar – Gera ganchos de invasões nas fronteiras, monstros ou rebeliões.
+
+Tenshi, cronica esoterico – Gera ganchos sobre seitas proibidas, runas antigas e portais magicos.
+
+Tenshi, quadro-avisos – Posta missões diárias de interpretação para movimentar o chat.
+
+Tenshi, lore-historico – Exibe as crônicas dos grandes feitos arquivados pelos jogadores do servidor.
+
+Tenshi, falar [NPC] – Inicia um diálogo por texto com personagens controlados pela IA do bot.
+
+Tenshi, clima – Exibe o clima místico atual do império e suas influências nos treinos.
+
+💰 5. Economia Imperial & Comércio
+Tenshi, mercado – Abre a loja central do reino com suprimentos básicos e armas padrão.
+
+Tenshi, mercado-negro – Acessa a loja secreta (disponível apenas sob condições específicas).
+
+Tenshi, leilao [item] [preço] – Coloca um item raro do inventário para lances no chat.
+
+Tenshi, pagar @usuario [quantia] – Transfere moedas imperiais de forma segura para outro jogador.
+
+Tenshi, recolher-impostos – Comando de ADM que cobra a taxa diária dos plebeus para o tesouro.
+
+Tenshi, recompensa @usuario [quantia] – Coloca um prêmio em moedas pela cabeça/derrota de um traidor.
+
+Tenshi, trabalhar – Executa tarefas cotidianas (mineração, patrulha) para receber moedas.
+
+Tenshi, sorteio-real – Inicia um sorteio automático de itens ou moedas patrocinado pela coroa.
+
+🏟️ 6. Combate, Arenas & Invasões
+Tenshi, duelar @usuario – Desafia outro jogador para um combate textual turno a turno por status.
+
+Tenshi, apostar [quantia] @usuario – Permite que espectadores apostem moedas em um duelo ativo.
+
+Tenshi, invocar-chefe [nome] – Ativa uma invasão global de monstro que tranca os canais em alerta.
+
+Tenshi, masmorra [entrar/criar] – Monta um grupo de até 4 jogadores para explorar uma dungeon.
+
+Tenshi, torneio [iniciar/tabela] – O bot gerencia as chaves e horários do campeonato do servidor.
+
+Tenshi, guardar-canal – Designa um guerreiro de nível alto para proteger o chat contra saques.
+
+Tenshi, escapar – Tenta uma fuga arriscada das masmorras baseada em dados e atributos.
+
+🛡️ 7. Moderação Imersiva & Ordem
+Tenshi, masmorra-prender @usuario [tempo] [motivo] – Aplica timeout temático de aprisionamento.
+
+Tenshi, exilar @usuario [motivo] – Aplica banimento/kick definitivo com narrativa de banimento.
+
+(Automático) – O bot filtra linguajar proibido e repreende o usuário por falta de modos na corte.
+
+Tenshi, registros-guarda – Acessa o canal privado com logs de edição e histórico de mensagens.
+
+Tenshi, anistia-real – Alloy limpa o histórico de avisos e punições de todos os cidadãos.
+
+Tenshi, trancar-portoes – Ativa o modo anti-raid emergencial, bloqueando o acesso aos canais.
+
+Tenshi, julgamento @usuario – Abre um canal de votação por reações para decidir o destino de um infrator.
+
+🤖 8. Sistemas Técnicos, Utilitários & Diversão
+(Automático) – Mecanismo interno do código (on_message) que lê todas as mensagens naturais.
+
+(Automático) – Servidor Flask rodando em background para manter o bot 24/7 no Replit.
+
+Tenshi, tocar [musica/orquestra] – Conecta o bot ao canal de voz para reproduzir trilhas místicas.
+
+Tenshi, conquistas-lista – Mostra todos os achievements possíveis de se obter no bot.
+
+Tenshi, dado [d20 / d6] – Rola dados para resolver disputas de ações narrativas livres no chat.
+
+(Painel Web) – Acesso externo via navegador para gerenciar o banco de dados do bot.
+
+Tenshi, backup – Salva instantaneamente o estado atual das fichas e inventários por segurança.

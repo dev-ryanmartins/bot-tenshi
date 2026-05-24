@@ -1,20 +1,38 @@
 import discord
 import os
 
-# ID do Imperador Alloy — será lido do ambiente ou pode ser definido aqui
-# Coloque o ID do Discord do dono do servidor nas secrets como IMPERADOR_ID
 IMPERADOR_ID_STR = os.environ.get("IMPERADOR_ID", "0")
 try:
     IMPERADOR_ID = int(IMPERADOR_ID_STR)
 except ValueError:
     IMPERADOR_ID = 0
 
-# Prefixo personalizado do bot
 PREFIXO = "tenshi,"
+COOLDOWN_TREINO = 30 * 60
+COOLDOWN_MISSAO = 60 * 60
 
-# Cooldowns em segundos
-COOLDOWN_TREINO = 30 * 60    # 30 minutos
-COOLDOWN_MISSAO = 60 * 60    # 1 hora
+# Cores por pegada
+CORES_PEGADA = {
+    "imperial": 0x4B0082,
+    "familia":  0x8B0000,
+    "mafia":    0x1C1C1C,
+    "enterprise": 0x1E3A5F,
+}
+
+# Emojis de status por pegada
+EMOJI_PEGADA = {
+    "imperial":   "🏛️",
+    "familia":    "👨‍👩‍👧",
+    "mafia":      "🔫",
+    "enterprise": "🏢",
+}
+
+NOME_PEGADA = {
+    "imperial":   "Império de Tenshi",
+    "familia":    "Família",
+    "mafia":      "Máfia",
+    "enterprise": "Tenshi Enterprise",
+}
 
 
 def embed_imperial(titulo: str, descricao: str, cor: int = 0x4B0082) -> discord.Embed:
@@ -23,7 +41,16 @@ def embed_imperial(titulo: str, descricao: str, cor: int = 0x4B0082) -> discord.
     return embed
 
 
-def calcular_nivel(xp: int) -> tuple[int, int]:
+def embed_pegada(titulo: str, descricao: str, pegada: str = "imperial") -> discord.Embed:
+    cor = CORES_PEGADA.get(pegada, 0x4B0082)
+    emoji = EMOJI_PEGADA.get(pegada, "🏛️")
+    nome = NOME_PEGADA.get(pegada, "Tenshi")
+    embed = discord.Embed(title=f"{emoji} {titulo}", description=descricao, color=cor)
+    embed.set_footer(text=f"{emoji} {nome}")
+    return embed
+
+
+def calcular_nivel(xp: int):
     nivel = 1
     xp_necessario = 100
     xp_restante = xp
@@ -36,44 +63,49 @@ def calcular_nivel(xp: int) -> tuple[int, int]:
 
 AJUDA_TEXTO = """
 **🏛️ COMANDOS DO IMPÉRIO DE TENSHI**
-
-Use o prefixo `Tenshi,` antes de qualquer comando.
+Prefixo: `Tenshi,`
 
 **⚔️ RPG & Perfil**
-• `Tenshi, status` — Ver seu perfil imperial
-• `Tenshi, treinar` — Treinar e ganhar poder (cooldown: 30min)
-• `Tenshi, missao` — Aceitar uma missão imperial
-• `Tenshi, interagir [ação] [@usuario]` — Interações de roleplay (saudar, proclamar, reverenciar)
+`status` · `treinar` · `missao` · `interagir [ação] [@user]`
+`ficha` · `pegada [imperial/familia/mafia/enterprise]`
 
-**💰 Economia Imperial**
-• `Tenshi, carteira` — Ver suas moedas imperiais
-• `Tenshi, loja` — Ver o mercado imperial
-• `Tenshi, comprar [id]` — Comprar um item da loja
+**💰 Financeiro Imperial**
+`carteira` · `banco` · `depositar [v]` · `sacar [v]`
+`transferir @user [v]` · `emprestimo [v]` · `pagar-divida [v]`
+`historico`
+
+**🏠 Sistema de Casas**
+`casas` · `minha-casa` · `vender-casa`
+
+**🏢 Tenshi Enterprise (Gestão)**
+`empresa criar [nome]` · `empresa info`
+`empresa contratar @user [cargo] [salario]`
+`empresa demitir @user` · `empresa funcionarios`
+`empresa pagar` · `empresa depositar [v]`
+
+**👨‍👩‍👧 Família & Máfia**
+`familia criar [nome] [familia/mafia]`
+`familia entrar [id]` · `familia info` · `familia membros`
+`familia depositar [v]`
 
 **⚔️ Facções**
-• `Tenshi, entrar [facção]` — Entrar em uma facção
-• `Tenshi, ranking` — Ranking das facções rivais
+`entrar [facção]` · `ranking`
 
 **🔮 Místico**
-• `Tenshi, tarot` — Carta de tarot diária (a cada 20h)
-• `Tenshi, runa` — Runa ancestral diária (a cada 20h)
+`tarot` · `runa`
 
 **⚔️ Duelos PvP**
-• `Tenshi, duelo @usuario [aposta]` — Desafiar alguém
-• `Tenshi, aceitar-duelo` — Aceitar um desafio
+`duelo @user [aposta]` · `aceitar-duelo`
+
+**🛒 Loja**
+`loja` · `comprar [id]`
 
 **📖 LoreMaster (IA)**
-• `Tenshi, cronica [militar/politico/esoterico]` — Narrativa de RPG com IA
-• `Tenshi, evento-lore` — Profecia imperial (ADM)
+`cronica [militar/politico/esoterico]` · `evento-lore`
 
-**🛡️ Moderação (requer permissões)**
-• `Tenshi, ban @usuario [motivo]` — Banir
-• `Tenshi, kick @usuario [motivo]` — Expulsar
-• `Tenshi, mute @usuario` — Silenciar
-• `Tenshi, clear [quantidade]` — Limpar mensagens
+**🛡️ Moderação**
+`ban` · `kick` · `mute` · `clear [n]` · `decreto [msg]`
 
-**👑 Imperador Alloy**
-• `Tenshi, decreto [mensagem]` — Emitir um decreto imperial
-
-*Digite `Tenshi, ajuda` para ver esta mensagem.*
+**👑 Especiais**
+`invasao` (ADM) · `ping` · `ajuda`
 """
