@@ -1,0 +1,35 @@
+Atue como um desenvolvedor Python sênior especialista na biblioteca discord.py. Quero que você crie um bot completo para o Discord baseado em um universo de RPG de texto focado no império de "Tenshi", onde o líder supremo é o Imperador Alloy.
+
+O bot deve ser escrito em Python, utilizando a versão mais recente do discord.py, configurado para rodar no Replit com um sistema de Keep Alive (usando Flask e threading) para que ele permaneça online 24/7 com o UptimeRobot. Os tokens e chaves secretas devem ser puxados estritamente das variáveis de ambiente do Replit (os Secrets).
+
+Abaixo estão as especificações do Bot:
+
+1. Personalidade e Estética:
+- O bot deve ter uma linguagem imersiva, imponente, mística e imperial.
+- Todas as respostas em texto devem usar formatações ricas (Embeds organizados, cores escuras/imperiais, linhas horizontais e negritos para destacar ações).
+- Quando o Imperador Alloy (o dono do bot/servidor) executar comandos especiais, o bot deve responder com extrema submissão, respeito e reverência à sua divindade e poder.
+
+2. Funcionalidades Principais (Comandos de Barra / Slash Commands):
+
+A) Sistema de RPG & Perfil (/perfil, /treinar, /missao):
+- Um comando de perfil que exibe os status do jogador em um Embed (Nome do Personagem, Título/Cargo em Tenshi, Nível, Poder de Luta, e Inventário).
+- Um comando de treino (/treinar) com cooldown (tempo de espera) que aumenta temporariamente os status ou o poder do usuário, exibindo uma descrição narrativa imersiva da ação de treino.
+- Um comando de missões (/missao) onde o usuário pode aceitar tarefas pelo império, gerando uma pequena narrativa textual e dando recompensas após o tempo de conclusão.
+
+B) Economia Imperial (/carteira, /loja, /comprar):
+- Um sistema de banco de dados simples (pode usar SQLite ou JSON local por enquanto) para armazenar os saldos e inventários dos usuários.
+- Moeda do servidor: Moedas Imperiais (ou o nome temático que se encaixe em Tenshi).
+- Uma loja configurável onde usuários podem comprar itens de RPG (armas, poções, títulos).
+
+C) Comandos de Roleplay Simples (/interagir):
+- Comandos baseados em interações textuais narrativas detalhadas entre os membros do servidor (ex: saudar o imperador, duelarem entre si, proclamar lealdade).
+
+D) Comandos de Moderação e Utilidade:
+- Comandos básicos de moderação (ban, kick, mute, clear) com logs detalhados e mensagens estilizadas.
+
+3. Arquitetura do Código:
+- Organize o código utilizando Cogs (módulos separados para Economia, RPG, Moderação e Core).
+- Inclua tratamento de erros (Error Handling) para comandos em cooldown ou falta de permissões, exibindo mensagens amigáveis e imersivas em vez de quebrar o bot.
+- Deixe o código limpo, documentado com comentários em português e com um arquivo 'main.py' principal que inicializa tudo.
+
+Por favor, gere a estrutura completa de arquivos, incluindo o pyproject.toml / requirements.txt com as dependências necessárias (discord.py, flask, etc.).
