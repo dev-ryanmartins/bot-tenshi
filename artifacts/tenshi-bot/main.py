@@ -33,9 +33,13 @@ from cogs.temporadas   import Temporadas
 from cogs.clero        import Clero
 from cogs.juridico     import Juridico
 from cogs.inteligencia import Inteligencia
-from cogs.soberano    import Soberano
-from cogs.geopolitica import Geopolitica
-from cogs.estado      import Estado
+from cogs.soberano             import Soberano
+from cogs.geopolitica          import Geopolitica
+from cogs.estado               import Estado
+from cogs.eras                 import Eras
+from cogs.clima_ia             import ClimaIA
+from cogs.academia             import Academia
+from cogs.infraestrutura_critica import InfraestruturaCritica
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -74,6 +78,10 @@ intel       = Inteligencia(bot)
 soberano    = Soberano(bot)
 geopolitica = Geopolitica(bot)
 estado      = Estado(bot)
+eras_cog    = Eras(bot)
+clima_cog   = ClimaIA(bot)
+academia    = Academia(bot)
+infra       = InfraestruturaCritica(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -99,6 +107,9 @@ async def on_ready():
     temporadas.cog_load()
     intel.cog_load()
     estado.cog_load()
+    eras_cog.cog_load()
+    clima_cog.cog_load()
+    infra.cog_load()
     bot.loop.create_task(_loop_aniversario())
 
 
@@ -821,6 +832,153 @@ async def on_message(message):
 
     elif cmd in ("buscar-protocolo", "buscar_protocolo"):
         await estado.handle_buscar_protocolo(message, args)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PROTOCOLO 23 — SISTEMA DE ERAS DO TRONO
+    # ══════════════════════════════════════════════════════════════════════════
+
+    elif cmd in ("set-era", "set_era", "era-atual", "nova-era-trono"):
+        await eras_cog.handle_set_era(message, args)
+
+    elif cmd in ("era", "era-status", "qual-era", "status-era"):
+        await eras_cog.handle_era_atual(message)
+
+    elif cmd in ("decreto-marcial", "decreto_marcial"):
+        await eras_cog.handle_decreto_marcial(message, args)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PROTOCOLO 25 — METEOROLOGIA LOCALIZADA POR IA
+    # ══════════════════════════════════════════════════════════════════════════
+
+    elif cmd in ("clima", "checar-clima", "tempo", "meteorologia"):
+        await clima_cog.handle_clima(message, args)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÓDULO 22 — TENSHI ACADEMY
+    # ══════════════════════════════════════════════════════════════════════════
+
+    elif cmd in ("matricular", "matricula", "matrícula", "inscrever-materia"):
+        await academia.handle_matricular(message, args)
+
+    elif cmd in ("trancar-matricula", "trancar_matricula", "cancelar-materia"):
+        await academia.handle_trancar_matricula(message, args)
+
+    elif cmd in ("presença", "presenca", "registrar-presenca"):
+        await academia.handle_presenca(message, args)
+
+    elif cmd in ("iniciar-aula", "iniciar_aula", "aula"):
+        await academia.handle_iniciar_aula(message, args)
+
+    elif cmd in ("ler-apostila", "apostila", "material-didatico"):
+        await academia.handle_ler_apostila(message, args)
+
+    elif cmd in ("prestar-exame", "prestar_exame", "exame", "fazer-prova"):
+        await academia.handle_prestar_exame(message, args)
+
+    elif cmd in ("historico-escolar", "histórico-escolar", "notas"):
+        await academia.handle_historico_escolar(message, args)
+
+    elif cmd in ("segunda-via-diploma", "segunda_via_diploma", "revalidar-diploma"):
+        await academia.handle_segunda_via_diploma(message, args)
+
+    elif cmd in ("entrar-clube", "entrar_clube", "filiacao-clube", "clube"):
+        await academia.handle_entrar_clube(message, args)
+
+    elif cmd in ("cofre-clube", "cofres-clubes", "financas-clube"):
+        await academia.handle_cofre_clube(message, args)
+
+    # ── Comandos Soberanos da Academia ────────────────────────────────────────
+    elif cmd in ("interditar-escola", "interditar_escola"):
+        await academia.cmd_interditar_escola(message, args)
+
+    elif cmd in ("aprovação-forçada", "aprovacao-forcada", "aprovacao_forcada"):
+        await academia.cmd_aprovacao_forcada(message, args)
+
+    elif cmd in ("estatizar-cofre-clube", "estatizar_cofre_clube"):
+        await academia.cmd_estatizar_cofre_clube(message, args)
+
+    elif cmd in ("zerar-historico-academico", "zerar_historico_academico"):
+        await academia.cmd_zerar_historico_academico(message, args)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÓDULOS 19-21 — INFRAESTRUTURA CRÍTICA, MACROECONOMIA, VIGILÂNCIA
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # ── Energética e Inflação ─────────────────────────────────────────────────
+    elif cmd in ("status-energia", "status_energia", "rede-eletrica"):
+        await infra.handle_status_energia(message, args)
+
+    elif cmd in ("inflacao", "inflação", "status-inflacao", "indice-inflacao"):
+        await infra.handle_status_inflacao(message, args)
+
+    # ── Mercado de Ações e Poupança ────────────────────────────────────────────
+    elif cmd in ("comprar-acoes", "comprar_acoes", "acoes", "ações"):
+        await infra.handle_comprar_acoes(message, args)
+
+    elif cmd in ("poupanca", "poupança", "investimento", "conta-poupanca"):
+        await infra.handle_poupanca(message, args)
+
+    # ── Vigilância e OSINT ────────────────────────────────────────────────────
+    elif cmd in ("checar-cameras", "checar_cameras", "dvr", "cameras"):
+        await infra.handle_checar_cameras(message, args)
+
+    elif cmd in ("biometria", "dna", "registro-biometrico"):
+        await infra.handle_biometria(message, args)
+
+    elif cmd in ("rastrear-perfil", "rastrear_perfil", "osint"):
+        await infra.handle_rastrear_perfil(message, args)
+
+    # ── Logística e Cargas ────────────────────────────────────────────────────
+    elif cmd in ("enviar-carga", "enviar_carga", "despachar-carga"):
+        await infra.handle_enviar_carga(message, args)
+
+    # ── Saúde ─────────────────────────────────────────────────────────────────
+    elif cmd in ("laudo-medico", "laudo_medico", "laudo"):
+        await infra.handle_laudo_medico(message, args)
+
+    elif cmd in ("desintoxicacao", "desintoxicação", "detox"):
+        await infra.handle_desintoxicacao(message, args)
+
+    elif cmd in ("doacao-sangue", "doação-sangue", "doar-sangue"):
+        await infra.handle_doacao_sangue(message, args)
+
+    # ── Imóveis ───────────────────────────────────────────────────────────────
+    elif cmd in ("titulo-propriedade", "título-propriedade", "escritura"):
+        await infra.handle_titulo_propriedade(message, args)
+
+    elif cmd in ("historico-imovel", "histórico-imóvel", "historico_imovel"):
+        await infra.handle_historico_imovel(message, args)
+
+    # ── Aluguel Comercial ─────────────────────────────────────────────────────
+    elif cmd in ("alugar-comercio", "alugar_comercio", "alugar-comercial"):
+        await infra.handle_alugar_comercio(message, args)
+
+    # ── Fiança ────────────────────────────────────────────────────────────────
+    elif cmd in ("pagar-fianca", "pagar_fianca", "pagar-fiança"):
+        await infra.handle_pagar_fianca(message, args)
+
+    # ── Diplomacia ────────────────────────────────────────────────────────────
+    elif cmd in ("imunidade-diplomatica", "imunidade_diplomatica", "imunidade-consular"):
+        await infra.handle_imunidade_diplomatica(message, args)
+
+    # ── Soberania Suprema (Módulos 19-21) ─────────────────────────────────────
+    elif cmd in ("auditoria-geral-banco", "auditoria_geral_banco", "auditoria-absoluta"):
+        await infra.cmd_auditoria_geral_banco(message, args)
+
+    elif cmd in ("expurgar-fichas-inativas", "expurgar_fichas_inativas", "limpar-fichas"):
+        await infra.cmd_expurgar_fichas_inativas(message, args)
+
+    elif cmd in ("reset-parcial-economia", "reset_parcial_economia"):
+        await infra.cmd_reset_parcial_economia(message, args)
+
+    elif cmd in ("bans-lista", "lista-exilados", "exilados"):
+        await infra.cmd_bans_lista(message, args)
+
+    elif cmd in ("confiscar-veiculo", "confiscar_veiculo", "apreender-veiculo"):
+        await infra.cmd_confiscar_veiculo(message, args)
+
+    elif cmd in ("decreto-climatico", "decreto_climatico", "forçar-clima"):
+        await infra.cmd_decreto_climatico(message, args)
 
     else:
         await message.channel.send(embed=embed_imperial(

@@ -89,15 +89,46 @@ def _build_estado_snapshot(user_data: dict) -> str:
     return " ".join(partes)
 
 
+_PTBR_ENFORCE = (
+    "PROTOCOLO 24 — IDIOMA OFICIAL: Responda EXCLUSIVAMENTE em Português Brasileiro (PT-BR), "
+    "norma-padrão formal. Use terceira pessoa (Você/Ele/Ela) ou tratamento cerimonial "
+    "(Soberano, Vossa Excelência) para Alloy e seu cônjuge. "
+    "PROIBIDO: expressões em inglês, gírias, coloquialismos de outros dialetos."
+)
+
+
+def _build_era_context() -> str:
+    """Protocolo 23 — injeta o tom da Era Atual em todos os prompts de IA."""
+    try:
+        from cogs.eras import get_tom_ia, get_era_info
+        info = get_era_info()
+        return (
+            f"PROTOCOLO 23 — ERA ATUAL: {info['nome']}. "
+            f"Contexto narrativo obrigatório: {get_tom_ia()}"
+        )
+    except Exception:
+        return ""
+
+
 async def _gerar(prompt: str, system: str = SYS_LORE,
                  user_data: dict | None = None, temperatura: float = 0.88) -> str:
-    """Protocol 18: temperature elevado + snapshot de estado injetado + Diretriz de Originalidade."""
+    """
+    Protocol 18: temperature elevado + snapshot de estado injetado + Diretriz de Originalidade.
+    Protocol 23: Era Atual injetada em todos os prompts.
+    Protocol 24: PT-BR estrito obrigatório em todas as saídas.
+    """
     if not groq_client:
         return "*[O Oráculo dorme... a chave de IA não foi configurada.]*"
+
+    era_ctx   = _build_era_context()
     sys_final = system
     if user_data:
-        snapshot = _build_estado_snapshot(user_data)
+        snapshot  = _build_estado_snapshot(user_data)
         sys_final = f"{system}\n\n{snapshot}"
+    if era_ctx:
+        sys_final = f"{sys_final}\n\n{era_ctx}"
+    sys_final = f"{sys_final}\n\n{_PTBR_ENFORCE}"
+
     try:
         r = groq_client.chat.completions.create(
             model=MODELO,
