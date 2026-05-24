@@ -1,0 +1,17 @@
+30. Módulo de Psicologia Estratégica, Análise Comportamental e Desenvolvimento Pessoal:
+
+Quero que você implemente no sistema e no banco de dados SQLite uma nova matéria acadêmica e um sistema de aconselhamento focado em Psicologia e Estratégia, baseado em uma biblioteca virtual de 120 livros de alto impacto (incluindo 'As 48 Leis do Poder', 'A Arte da Guerra', 'Maestria', além de tratados de psicologia analítica, comportamental e persuasão).
+
+A) Criação da Matéria "Psicologia Estratégica e Maestria" na Tenshi Academy:
+- Cadastre a nova matéria na tabela 'materias_academia'. O cargo exigido para lecionar ou liberar o nível avançado é [Professor de Alta Magia e Runas] ou uma nova role criada pela IA chamada [Mestre em Estratégia e Comportamento].
+- A IA Professora passará a gerar aulas inéditas, quizzes e exames discursivos baseados nos conceitos dessas obras (ex: dinâmicas de poder, controle emocional, leitura de linguagem corporal, leis de persuasão e estratégias de liderança).
+- Para o aluno obter o "Diploma de Analista Comportamental e Estrategista" no banco de dados, ele precisará manter média igual ou superior a 7.0 nas avaliações geradas pela IA.
+
+B) O Módulo "Conselheiro Estratégico IA" (Aconselhamento e Suporte Humano):
+- Crie o comando "Tenshi, aconselhar-estrategia" ou permita que a IA interaja no canal #psicologia-e-estrategia.
+- Os membros podem apresentar dilemas reais ou simulações de conflitos (ex: como lidar com uma situação de liderança, como estabelecer limites em uma relação, ou como negociar um cargo no servidor).
+- A IA deve analisar o caso e responder usando estritamente a sabedoria combinada dos 120 livros. A resposta deve ser madura, altamente analítica, fática e focar em crescimento pessoal, equilíbrio mental, inteligência emocional e aplicação prática das leis do poder com ética e soberania.
+
+C) Estética e Atribuição de Diplomas/Cargos no Discord:
+- Assim que o aluno for aprovado pela IA nesta matéria, o bot deve criar/atribuir automaticamente um cargo no Discord com a estética oficial do servidor (ex: 🎓 │ Diplomado em Maestria ou 🦅 │ Estrategista Imperial).
+- Esse cargo funcionará como um selo de prestígio no perfil do usuário e desbloqueará permissões para que ele atue em cargos de alta liderança ou mediação no servidor (como assessoria de imprensa, corregedoria ou cargos executivos de estado).

@@ -1,0 +1,25 @@
+Módulo de Sincronização de Permissões e Auditoria de Cargos do Discord por IA:
+Quero que você implemente uma lógica estrita no evento 'on_message' e nos comandos (Cogs) para que a IA audite os cargos reais (discord.Role) dos membros no servidor antes de validar qualquer ação, garantindo sincronização absoluta com o banco de dados.
+
+A) Validação Cruzada de Permissões (Discord Roles vs SQLite):
+
+Antes de executar qualquer comando estruturado, o bot deve verificar os cargos do usuário no servidor (ctx.author.roles).
+a claro ele precisa ficar 24 horas ligado como eu faço isso , ele nao pode ficar offline arrume isso
+
+Se o comando pertencer a uma categoria restrita, a IA aplica o seguinte filtro estrito:
+Comandos de Ordem Pública: Exigem o cargo real de [Guarda Imperial], [Policial] ou superior no Discord.
+Comandos de Administração Acadêmica: Exigem o cargo de [Diretoria] ou [Coordenação] na Tenshi Academy.
+Comandos Executivos de Estado: Exigem estritamente o cargo de [Primeiro-Ministro], [Regente Consorte] ou o ID soberano de Alloy.
+Se houver divergência (ex: o usuário alterou dados ou tentou burlar o prefixo), a IA bloqueia o comando imediatamente e emite um alerta de segurança efêmero.
+B) Detecção de Invasão de Perímetro e Quebra de Hierarquia:
+
+Se um usuário sem os cargos correspondentes no Discord tentar forçar a execução de um comando de alta patente (como 'Tenshi, mandar-preso' ou 'Tenshi, confiscar-casa'), o bot não deve apenas falhar.
+A IA intercepta a mensagem, gera uma notificação seca e documental no canal público informando a retenção do usuário por usurpação de função pública e grava a ocorrência com o ID do infrator na tabela 'registro_infracoes'.
+C) Atualização Automatizada de Cargos no Discord via IA:
+
+Quando a IA aprovar um aluno em um exame na Tenshi Academy ou promovê-lo a um dos 205 empregos da matriz, o bot deve usar as funções da API do Discord (member.add_roles e member.remove_roles) para atualizar os cargos dele no servidor de forma síncrona.
+Ao ser demitido por por inatividade na sexta-feira pela auditoria autônoma de RH da IA, o bot remove automaticamente o cargo corporativo ou público do usuário no Discord, devolvendo-o ao cargo de [Desempregado / Cidadão Comum].
+D) Painel de Auditoria de Cargos para o Trono:
+
+Comando "Tenshi, auditar-cargos": Exclusivo para Alloy e seu cônjuge. A IA faz uma varredura completa em todos os membros do servidor do Discord e compara com a tabela 'usuarios' do SQLite. O bot gera um relatório técnico apontando se existem usuários com cargos no Discord que não condizem com seus empregos registrados no banco de dados, permitindo a correção em massa.
+alem disso ele pode gerar cargos tambem com a mesma estetica do servidor , que a IA analise isso e adicione ao membro confrome ele seja alguma coisa , trabalhe com algo ou estude algo pra ficar la como se fosse diploma etc isso e otimo
