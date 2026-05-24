@@ -1,0 +1,39 @@
+13. Módulo de Alta Estratégia, Infraestrutura de Estado e Sistemas Ocultos:
+
+Implemente este último bloco de 20 funcionalidades inéditas no bot do Império Tenshi, mantendo o tom estritamente sério, documental e de alta importância. O código deve utilizar Cogs dedicados e tabelas adicionais no SQLite para dar suporte a cada mecânica.
+
+A) Geopolítica e Conquista de Territórios (Canais de Facção/Máfia e City):
+1. Sistema de Territórios (/dominar): Facções da Máfia ou Clubes podem tentar "dominar" canais neutros como o #parque ou o #cassino. O bot calcula o tempo de digitação ativa dos membros da facção no canal para definir o controle.
+2. Imposto de Território: A facção que dominar um canal da cidade recebe automaticamente 2% de todas as Moedas Imperiais gastas por usuários comuns naquele local (ex: compras na cafeteria ou apostas no cassino).
+3. Comando "Tenshi, rebeliao": Permite iniciar uma disputa armada por texto e botões para retirar o controle de um canal de uma facção rival.
+
+B) Sistema de Imigração e Cidadania (#entrada e #portaria):
+4. Protocolo de Visto de Entrada: Novos membros ficam com o status "Estrangeiro" e só liberam os canais de RP após passarem por uma entrevista automatizada por IA na #portaria, onde devem explicar suas intenções em Tenshi.
+5. Registro de Cidadania Digital: O bot gera um número de registro único no SQLite para cada ficha aprovada, funcionando como o RG do cidadão em Tenshi.
+6. Sistema de Exílio Temporário: Se um usuário for suspenso, o bot retira sua cidadania e altera seu cargo para "Exilado", trancando o acesso a todas as categorias da cidade e deixando visível apenas um canal de limbo.
+
+C) Economia Avançada, Contratos e Fraudes (#banco e #beco):
+7. Sistema de Empréstimos e Juros: O #banco pode ceder Moedas Imperiais para usuários, mas cobra juros diários automáticos direto da carteira.
+8. Protocolo de Falência Mística: Se o usuário ficar com saldo negativo crônico devido a impostos ou juros, o bot confisca seus itens e sua casa automaticamente, notificando o Imperador em #logs-guarda.
+9. Sistema de Lavagem de Dinheiro: Membros da Máfia podem usar o canal #beco para tentar limpar moedas ganhas de contratos ilegais, correndo o risco de a IA interceptar e alertar o #jornal-policial.
+10. Título de Dívida Imperial: O Imperador Alloy ou seu cônjuge podem emitir títulos através do banco para arrecadar fundos dos membros em momentos de crise, pagando dividendos automáticos depois.
+
+D) Logística de Transporte e Infraestrutura (#estação-de-trem e #garagem):
+11. Acidentes e Atrasos na Linha: O bot pode gerar eventos climáticos aleatórios que paralisam o trem por 30 minutos, forçando os usuários a utilizarem a #garagem para ir a pé (o que consome 40% mais fadiga).
+12. Sistema de Combustível/Energia: Veículos na garagem precisam ser reabastecidos na #lojinha do reino usando moedas, caso contrário perdem o bônus de velocidade.
+
+E) Dinâmicas de Inteligência e Contra-Espionagem (Canais de Staff e Máfia):
+13. Contrato de Caça a Espiões: Alloy ou a alta staff podem ativar uma diretriz para a IA monitorar se algum membro da Máfia está usando comandos de escuta em canais privados, gerando alertas silenciosos em #comandos-staff.
+14. Quebra de Sigilo Bancário: O comando "Tenshi, auditoria-bancaria @usuario" (exclusivo para Alloy, Cônjuge e Magistrados) faz o bot puxar todo o histórico de transferências daquela conta para rastrear subornos ou financiamentos ilícitos.
+
+F) Sistema de Saúde, Seguros e Necrológio (#hospital):
+15. Seguro de Vida Imperial: O cidadão pode pagar uma taxa mensal no banco. Se sua ficha "morrer" em uma masmorra perigosa, o bot não deleta seus itens e diminui o tempo de internação no hospital pela metade.
+16. Mural dos Mortos (Necrológio): Um comando "Tenshi, necrolo" exibe a lista histórica de personagens que morreram definitivamente no RP, com a data e a causa da morte formatada de forma solene.
+
+G) Sistema de Eventos de Voz e Audiência Pública (Staff Call e Festas):
+17. Comando "Tenshi, tribuna-aberta": Libera temporariamente o microfone de cidadãos comuns na call de discussão da staff, um por vez, controlando o tempo de fala automaticamente por 3 minutos por relógio.
+
+H) Ferramentas Técnicas de Estado e Manutenção (Exclusivos do Imperador):
+18. Comando "Tenshi, congelar-economia": Trava instantaneamente todas as transferências, compras em lojas e ganhos de salários no servidor durante manutenções ou crises.
+19. Comando "Tenshi, censo-imperial": A IA faz uma varredura completa no banco de dados e gera um gráfico em texto das raças mais jogadas, nível médio da população, faturamento do banco e total de casas ocupadas.
+20. Sistema de Reset de Era: Comando de segurança máxima de Alloy que arquiva todas as histórias antigas em #lore-historico, limpa os saldos e inventários, mantendo apenas os registros de conquistas estéticas e títulos de prestígio para iniciar uma nova temporada do RPG.

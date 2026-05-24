@@ -1,0 +1,32 @@
+16. Manual Estrito de Design de Interface (UI) e Estética de Mensagens:
+
+Quero que você aplique as seguintes diretrizes de design em absolutamente todas as saídas de texto, Embeds e Componentes (Botões/Menus) que o bot gerar. O objetivo é alcançar um visual limpo, corporativo, militarista e de alta importância.
+
+A) Padrão de Engenharia de Embeds:
+- Sem Títulos Espalhafatosos: O título do Embed deve ser curto e formal. Use apenas letras maiúsculas e minúsculas padrão (ex: "Relatório de Ativos Financeiros" e NUNCA "✨💰 BANCO IMPERIAL 💰✨").
+- Linha Divisória de Markdown: Sempre comece a 'description' do Embed com uma linha horizontal contendo três hifens (---) para separar visualmente o título do conteúdo.
+- Uso de Bullet Points e Negritos: Use o caractere '•' para listas. Sempre coloque o rótulo do dado em negrito e o valor em texto normal (ex: "• **Status do Perímetro:** Nominal").
+- Alinhamento em Colunas (Fields): Para dados numéricos ou fichas, use 'embed.add_field' com 'inline=True' para organizar as informações em colunas limpas, simulando uma planilha ou documento oficial.
+- Thumbnail e Imagens: O uso de imagens deve ser restrito. Logos do império ou brasões de armas devem ser aplicados como pequenas miniaturas no canto superior direito (Thumbnail), nunca como imagens gigantes no meio do chat, exceto em jornais.
+
+B) Padronização de Cores por Contexto (Hexadecimais Sóbrios):
+- #2C3E50 (Cinza Azulado Imperial): Para comandos gerais, fichas de personagem, status e academia.
+- #9E7815 (Dourado Opaco): Reservado estritamente para decretos de Alloy, casamentos reais e anúncios do clero.
+- #1E1E1E (Preto Carvão): Para canais da Máfia, execuções do Beco e Mercado Negro.
+- #7F8C8D (Cinza Administrativo): Para logs técnicos de auditoria e mensagens de transição (viagem de trem).
+- #D35400 (Abóbora Escuro): Para alertas hospitalares, quarentenas e acidentes de tráfego.
+- #C0392B (Vermelho Sangue): Para infrações judiciais, exílios sumários e avisos do Código de Conduta.
+
+C) Arquitetura e Alinhamento de Botões (discord.ui.Button):
+- Agrupamento Funcional: Nunca coloque mais de 5 botões em uma única linha (View). Organize-os por categorias lógicas (ex: linha 1 para ações, linha 2 para navegação).
+- Uso Técnico de Cores de Botões:
+  * Botões VERDES (success): Apenas para ações que confirmam gastos de moedas, aceitação de casamento ou termos legais.
+  * Botões CINZAS (secondary): Para toda e qualquer navegação neutra (Avançar, Voltar, Abrir Inventário, Detalhes).
+  * Botões AZUIS (primary): Para comandos de ação ativa no RPG (Atacar, Treinar, Assistir Aula).
+  * Botões VERMELHOS (danger): Exclusivos para a polícia, staff, rejeição de termos ou comandos de tranca de segurança.
+- Labels Limpos: Os textos dos botões devem conter no máximo duas palavras, acompanhados de um emoji sóbrio de ID padrão do Discord no início (ex: [ 🎒 Inventário ], [ ⚔️ Atacar ]).
+
+D) Mensagens de Erro e Cooldowns (Estética Direta):
+- Mensagens de erro, falta de moedas ou cooldown não devem usar Embeds grandes para não poluir o chat. Use mensagens de texto normais estruturadas com blockquotes (>) e em formato efêmero (ephemeral=true, visível apenas para o usuário), seguindo o padrão:
+  "> ⚠️ **Operação Recusada.** Saldo insuficiente para processar a aquisição na propriedade X."
+  "> ⏱️ **Protocolo de Recuperação.** Aguarde 12m 45s antes de iniciar um novo ciclo de treinamento."

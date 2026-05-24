@@ -1,0 +1,59 @@
+19. Módulo de Infraestrutura Crítica, Macroeconomia e Alta Vigilância (40 Funcionalidades Inéditas):
+
+Implemente este bloco de 40 funcionalidades mecânicas e sistêmicas no bot do Império Tenshi. O código deve ser estruturado em Cogs modulares, utilizando persistência estrita em tabelas adicionais no SQLite e integrando a IA como o motor de variação narrativa em tempo real.
+
+--- BLOCO 1: INFRAESTRUTURA ENERGÉTICA E UTILIDADES PÚBLICAS (#tenshi-enterprise) ---
+1. Sistema de Rede Elétrica Imperial: O bot gerencia uma variável global de energia. Se a usina da Tenshi Enterprise sofrer sobrecarga ou ataque em masmorra, o cassino e as máquinas de vendas da academia param de funcionar por 1 hora.
+2. Abastecimento de Água Condominial: Uma taxa de utilidade pública é cobrada na #portaria junto com o aluguel. A falta de pagamento corta a água da casa, impedindo o bônus de redução de fadiga na piscina ou banheiros.
+3. Manutenção de Infraestrutura Workstation: Comandos executados na Tenshi Enterprise para reparar servidores ou calibrar switches Intelbras e DVRs de segurança do condomínio geram renda de Moedas Imperiais para engenheiros.
+4. Sistema de Coleta de Resíduos (Lixo): Itens descartados ou destruídos pelos usuários vão para um banco de dados de 'sucata'. Membros do clube de ciências podem minerar esse banco para coletar ferro e silício.
+5. Iluminação Pública Automatizada: O bot altera as permissões visuais e a descrição dos canais abertos (#parque, #praça, #jardim) entre o modo diurno e noturno (às 18:00 PM), ativando lâmpadas rúnicas automáticas no RP.
+
+--- BLOCO 2: MACROECONOMIA, INVESTIMENTOS E INFLAÇÃO (#banco) ---
+6. Índice de Inflação Imperial: Se o Imperador Alloy emitir muitas moedas do zero em um curto período, o bot aumenta automaticamente o preço de todos os consumíveis da cafeteria e itens da lojinha em até 20%.
+7. Sistema de Ações da Tenshi Enterprise: Usuários podem comprar cotas da empresa no #banco. Os dividendos flutuam diariamente com base na quantidade de atividades e comandos executados na categoria City.
+8. Conta Poupança e Rendimento Passivo: Cidadãos podem travar moedas em uma conta de investimento que rende 0.5% de juros compostos a cada 7 dias reais, desde que o usuário não tome advertências do Código de Conduta.
+9. Sistema de Imposto sobre Herança: Se uma ficha de personagem sofrer morte definitiva (necrolo) e o jogador criar uma nova, o banco retém 30% do saldo da conta antiga como taxa de sucessão do império antes de transferir o restante.
+10. Registro Geral de Transações (Cofre Central): O banco armazena o hash de cada movimentação financeira de alta monta, permitindo auditorias fiscais automáticas por IA para prevenir fraudes na máfia.
+
+--- BLOCO 3: ALTA VIGILÂNCIA, DEFESA CIBERNÉTICA E OSINT (#departamento-policial) ---
+11. Sistema de Câmeras de Segurança (DVR Intelbras): O comando "Tenshi, checar-cameras [Canal]" (exclusivo para a Polícia e Trono) exibe quem foram os últimos 5 usuários a utilizarem comandos de texto ou ações naquele local nas últimas 3 horas.
+12. Banco de Dados de DNA/Biometria: Ao criar a ficha, o bot gera um registro biométrico único. Se um membro da Máfia cometer um crime e deixar vestígios (falhar nos dados), a polícia pode coletar as provas no local para identificar o réu.
+13. Protocolo de Escuta em Canais de Voz: O comando "Tenshi, grampear-voz [Canal_Voz]" gera um log textual em #logs-guarda indicando a minutagem exata de entrada, saída, ativação de microfone e ensurdecimento de usuários sob investigação.
+14. Rastreamento OSINT Imperial: O comando "Tenshi, rastrear-perfil @usuario" faz a IA cruzar dados públicos da ficha, do histórico de compras na lojinha e das localizações passadas, gerando um mapa de calor das atividades do suspeito.
+15. Divisão de Peritos Tecnológicos: Permite que funcionários da polícia usem ferramentas místicas para descriptografar mensagens anônimas enviadas no #correio-anônimo que violaram o Código de Conduta, descobrindo o ID do remetente.
+
+--- BLOCO 4: LOGÍSTICA FLUVIAL, AÉREA E ALFÂNDEGA (#viajando-pelo-mundo) ---
+16. Licenciamento de Piloto/Condutor: Para operar veículos pesados ou montarias aéreas cadastrados na #garagem, o usuário deve obter um diploma específico na academia na matéria de Logística Avançada.
+17. Protocolo de Alfândega e Contrabando: Ao viajar de trem ou veículo entre localizações, o bot tem uma chance de 5% de interceptar o usuário e vasculhar seu inventário em busca de itens ilegais do mercado negro ou do beco.
+18. Sistema de Despacho de Cargas Pesadas: Permite transferir múltiplos itens de inventário entre as casas do condomínio ou depósitos de clubes, gerando uma taxa alfandegária automática calculada com base no peso místico do lote.
+19. Clima de Voo e Restrições Aéreas: Se o canal #clima reportar "Tempestade de Éter", o uso de veículos aéreos é bloqueado na #garagem, forçando o uso estrito do trem terrestre.
+20. Sistema de Pedágio Rodoviário: Viajar de carro ou moto por rotas de terra gasta moedas de pedágio que são revertidas diretamente para o Tesouro Real de Alloy para manutenção das estradas.
+
+--- BLOCO 5: SAÚDE PÚBLICA, TOXICOLOGIA E PERÍCIA MÉDICA (#hospital) ---
+21. Laudo de Corpo de Delito: Após um duelo violento ou assalto no beco, as vítimas podem solicitar um laudo médico na #recepção. O documento gerado pela IA serve como prova legal incontestável para abrir processos no canal de denúncias.
+22. Sistema de Envenenamento por Substâncias: Alquimistas podem criar toxinas que removem mana ou vida passivamente do alvo a cada hora. O envenenado só se cura consumindo o antídoto correto na #enfermaria.
+23. Plano de Saúde Corporativo: Empregos de alta patente oferecem cobertura médica automática, reduzindo a zero o custo de internação e remédios na #recepção do hospital.
+24. Prontuário Clínico Histórico: O hospital armazena o histórico de todas as vezes que o usuário ficou internado, suas causas de lesão e médicos responsáveis, influenciando no valor do Seguro de Vida.
+25. Quarentena de Epidemia Mística: Se a IA detectar que três ou mais usuários contraíram a mesma condição em masmorras, ela aciona o isolamento total da categoria Hospital, ativando trajes de proteção no RP.
+
+--- BLOCO 6: ALTA SOCIEDADE, CASAMENTOS E DIPLOMACIA (#casamento) ---
+26. Contrato de União Estável (Bens Parciais): Uma terceira opção de casamento por botões, onde apenas os bens adquiridos *após* a data da cerimônia na capela passam a ser divididos igualmente no banco de dados.
+27. Pensão Alimentícia por Divórcio: Se um casal com filhos adotivos/pets cadastrados se divorciar, o bot desconta uma porcentagem fixa mensal da carteira do membro de maior renda para depositar na conta do outro.
+28. Títulos de Nobreza e Heráldica: O Imperador Alloy pode conceder brasões e títulos nobiliárquicos exclusivos. Esses títulos aparecem como insígnias estilizadas no topo do comando "Tenshi, status".
+29. Sistema de Banquetes e Recepções: Permite ao casal real ou nobreza abrir um evento formal de alta sociedade na praça. O bot distribui bônus de carisma e reduz a fadiga de todos os presentes na call de festas.
+30. Imunidade Diplomática Consular: Alloy pode conceder esta flag a embaixadores ou aliados. Usuários com imunidade não podem ser presos pela polícia ou sofrer furtos no beco de forma automática.
+
+--- BLOCO 7: OCULTISMO, CIÊNCIA AVANÇADA E TECNOMAGIA (#laboratório) ---
+31. Fusão de Relíquias Rúnicas: Permite aos membros do clube de ocultismo combinar dois itens mágicos antigos de baixo nível no #clube-de-ocultismo para tentar gerar um artefato raro com bônus expandido.
+32. Sistema de Durabilidade de Armas: Equipamentos usados em combates perdem integridade. O usuário deve levá-los ao ferreiro ou ao laboratório da Tenshi Enterprise para reparo usando silício e ferro.
+33. Implantes Cibernéticos/Místicos: Jogadores podem instalar melhorias em seus corpos no laboratório, aumentando permanentemente status específicos (ex: Visão Computacional aumenta a precisão em duelos).
+34. Sistema de Hackers e Invasão de Sistemas: Membros seniores do clube de programação podem tentar usar "Tenshi, hackear-banco" no canal do clube. Se a IA defensora falhar, o clube drena fundos do banco central, mas se falhar, o autor é exposto no jornal policial.
+35. Reagentes Alquímicos Instáveis: Materiais coletados em masmorras têm tempo de decomposição. Se não forem sintetizados no laboratório em 48 horas reais, o item se destrói sozinho no banco de dados.
+
+--- BLOCO 8: SISTEMAS DE AUDITORIA E SUPREMACIA DO TRONO (Exclusivos de Alloy) ---
+36. "Tenshi, auditoria-geral-ia": O bot gera um relatório de machine learning indicando quais usuários têm padrões de conversação suspeitos de metagaming ou violações veladas do Art. 4º.
+37. "Tenshi, decretar-feriado": Trava os comandos da academia e de empregos por 24 horas, concedendo regeneração de fadiga triplicada para todos os cidadãos na praça e no parque como repouso de Estado.
+38. "Tenshi, confiscar-propriedade @usuario": Transfere o título e o acesso de qualquer moradia (casa-1 a casa-18) diretamente para o inventário de Alloy, expulsando os antigos moradores sem aviso.
+39. "Tenshi, expurgar-logs [dias]": Limpa de forma definitiva os registros físicos do banco de dados de #logs-guarda e #logs-correio anteriores ao prazo estipulado para otimização de espaço no Replit.
+40. "Tenshi, autoridade-absoluta": Ativa um estado místico onde o ID de Alloy e de seu cônjuge tornam-se imunes a qualquer comando de hack do clube de programação, intervenções da máfia ou bloqueios do sistema.

@@ -3,11 +3,14 @@ import os
 import uuid
 from datetime import datetime
 
-DB_FILE = "data/db.json"
-CASAS_FILE = "data/casas.json"
-EMPRESAS_FILE = "data/empresas.json"
-FAMILIAS_FILE = "data/familias.json"
-BANCO_FILE = "data/banco.json"
+DB_FILE        = "data/db.json"
+CASAS_FILE     = "data/casas.json"
+EMPRESAS_FILE  = "data/empresas.json"
+FAMILIAS_FILE  = "data/familias.json"
+BANCO_FILE     = "data/banco.json"
+CASAMENTOS_FILE = "data/casamentos.json"
+INFRACOES_FILE  = "data/infracoes.json"
+INTERNADOS_FILE = "data/internados.json"
 
 def _load(path: str) -> dict:
     if not os.path.exists(path):
@@ -571,6 +574,64 @@ def get_casa_by_canal(canal_id: str) -> dict | None:
         if str(casa.get("id_canal", "")) == str(canal_id):
             return casa
     return None
+
+# ─────────────────────────────────────────────
+# CASAMENTOS
+# ─────────────────────────────────────────────
+
+def get_casamentos() -> dict:
+    return _load(CASAMENTOS_FILE)
+
+def save_casamentos(data: dict):
+    _save(CASAMENTOS_FILE, data)
+
+
+# ─────────────────────────────────────────────
+# INFRAÇÕES / WARNS
+# ─────────────────────────────────────────────
+
+def registrar_infracao(user_id: int, tipo: str, descricao: str, moderador: str = "Sistema_IA") -> str:
+    dados = _load(INFRACOES_FILE)
+    uid   = str(user_id)
+    if uid not in dados:
+        dados[uid] = []
+    inf_id = str(uuid.uuid4())[:8]
+    dados[uid].append({
+        "id":         inf_id,
+        "tipo":       tipo,
+        "artigo":     tipo,
+        "descricao":  descricao[:300],
+        "data_hora":  datetime.utcnow().isoformat(),
+        "moderador":  moderador,
+    })
+    _save(INFRACOES_FILE, dados)
+    return inf_id
+
+def get_infrações(user_id: int) -> list:
+    dados = _load(INFRACOES_FILE)
+    return dados.get(str(user_id), [])
+
+def remover_infracao(user_id: int, inf_id: str) -> bool:
+    dados = _load(INFRACOES_FILE)
+    uid   = str(user_id)
+    if uid not in dados:
+        return False
+    antes = len(dados[uid])
+    dados[uid] = [i for i in dados[uid] if i.get("id") != inf_id]
+    _save(INFRACOES_FILE, dados)
+    return len(dados[uid]) < antes
+
+
+# ─────────────────────────────────────────────
+# INTERNADOS (hospital)
+# ─────────────────────────────────────────────
+
+def get_internados() -> dict:
+    return _load(INTERNADOS_FILE)
+
+def save_internados(data: dict):
+    _save(INTERNADOS_FILE, data)
+
 
 def cobrar_condominio_semanal() -> list[dict]:
     """Cobra taxa semanal de todas as casas. Retorna lista de despejados."""

@@ -24,6 +24,15 @@ from cogs.especies      import Especies
 from cogs.poderes       import Poderes
 from cogs.empregos      import Empregos
 from cogs.vizinhanca    import Vizinhanca
+from cogs.avancado     import Avancado
+from cogs.social       import Social
+from cogs.crime        import Crime
+from cogs.cotidiano    import CotidianoCog
+from cogs.correio      import Correio
+from cogs.temporadas   import Temporadas
+from cogs.clero        import Clero
+from cogs.juridico     import Juridico
+from cogs.inteligencia import Inteligencia
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -50,6 +59,15 @@ especies    = Especies(bot)
 poderes_cog = Poderes(bot)
 empregos    = Empregos(bot)
 vizinhanca  = Vizinhanca(bot)
+avancado    = Avancado(bot)
+social_cog  = Social(bot)
+crime_cog   = Crime(bot)
+cotidiano   = CotidianoCog(bot)
+correio_cog = Correio(bot)
+temporadas  = Temporadas(bot)
+clero_cog   = Clero(bot)
+juridico    = Juridico(bot)
+intel       = Inteligencia(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -71,6 +89,9 @@ async def on_ready():
     )
     eventos.cog_load()
     vizinhanca.cog_load()
+    cotidiano.cog_load()
+    temporadas.cog_load()
+    intel.cog_load()
     bot.loop.create_task(_loop_aniversario())
 
 
@@ -152,8 +173,39 @@ async def on_message(message):
     if await eventos.processar_ataque_invasao(message):
         return
 
-    # Prefixo
+    # Verificar bloqueio (nocaute/prisão)
     if not conteudo_lower.startswith(PREFIXO):
+        u_data = get_user(message.author.id)
+        bloq   = u_data.get("bloqueado_ate")
+        if bloq:
+            try:
+                from datetime import datetime as _dt
+                if _dt.utcnow() < _dt.fromisoformat(bloq):
+                    return
+                else:
+                    u_data["bloqueado_ate"] = None
+                    save_user(message.author.id, u_data)
+            except Exception:
+                pass
+        # Triagem jurídica automática (canais públicos)
+        canal_nome = getattr(message.channel, "name", "")
+        if any(c in canal_nome.lower() for c in ("geral", "beco", "cassino", "praça", "praca", "parque")):
+            bloqueado = await juridico.triar_mensagem(message)
+            if bloqueado:
+                return
+        # Embriaguez — distorcer texto no GERAL
+        if "geral" in canal_nome.lower():
+            texto_distorcido = cotidiano.processar_embriaguez(message.author.id, conteudo)
+            if texto_distorcido:
+                try:
+                    await message.delete()
+                    await message.channel.send(f"**{message.author.display_name}:** {texto_distorcido}")
+                    return
+                except Exception:
+                    pass
+        # Logging para crônicas do cotidiano
+        if any(c in canal_nome.lower() for c in ("geral", "praça", "praca")):
+            cotidiano.registrar_mensagem_geral(canal_nome, conteudo[:200])
         await loremaster.handle_lore_natural(message, conteudo)
         return
 
@@ -436,6 +488,129 @@ async def on_message(message):
 
     elif cmd in ("clear", "limpar", "purge"):
         await moderacao.handle_clear(message, args)
+
+    # ── CONDOMÍNIO AVANÇADO ───────────────────────────────────────────────────
+    elif cmd in ("trancar-casa", "trancar_casa", "lock-casa"):
+        await avancado.handle_trancar_casa(message)
+
+    elif cmd in ("destrancar-casa", "destrancar_casa", "unlock-casa"):
+        await avancado.handle_destrancar_casa(message)
+
+    # ── GARAGEM & VEÍCULOS ────────────────────────────────────────────────────
+    elif cmd in ("garagem", "veiculos", "veículos", "meu-veiculo"):
+        await avancado.handle_garagem(message)
+
+    elif cmd in ("vender-veiculo", "vender-veículo", "vender_veiculo"):
+        await avancado.handle_vender_veiculo(message)
+
+    # ── ESPORTES ──────────────────────────────────────────────────────────────
+    elif cmd in ("basquete", "basketball"):
+        await avancado.handle_esporte(message, args, "basquete")
+
+    elif cmd in ("futebol", "football", "soccer"):
+        await avancado.handle_esporte(message, args, "futebol")
+
+    # ── POOL PARTY ────────────────────────────────────────────────────────────
+    elif cmd in ("pool-party", "poolparty", "festa-piscina"):
+        await avancado.handle_pool_party(message)
+
+    # ── PETS ──────────────────────────────────────────────────────────────────
+    elif cmd in ("pet-shop", "petshop", "loja-pets"):
+        await avancado.handle_petshop(message)
+
+    elif cmd in ("meu-pet", "meupet", "pet"):
+        await avancado.handle_meu_pet(message)
+
+    elif cmd in ("vender-pet", "venderpet"):
+        await avancado.handle_vender_pet(message)
+
+    # ── CASAMENTO & DIVÓRCIO ──────────────────────────────────────────────────
+    elif cmd in ("casar", "noivado", "marry"):
+        await social_cog.handle_casar(message, args)
+
+    elif cmd in ("divorcio", "divórcio", "separar", "divorce"):
+        await social_cog.handle_divorcio(message)
+
+    # ── LAVANDERIA ────────────────────────────────────────────────────────────
+    elif cmd in ("lavanderia", "lavar-itens", "limpeza"):
+        await social_cog.handle_lavanderia(message)
+
+    # ── LABORATÓRIO ───────────────────────────────────────────────────────────
+    elif cmd in ("sintetizar", "craftar", "fabricar", "sintetisar"):
+        await social_cog.handle_sintetizar(message, args)
+
+    # ── CINEMA ────────────────────────────────────────────────────────────────
+    elif cmd in ("cartaz", "cinema", "sessao", "sessão", "agendar-filme"):
+        await social_cog.handle_cartaz(message, args)
+
+    # ── CRIME & BECO ──────────────────────────────────────────────────────────
+    elif cmd in ("assaltar", "roubar", "furtar"):
+        await crime_cog.handle_assaltar(message, args)
+
+    elif cmd in ("mercado-negro-beco", "beco-mercado"):
+        await crime_cog.handle_mercado_beco(message)
+
+    # ── COTIDIANO ─────────────────────────────────────────────────────────────
+    elif cmd in ("jornal-cotidiano", "jornal-dia", "cronica-dia", "crônica-dia"):
+        await cotidiano.handle_cronica_diaria(message)
+
+    elif cmd in ("psicologo", "psicólogo", "terapia", "desabafar"):
+        await cotidiano.handle_psicologo(message, args)
+
+    elif cmd in ("beber", "bar", "bebida"):
+        await cotidiano.handle_beber(message, args)
+
+    elif cmd in ("clima-atual", "meteorologia", "tempo-atual"):
+        await cotidiano.handle_clima(message)
+
+    # ── CORREIO ANÔNIMO ───────────────────────────────────────────────────────
+    elif cmd in ("criar-correio", "painel-correio", "correio"):
+        await correio_cog.handle_criar_correio(message)
+
+    # ── ESTAÇÕES ──────────────────────────────────────────────────────────────
+    elif cmd in ("estacoes", "estações", "estacao", "estação", "temporada"):
+        await temporadas.handle_estacoes(message)
+
+    # ── ENTREVISTA DE EMPREGO ─────────────────────────────────────────────────
+    elif cmd in ("entrevista", "entrevista-emprego", "candidatar"):
+        await temporadas.handle_entrevista(message, args)
+
+    # ── EMERGÊNCIAS MÉDICAS ───────────────────────────────────────────────────
+    elif cmd in ("socorrer", "atender", "salvar"):
+        await temporadas.handle_socorrer(message, args)
+
+    # ── CLERO ─────────────────────────────────────────────────────────────────
+    elif cmd in ("padre", "clero", "liturgia", "rito"):
+        await clero_cog.handle_padre(message, args)
+
+    elif cmd in ("sindicancia", "sindicância", "investigar-usuario"):
+        await clero_cog.handle_sindicancia(message, args)
+
+    # ── JURÍDICO ──────────────────────────────────────────────────────────────
+    elif cmd in ("ficha-criminal", "ficha_criminal", "historico-criminal"):
+        await juridico.handle_ficha_criminal(message, args)
+
+    elif cmd in ("perdoar-aviso", "perdoar_aviso", "remover-warn"):
+        await juridico.handle_perdoar_aviso(message, args)
+
+    elif cmd in ("warn", "advertir", "advertencia", "advertência"):
+        await juridico.handle_warn(message, args)
+
+    # ── INTELIGÊNCIA ──────────────────────────────────────────────────────────
+    elif cmd in ("subornar-porteiro", "suborno-porteiro", "espionar-casa"):
+        await intel.handle_subornar_porteiro(message, args)
+
+    elif cmd in ("grampear-call", "grampo", "monitorar-call"):
+        await intel.handle_grampear_call(message)
+
+    elif cmd in ("iniciar-festa", "festa", "comecar-festa", "começar-festa"):
+        await intel.handle_iniciar_festa(message, args)
+
+    elif cmd in ("registrar-perola", "perola", "pérola", "salvar-rp"):
+        await intel.handle_registrar_perola(message, args)
+
+    elif cmd in ("vdd", "verdade-ou-desafio", "verdade-desafio"):
+        await intel.handle_vdd(message)
 
     # ── UTILITÁRIOS ───────────────────────────────────────────────────────────
     elif cmd in ("ajuda", "help", "comandos", "menu"):

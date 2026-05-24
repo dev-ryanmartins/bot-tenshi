@@ -1,0 +1,45 @@
+17. Complemento de Diretrizes Estéticas e Arquitetura de UI (30 Regras Finais de Design):
+
+Aplique as seguintes 30 regras estritas de design visual, formatação de dados e comportamento de interface em todos os módulos e Cogs do bot para garantir consistência estética absoluta:
+
+--- BLOCO 1: TIPOGRAFIA, TEXTO E FORMATAÇÃO DE DADOS ---
+1. Hierarquia de Títulos: Use a sintaxe de cabeçalho do Discord (### Texto) estritamente para subseções dentro de Embeds ou blocos de texto principais. Nunca use "#" ou "##" gigantes para evitar poluição visual.
+2. Formatação de Valores Monetários: Todas as quantias de moedas devem ser exibidas com separadores de milhar e o símbolo oficial de forma padronizada (ex: "⌕ 15.400 Moedas Imperiais").
+3. Alinhamento de Listas: Em tabelas ou campos textuais longos, alinhe os dados verticalmente usando caracteres invisíveis (\u200b) para que os dois-pontos de cada linha fiquem na mesma coluna.
+4. Uso de Caixas de Código (Codeblocks): Reserve blocos de código em texto puro (```text) apenas para logs técnicos, matérias do #jornal-policial ou certidões judiciais. Nunca use blocos de código para textos normais de RP.
+5. Menções Institucionais: Menções a cargos ou usuários em Embeds devem ser feitas através do ID bruto (<@ID> ou <@&ID>) dentro de campos específicos (Fields), nunca jogadas no meio de parágrafos narrativos.
+
+--- BLOCO 2: DESIGN E GEOMETRIA DE EMBEDS ---
+6. Campos de Rodapé (Footers) Padronizados: Todos os Embeds principais devem conter um rodapé em texto cinza, sem emojis, exibindo a data, hora UTC e uma assinatura militar (ex: "Terminal Central de Tenshi • Protocolo S-74").
+7. Limitação de Links: O campo 'URL' dos títulos de Embed deve ser omitido para evitar que o texto fique azul com sublinhado, quebrando a estética sóbria.
+8. Campos Inline Proporcionais: Sempre agrupe Fields com 'inline=True' em múltiplos de 2 ou 3. Se um campo sobrar, configure 'inline=False' para ele ocupar a linha inferior de forma simétrica.
+9. Imagens de Cabeçalho (Banners): Apenas comunicados globais de Alloy ou o #clima podem usar imagens horizontais amplas (Banners). Essas imagens devem ter tons foscos, cinzentos ou escuros.
+10. Descrições Compactas: A 'description' de um Embed não deve ultrapassar 3 parágrafos curtos. Informações adicionais devem ser delegadas obrigatoriamente para Fields separados.
+
+--- BLOCO 3: COMPONENTES INTERATIVOS (VIEWS E DROPDOWNS) ---
+11. Menus de Seleção (Dropdowns) Limpos: Configure sempre um texto de instrução limpo no placeholder (ex: "Selecione a localidade para viagem...").
+12. Paginação Padronizada: Lojas e inventários com paginação devem exibir a página atual no formato "[ Página X / Y ]" centralizada em um botão neutro (cinza) desabilitado entre os botões de avançar e voltar.
+13. Desativação Pós-Interação: Em comandos de uso único (como aceitar missões ou contratos), todos os botões da View devem ser desabilitados permanentemente após o primeiro clique para evitar interações duplicadas.
+14. Timeouts de Segurança: Todas as Views temporárias devem ter um timeout estrito de 60 segundos. Quando o tempo expirar, os botões devem ser removidos ou desabilitados automaticamente para não deixar lixo visual no chat.
+15. Respostas Efêmeras (Ephemeral): Respostas que contenham informações estritamente individuais (como saldo da carteira, erros de digitação ou confirmação de treino) devem ser enviadas com ephemeral=True.
+
+--- BLOCO 4: COMPORTAMENTO DINÂMICO E ANIMAÇÕES EM TEXTO ---
+16. Feedback Visual de Processamento: Comandos que exijam cálculos da IA ou consultas demoradas devem enviar imediatamente uma mensagem efêmera neutra: "> ⚙️ Processando diretriz. Aguarde." enquanto o bot executa a tarefa em background.
+17. Efeito de Escrita (Animação Mística): Em tiragens de Tarot ou rituais do Clero, faça o bot editar a mesma mensagem simulando passos da cerimônia (ex: "1. Embaralhando..." -> "2. Cortando o deck..." -> "3. Revelação"), evitando o envio de múltiplas mensagens.
+18. Atualização In-place: Duelos, combates de masmorras e compras no mercado devem atualizar estritamente o Embed original enviado, utilizando 'interaction.response.edit_message', mantendo o chat estático e limpo.
+19. Logs de Erro Invisíveis: Erros graves de código (Exceptions) nunca devem ser expostos nos canais públicos. O bot deve registrar o erro em #logs-guarda e exibir ao usuário uma mensagem padronizada de falha no sistema.
+20. Alertas Críticos de Moderação: Mensagens do Código de Conduta aplicadas pela IA devem usar texto em negrito envolto em aspas de bloco (>), simulando uma ordem judicial de arquivamento imediato.
+
+--- BLOCO 5: ADAPTAÇÃO POR CATEGORIA DE CANAL ---
+21. Estética Hospitalar: Embeds do #hospital devem usar layouts frios, cinzas, com dados dispostos como prontuários médicos (ex: Tempo restante de internação, Nível de fadiga, Status vital).
+22. Estética de Segurança e Polícia: O #departamento-policial deve exibir fichas criminais e mandados com a cor #C0392B, utilizando cabeçalhos em letras maiúsculas que remetam a processos burocráticos reais.
+23. Estética de Elite no Condomínio: O canal #portaria deve listar as propriedades usando uma tabela limpa em Markdown dentro do Embed, indicando o número da casa, proprietário atual e status de ocupação.
+24. Estética de Intriga na Máfia: Os canais da Máfia devem omitir cabeçalhos longos. As mensagens geradas pela IA devem ser curtas, diretas e enviadas em blocos compactos para simular transmissões clandestinas.
+25. Estética da Academia: O canal de aulas deve estruturar o conteúdo com bullet points organizados por tópicos, e o quiz deve usar botões cinzas neutros identificados apenas com letras simples: [ A ], [ B ], [ C ].
+
+--- BLOCO 6: CONTROLE SUPREMO DO SOBERANO (PRERROGATIVAS DE ALLOY) ---
+26. Embed de Assinatura Imperial: Comandos executados pelo Imperador Alloy que gerem anúncios globais devem conter uma linha de rodapé exclusiva: "Autenticação Soberana • ID Verificado do Trono".
+27. Visual de Painel Executivo: O comando 'Tenshi, imperador' deve gerar uma interface limpa dividida em abas (botões), simulando um terminal de comando onde cada botão abre uma categoria diferente de controle econômico ou penal.
+28. Logs de Auditoria Confidenciais: Logs enviados para #logs-guarda e #logs-correio devem ser formatados em formato JSON ou tabelas compactas para que a leitura seja rápida e técnica para a staff.
+29. Bloqueio Estético de Intrusos: Se um usuário comum tentar um comando de Alloy, o log de segurança gerado deve conter o IP fictício ou coordenadas do usuário baseadas na localização do RP dele, mantendo a imersão de rastreamento.
+30. Limpeza Geral (Purge Estético): Comandos de moderação que apaguem mensagens devem fazer isso de forma silenciosa, enviando um aviso efêmero de conclusão que se autodeleta após 3 segundos para não deixar rastros na timeline.
