@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Tenshi Bot — Site Oficial"
+version = "1.0.0"
+id = "artifacts/tenshi-site"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22138
+
+[services.development]
+run = "pnpm --filter @workspace/tenshi-site run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/tenshi-site", "run", "build" ]
+publicDir = "artifacts/tenshi-site/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22138"
+BASE_PATH = "/"

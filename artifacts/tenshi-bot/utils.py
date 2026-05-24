@@ -76,10 +76,13 @@ def barra_progresso(atual: int, maximo: int, tamanho: int = 12) -> str:
     return "█" * preenchido + "░" * (tamanho - preenchido)
 
 
+SITE_URL = "https://c5d65469-a79e-48a4-aa38-def706fcc844-00-3g7sob5uug1rk.janeway.replit.dev"
+
 AJUDA_TEXTO = f"""
 {SEP}
 **🏛️ PERGAMINHOS IMPERIAIS DE TENSHI**
 *Prefixo: `Tenshi,`  •  RP de texto narrativo*
+🌐 **Site oficial:** {SITE_URL}
 {SEP}
 
 **🎭 Identidade & Perfil**
