@@ -1,11 +1,6 @@
 [project]
 name = "repl-nix-workspace"
 version = "0.1.0"
-description = "Add your description here"
+description = "Tenshi Bot workspace"
 requires-python = ">=3.11"
-dependencies = [
-    "aiohttp>=3.13.5",
-    "discord-py>=2.7.1",
-    "flask>=3.1.3",
-    "groq>=1.2.0",
-]
+dependencies = []
