@@ -33,6 +33,9 @@ from cogs.temporadas   import Temporadas
 from cogs.clero        import Clero
 from cogs.juridico     import Juridico
 from cogs.inteligencia import Inteligencia
+from cogs.soberano    import Soberano
+from cogs.geopolitica import Geopolitica
+from cogs.estado      import Estado
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -68,6 +71,9 @@ temporadas  = Temporadas(bot)
 clero_cog   = Clero(bot)
 juridico    = Juridico(bot)
 intel       = Inteligencia(bot)
+soberano    = Soberano(bot)
+geopolitica = Geopolitica(bot)
+estado      = Estado(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -92,6 +98,7 @@ async def on_ready():
     cotidiano.cog_load()
     temporadas.cog_load()
     intel.cog_load()
+    estado.cog_load()
     bot.loop.create_task(_loop_aniversario())
 
 
@@ -643,6 +650,177 @@ async def on_message(message):
     elif cmd in ("aniversario", "aniversário", "birthday"):
         anos = datetime.utcnow().year - FUNDACAO_TENSHI.year
         await _anunciar_aniversario(anos)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÓDULO 15 — PRERROGATIVAS SOBERANAS (todos exigem IMPERADOR_ID ou co_soberano)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # ── A) Controle Monetário ─────────────────────────────────────────────────
+    elif cmd in ("emitir-moeda", "emitir_moeda", "emitir-moedas"):
+        await soberano.cmd_emitir_moeda(message, args)
+
+    elif cmd in ("confiscar-fortuna", "confiscar_fortuna"):
+        await soberano.cmd_confiscar_fortuna(message, args)
+
+    elif cmd in ("congelar-banco", "congelar_banco"):
+        await soberano.cmd_congelar_banco(message, args)
+
+    elif cmd in ("perdoar-divida", "perdoar_divida", "perdoar-dívida"):
+        await soberano.cmd_perdoar_divida(message, args)
+
+    elif cmd in ("isencao-fiscal", "isenção-fiscal", "isencao_fiscal"):
+        await soberano.cmd_isencao_fiscal(message, args)
+
+    # ── B) Manipulação do RPG ─────────────────────────────────────────────────
+    elif cmd in ("set-status", "set_status", "setstatus"):
+        await soberano.cmd_set_status(message, args)
+
+    elif cmd in ("apagar-ficha", "apagar_ficha", "deletar-ficha"):
+        await soberano.cmd_apagar_ficha(message, args)
+
+    elif cmd in ("conceder-item", "conceder_item", "dar-item"):
+        await soberano.cmd_conceder_item(message, args)
+
+    elif cmd in ("purificar-status", "purificar_status", "cure"):
+        await soberano.cmd_purificar_status(message, args)
+
+    elif cmd in ("imortalidade",):
+        await soberano.cmd_imortalidade(message, args)
+
+    # ── C) Decretos de Estado ─────────────────────────────────────────────────
+    elif cmd in ("estado-de-sitio", "estado_de_sitio", "sitio"):
+        await soberano.cmd_estado_de_sitio(message, args)
+
+    elif cmd in ("dissolver-mafia", "dissolver_mafia"):
+        await soberano.cmd_dissolver_mafia(message, args)
+
+    elif cmd in ("estatizar-casa", "estatizar_casa"):
+        await soberano.cmd_estatizar_casa(message, args)
+
+    elif cmd in ("silenciar-geral", "silenciar_geral"):
+        await soberano.cmd_silenciar_geral(message, args)
+
+    elif cmd in ("anistia-geral", "anistia_geral"):
+        await soberano.cmd_anistia_geral(message, args)
+
+    # ── D) Alta Justiça ───────────────────────────────────────────────────────
+    elif cmd in ("exilio-supremo", "exilio_supremo", "banir-imperial"):
+        await soberano.cmd_exilio_supremo(message, args)
+
+    elif cmd in ("perdao-judicial", "perdão-judicial", "perdao_judicial"):
+        await soberano.cmd_perdao_judicial(message, args)
+
+    elif cmd in ("revogar-diploma", "revogar_diploma"):
+        await soberano.cmd_revogar_diploma(message, args)
+
+    elif cmd in ("cassar-conjuge", "cassar-cônjuge", "cassar_conjuge"):
+        await soberano.cmd_cassar_conjuge(message, args)
+
+    # ── E) IA e Conteúdo ──────────────────────────────────────────────────────
+    elif cmd in ("atualizar-diretriz", "atualizar_diretriz"):
+        await soberano.cmd_atualizar_diretriz(message, args)
+
+    elif cmd in ("apagar-memoria-ia", "apagar_memoria_ia", "limpar-ia"):
+        await soberano.cmd_apagar_memoria_ia(message, args)
+
+    elif cmd in ("interceptar-correio", "interceptar_correio"):
+        await soberano.cmd_interceptar_correio(message, args)
+
+    elif cmd in ("forçar-cronica", "forcar-cronica", "forcar_cronica"):
+        await soberano.cmd_forcar_cronica(message, args)
+
+    elif cmd in ("censurar-termo", "censurar_termo"):
+        await soberano.cmd_censurar_termo(message, args)
+
+    # ── F) Engenharia e Manutenção ────────────────────────────────────────────
+    elif cmd in ("desligar", "shutdown", "fechar"):
+        await soberano.cmd_desligar(message, args)
+
+    elif cmd in ("forçar-pagamento", "forcar-pagamento", "forcar_pagamento"):
+        await soberano.cmd_forcar_pagamento(message, args)
+
+    elif cmd in ("exportar-banco", "exportar_banco", "backup-db"):
+        await soberano.cmd_exportar_banco(message, args)
+
+    elif cmd in ("bypass-cooldown", "bypass_cooldown"):
+        await soberano.cmd_bypass_cooldown(message, args)
+
+    elif cmd in ("congelar-economia", "congelar_economia"):
+        await soberano.cmd_congelar_economia(message, args)
+
+    elif cmd in ("censo-imperial", "censo_imperial"):
+        await soberano.cmd_censo_imperial(message, args)
+
+    elif cmd in ("reset-era", "reset_era", "nova-era"):
+        await soberano.cmd_reset_era(message, args)
+
+    elif cmd in ("irradiar", "transmissao-nacional", "transmissão-nacional"):
+        await soberano.cmd_irradiar(message, args)
+
+    elif cmd in ("interdicao", "interdição", "interdicao-canal", "interditar"):
+        await soberano.cmd_interdicao(message, args)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÓDULO 13 A-B — GEOPOLÍTICA E IMIGRAÇÃO
+    # ══════════════════════════════════════════════════════════════════════════
+
+    elif cmd in ("dominar", "dominar-canal", "conquistar-territorio"):
+        await geopolitica.handle_dominar(message, args)
+
+    elif cmd in ("territorio", "território", "status-territorio"):
+        await geopolitica.handle_status_territorio(message, args)
+
+    elif cmd in ("rebeliao", "rebelião", "rebelar"):
+        await geopolitica.handle_rebeliao(message, args)
+
+    elif cmd in ("visto", "painel-visto", "imigração", "imigracao"):
+        await geopolitica.handle_painel_visto(message)
+
+    elif cmd in ("cidadania", "certidao", "certidão", "registro-civil"):
+        await geopolitica.handle_cidadania(message, args)
+
+    elif cmd in ("exilio", "exílio", "exilio-temporario", "exilar"):
+        await geopolitica.handle_exilio_temporario(message, args)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÓDULO 13 C-H + 14 — ESTADO, ECONOMIA, TRANSPORTE, SAÚDE
+    # ══════════════════════════════════════════════════════════════════════════
+
+    elif cmd in ("pedir-emprestimo", "pedir_emprestimo", "emprestimo", "empréstimo"):
+        await estado.handle_emprestimo_banco(message, args)
+
+    elif cmd in ("quitar", "quitar-divida", "pagar-divida"):
+        await estado.handle_quitar(message, args)
+
+    elif cmd in ("lavar", "lavagem", "lavar-dinheiro"):
+        await estado.handle_lavagem(message, args)
+
+    elif cmd in ("titulo-divida", "título-dívida", "titulo_divida"):
+        await estado.handle_titulo_divida(message, args)
+
+    elif cmd in ("abastecer", "combustivel", "combustível", "recarregar-veiculo"):
+        await estado.handle_abastecer(message, args)
+
+    elif cmd in ("mandado", "mandado-busca", "busca-e-apreensao"):
+        await estado.handle_mandado(message, args)
+
+    elif cmd in ("auditoria-bancaria", "auditoria_bancaria", "auditoria-banco"):
+        await estado.handle_auditoria_bancaria(message, args)
+
+    elif cmd in ("seguro-vida", "contratar-seguro", "seguro"):
+        await estado.handle_contratar_seguro(message, args)
+
+    elif cmd in ("necrolo", "necrológio", "mural-mortos"):
+        await estado.handle_necrolo(message, args)
+
+    elif cmd in ("aposentar", "aposentadoria", "fundo-pensao"):
+        await estado.handle_aposentar(message, args)
+
+    elif cmd in ("diagnostico-ia", "diagnóstico-ia", "diagnostico_ia"):
+        await estado.handle_diagnostico_ia(message, args)
+
+    elif cmd in ("buscar-protocolo", "buscar_protocolo"):
+        await estado.handle_buscar_protocolo(message, args)
 
     else:
         await message.channel.send(embed=embed_imperial(

@@ -106,6 +106,31 @@ def _default_user() -> dict:
         "ficha": {},
     }
 
+def _template_usuario() -> dict:
+    """Template limpo para reset de era — preservar apenas conquistas/títulos/diplomas."""
+    return {
+        "nome": None, "titulo": "Cidadão do Império", "pegada": "imperial",
+        "avatar_desc": None, "historia": None, "habilidades": [],
+        "especie": None, "atributos": {"vida": 100, "mana": 100, "forca": 100, "agilidade": 100},
+        "poderes": [], "ficha_aprovada": False, "local_atual": "cidadela",
+        "nivel": 1, "xp": 0, "poder": 100, "inventario": [],
+        "faccao": None, "faccao_pontos": 0, "status_bonus": {}, "missoes_completas": 0,
+        "ultimo_treino": None, "ultima_missao": None, "ultimo_tarot": None,
+        "ultimo_duelo": None, "ultimo_trabalho": None,
+        "vitorias_duelo": 0, "derrotas_duelo": 0,
+        "moedas": 100, "conta_banco": 0, "emprestimos": [], "historico_financeiro": [],
+        "casa_id": None, "casa_condominio": None, "fadiga": 0,
+        "ultimo_descanso_lazer": None, "empresa_id": None, "cargo_empresa": None,
+        "salario": 0, "familia_id": None, "cargo_familia": None, "ficha": {},
+        # Módulos 13-15
+        "divida": 0, "juros_acumulados": 0, "banco_congelado": False,
+        "isento_fiscal": False, "cidadania": False, "estrangeiro": True,
+        "registro_civil": None, "nome_rp": None, "exilado": False,
+        "foragido": False, "quarentena": False, "imortal": False,
+        "seguro_vida": False, "aposentado": False, "co_soberano": False,
+        "conquistas": [], "titulos": [], "diplomas": [],
+    }
+
 def calcular_nivel(xp: int):
     nivel = 1
     xp_necessario = 100

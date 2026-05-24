@@ -1,0 +1,22 @@
+28. Módulo de Governança Macroeconômica e Gestão de RH Autônoma por IA:
+
+Quero que você configure o bot para que a Inteligência Artificial gerencie de forma 100% autônoma o fluxo de contratações, rebaixamentos, demissões e o fluxo do Capital de Giro do Tesouro Imperial, sem intervenção manual de staffs, operando diretamente nas tabelas do SQLite.
+
+A) Processo Seletivo de Emprego por IA ("Tenshi, solicitar-emprego"):
+- Quando um usuário solicitar uma vaga na #portaria ou #secretaria, a IA deve rodar uma query na tabela 'usuarios' e 'academia' para verificar os pré-requisitos antes de abrir o diálogo.
+- Se o usuário não possuir o Diploma exigido no banco de dados ou estiver com restrições na tabela 'registro_infracoes' (Ficha Criminal), a IA recusa a candidatura imediatamente de forma seca e institucional.
+- Se os requisitos forem preenchidos, a IA assume a persona do NPC contratante (ex: Diretor Vancor para o Banco, Dra. Helena para o Hospital) e faz 3 perguntas técnicas. O bot processa o texto da resposta; se a IA aprovar, ela mesma executa o comando SQL que altera o 'id_emprego' do usuário no banco de dados para o novo cargo.
+
+B) Auditoria de Produtividade e Demissão por Inatividade:
+- Junto ao loop de pagamento de todas as sextas-feiras, a IA deve analisar a tabela de logs de atividade do banco de dados.
+- Se um usuário com emprego ativo não registrou pelo menos 15 mensagens interpretativas ou comandos válidos nos canais do seu respectivo setor durante a semana, a IA cancela o pagamento dele por quebra de contrato.
+- Se a inatividade persistir por 2 semanas consecutivas, a IA executa a demissão automática do usuário no banco de dados (reseta o 'id_emprego' para desempregado) e publica uma nota oficial de exoneração por justa causa no #jornal-dia-a-dia.
+
+C) Gestão Autônoma do Capital de Giro (Fluxo de Caixa Imperial):
+- A tabela 'tesouro_real' gerencia o Capital de Giro total do Império. Todo imposto de condomínio recolhido na #portaria, taxas de lavanderia, multas policiais e pedágios são somados a esse montante automaticamente.
+- Na sexta-feira, antes de rodar a folha de pagamento, a IA calcula a soma de todos os salários da matriz de 205 empregos que estão ativos no servidor.
+- Se o Capital de Giro for maior que o custo da folha, a IA libera o pagamento integral.
+- Se o Capital de Giro estiver em crise (abaixo do custo total), a IA assume uma postura de austeridade: ela reduz temporariamente o salário dos cargos mais altos (Categorias F, G e H) em até 20% para proteger a base econômica e envia um relatório confidencial para Alloy e seu cônjuge em #comandos-staff detalhando a saúde fiscal do reino.
+
+D) Promoções por Mérito Literário e Pontuação:
+- A IA monitora a qualidade e o tamanho das postagens de RP dos funcionários de alta patente. Se um usuário demonstrar excelente conduta jurídica, alta atividade no hospital ou eficiência em patrulhas na polícia, a IA pode, de forma espontânea, emitir um decreto parabenizando o funcionário e subindo o ID do emprego dele para o próximo nível da hierarquia, atualizando o SQLite em tempo real.

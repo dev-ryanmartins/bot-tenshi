@@ -36,7 +36,14 @@ NICHOS = {
     },
 }
 
-SYS_LORE = """Você é o Narrador Imemorial do Império de Tenshi — voz épica, sombria e poética de um RPG de texto.
+# ── DIRETRIZ DE ORIGINALIDADE ABSOLUTA (Protocol 18) ────────────────────────
+DIRETRIZ_ORIGINALIDADE = (
+    "Diretriz de Originalidade Absoluta: Analise o histórico recente e gere uma resposta "
+    "com estrutura sintática e escolhas lexicais totalmente inéditas. Evite fórmulas repetitivas "
+    "ou jargões reciclados. Cada interação deve ser uma peça literária única, formal e focada nos fatos."
+)
+
+SYS_LORE = f"""Você é o Narrador Imemorial do Império de Tenshi — voz épica, sombria e poética de um RPG de texto.
 REGRAS OBRIGATÓRIAS:
 - Escreva narrativas para RPG de TEXTO PURO — sem dados, sem fichas, sem mecânicas de TTRPG
 - Linguagem imersiva, imperial e rica. Parágrafos curtos e impactantes
@@ -44,7 +51,8 @@ REGRAS OBRIGATÓRIAS:
 - Tamanho: 3-5 parágrafos tensos e atmosféricos
 - Termine sempre com um gancho de ação que convide o personagem a agir
 - O líder supremo é o IMPERADOR ALLOY — trate-o como divindade viva
-- Escreva APENAS a narrativa, sem meta-texto"""
+- Escreva APENAS a narrativa, sem meta-texto
+{DIRETRIZ_ORIGINALIDADE}"""
 
 SYS_PROFECIA = """Você é o Oráculo Eterno de Tenshi, voz dos deuses do além.
 Crie uma PROFECIA épica (4-6 parágrafos) em linguagem arcaica e dramática.
@@ -61,18 +69,44 @@ Responda EM PERSONAGEM, de forma curta (2-4 linhas), imersiva e coerente com que
 Use o nome do NPC como sua identidade. Linguagem medieval/imperial."""
 
 
-async def _gerar(prompt: str, system: str = SYS_LORE) -> str:
+def _build_estado_snapshot(user_data: dict) -> str:
+    """Protocol 18 — injeta snapshot do estado do usuário no prompt."""
+    fadiga  = user_data.get("fadiga", 0)
+    poder   = user_data.get("poder", 100)
+    nivel   = user_data.get("nivel", 1)
+    moedas  = user_data.get("moedas", 0)
+    foragido = user_data.get("foragido", False)
+    quarent  = user_data.get("quarentena", False)
+    partes = [f"Estado do personagem: nível {nivel}, poder {poder}, fadiga {fadiga}%."]
+    if fadiga > 70:
+        partes.append("O personagem está fisicamente exausto — ajuste o tom para refletir cansaço severo e movimentos lentos.")
+    if poder < 30:
+        partes.append("O personagem está gravemente enfraquecido — reflita fragilidade e vulnerabilidade no texto.")
+    if foragido:
+        partes.append("O personagem está foragido da justiça — reflita tensão, paranoia e urgência.")
+    if quarent:
+        partes.append("O personagem está em quarentena médica — reflita debilidade e isolamento forçado.")
+    return " ".join(partes)
+
+
+async def _gerar(prompt: str, system: str = SYS_LORE,
+                 user_data: dict | None = None, temperatura: float = 0.88) -> str:
+    """Protocol 18: temperature elevado + snapshot de estado injetado + Diretriz de Originalidade."""
     if not groq_client:
         return "*[O Oráculo dorme... a chave de IA não foi configurada.]*"
+    sys_final = system
+    if user_data:
+        snapshot = _build_estado_snapshot(user_data)
+        sys_final = f"{system}\n\n{snapshot}"
     try:
         r = groq_client.chat.completions.create(
             model=MODELO,
             messages=[
-                {"role": "system", "content": system},
+                {"role": "system", "content": sys_final},
                 {"role": "user",   "content": prompt}
             ],
             max_tokens=800,
-            temperature=0.93,
+            temperature=temperatura,
         )
         return r.choices[0].message.content.strip()
     except Exception as e:
