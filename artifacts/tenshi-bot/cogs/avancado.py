@@ -227,13 +227,23 @@ class Avancado:
             await message.channel.send(embed=embed_soberano("Canal Não Localizado", f"Canal casa-{numero} não encontrado.", COR_PERIGO))
             return
         try:
-            await canal.set_permissions(message.guild.default_role, send_messages=False)
+            viz = get_vizinhanca()
+            dados = viz.get(str(numero), {})
+            await canal.set_permissions(message.guild.default_role, view_channel=False)
+            await canal.set_permissions(message.author, view_channel=True, send_messages=True)
+            for uid in dados.get("lista_moradores", []):
+                membro = message.guild.get_member(int(uid))
+                if membro:
+                    await canal.set_permissions(membro, view_channel=True, send_messages=False)
+            dados["trancada"] = True
+            viz[str(numero)] = dados
+            save_vizinhanca(viz)
         except discord.Forbidden:
             await message.channel.send(embed=embed_soberano("Permissão Negada", "O bot não possui permissão para alterar este canal.", COR_PERIGO))
             return
         embed = discord.Embed(title="🔒 Residência Trancada", color=COR_NEUTRO)
         embed.add_field(name="Canal", value=canal.mention, inline=True)
-        embed.add_field(name="Status", value="Mensagens bloqueadas para visitantes", inline=True)
+        embed.add_field(name="Status", value="Somente o proprietário pode escrever; convidados continuam vendo.", inline=True)
         embed.set_footer(text=RODAPE_IMPERIAL)
         await message.channel.send(embed=embed)
 
@@ -248,13 +258,23 @@ class Avancado:
             await message.channel.send(embed=embed_soberano("Canal Não Localizado", f"Canal casa-{numero} não encontrado.", COR_PERIGO))
             return
         try:
-            await canal.set_permissions(message.guild.default_role, send_messages=None)
+            viz = get_vizinhanca()
+            dados = viz.get(str(numero), {})
+            await canal.set_permissions(message.guild.default_role, view_channel=False)
+            await canal.set_permissions(message.author, view_channel=True, send_messages=True)
+            for uid in dados.get("lista_moradores", []):
+                membro = message.guild.get_member(int(uid))
+                if membro:
+                    await canal.set_permissions(membro, view_channel=True, send_messages=True)
+            dados["trancada"] = False
+            viz[str(numero)] = dados
+            save_vizinhanca(viz)
         except discord.Forbidden:
             await message.channel.send(embed=embed_soberano("Permissão Negada", "O bot não possui permissão para alterar este canal.", COR_PERIGO))
             return
         embed = discord.Embed(title="🔓 Residência Destrancada", color=COR_SUCESSO)
         embed.add_field(name="Canal", value=canal.mention, inline=True)
-        embed.add_field(name="Status", value="Permissões restauradas ao padrão", inline=True)
+        embed.add_field(name="Status", value="Proprietário e convidados autorizados podem escrever.", inline=True)
         embed.set_footer(text=RODAPE_IMPERIAL)
         await message.channel.send(embed=embed)
 
@@ -409,6 +429,6 @@ class Avancado:
             if c:
                 return c
         for ch in guild.text_channels:
-            if ch.name.lower() == f"casa-{numero}":
+            if ch.name.casefold().endswith(f"casa-{numero}"):
                 return ch
         return None

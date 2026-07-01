@@ -12,6 +12,7 @@ from design import (embed_doc, embed_soberano_decreto, embed_judicial,
                     fmt_moedas, COR_GERAL, COR_DECRETO, COR_JUDICIAL,
                     COR_ADMIN, COR_SUCESSO, COR_PERIGO, rodape_padrao)
 from ia_router import ia_analitica, ia_rapida
+from cogs.parentesco import aplicar_cargo_exclusivo, remover_cargos_grupo
 from academia_curriculo import (
     CURSOS_VISIVEIS,
     competencias_do_curso,
@@ -185,9 +186,250 @@ class ProvaView(discord.ui.View):
         await interaction.response.edit_message(embed=e, view=self)
 
 
+FUNCOES_DOCENTES = {
+    "professor": ("Professor Imperial", "📚"),
+    "assistente": ("Professor Assistente", "📝"),
+    "coordenador": ("Coordenador Acadêmico", "📋"),
+    "diretor": ("Diretor da Academia", "🎓"),
+}
+
+
+def _pode_gerir_docentes(member) -> bool:
+    if member.id == IMPERADOR_ID:
+        return True
+    perms = getattr(member, "guild_permissions", None)
+    return bool(perms and perms.administrator)
+
+
+async def _definir_docente(member: discord.Member, funcao_key: str, materias: list[str], admin_id: int):
+    nome, emoji = FUNCOES_DOCENTES[funcao_key]
+    user = get_user(member.id)
+    user["professor"] = funcao_key in {"professor", "assistente", "coordenador", "diretor"}
+    user["diretor_academia"] = funcao_key == "diretor"
+    user["funcao_academica"] = nome
+    user["materias_professor"] = materias
+    user["docente_atribuido_por"] = str(admin_id)
+    user["docente_desde"] = datetime.utcnow().isoformat()
+    save_user(member.id, user)
+    return await aplicar_cargo_exclusivo(member, nome, emoji, "academia")
+
+
+class MateriaDocenteSelect(discord.ui.Select):
+    def __init__(self, alvo: discord.Member, admin_id: int, funcao_key: str):
+        self.alvo = alvo
+        self.admin_id = admin_id
+        self.funcao_key = funcao_key
+        options = [
+            discord.SelectOption(
+                label=MATERIAS[key]["nome"][:100], value=key, emoji=MATERIAS[key]["emoji"],
+                description=MATERIAS[key].get("faculdade", "Academia")[:100],
+            )
+            for key in CURSOS_VISIVEIS
+        ]
+        super().__init__(placeholder="Selecione uma ou mais disciplinas", options=options, min_values=1, max_values=min(10, len(options)))
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _pode_gerir_docentes(interaction.user):
+            await interaction.response.send_message("Este painel pertence a outro administrador.", ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+        try:
+            cargo = await _definir_docente(self.alvo, self.funcao_key, list(self.values), interaction.user.id)
+            materias = ", ".join(MATERIAS[key]["nome"] for key in self.values)
+            await interaction.message.edit(
+                embed=embed_sucesso("Docente registrado", f"• **Docente:** {self.alvo.mention}\n• **Cargo:** {cargo.mention}\n• **Disciplinas:** {materias}"),
+                view=None,
+            )
+            await interaction.followup.send("Cadastro docente concluído.", ephemeral=True)
+        except discord.Forbidden:
+            await interaction.followup.send("Cadastro salvo, mas não consegui aplicar o cargo por hierarquia.", ephemeral=True)
+
+
+class MateriaDocenteView(discord.ui.View):
+    def __init__(self, alvo: discord.Member, admin_id: int, funcao_key: str):
+        super().__init__(timeout=180)
+        self.add_item(MateriaDocenteSelect(alvo, admin_id, funcao_key))
+
+
+class FuncaoDocenteSelect(discord.ui.Select):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        self.alvo = alvo
+        self.admin_id = admin_id
+        options = [discord.SelectOption(label=nome, value=key, emoji=emoji) for key, (nome, emoji) in FUNCOES_DOCENTES.items()]
+        options.append(discord.SelectOption(label="Remover do corpo docente", value="remover", emoji="🚪"))
+        super().__init__(placeholder="Selecione a função acadêmica", options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _pode_gerir_docentes(interaction.user):
+            await interaction.response.send_message("Este painel pertence a outro administrador.", ephemeral=True)
+            return
+        escolha = self.values[0]
+        if escolha == "remover":
+            await interaction.response.defer(ephemeral=True)
+            user = get_user(self.alvo.id)
+            user["professor"] = False
+            user["diretor_academia"] = False
+            user["funcao_academica"] = None
+            user["materias_professor"] = []
+            save_user(self.alvo.id, user)
+            await remover_cargos_grupo(self.alvo, "academia")
+            await interaction.message.edit(embed=embed_admin_doc("Docente removido", f"{self.alvo.mention} saiu do corpo docente."), view=None)
+            await interaction.followup.send("Cadastro removido.", ephemeral=True)
+            return
+        if escolha in {"diretor", "coordenador"} or self.alvo.id == IMPERADOR_ID:
+            await interaction.response.defer(ephemeral=True)
+            funcao = "diretor" if self.alvo.id == IMPERADOR_ID else escolha
+            cargo = await _definir_docente(self.alvo, funcao, ["todas"], interaction.user.id)
+            await interaction.message.edit(embed=embed_sucesso(
+                "Autoridade acadêmica registrada", f"• **Membro:** {self.alvo.mention}\n• **Cargo:** {cargo.mention}\n• **Acesso:** todas as disciplinas"
+            ), view=None)
+            await interaction.followup.send("Autoridade acadêmica aplicada.", ephemeral=True)
+            return
+        await interaction.response.edit_message(
+            embed=embed_admin_doc("Selecionar disciplinas", f"Defina as disciplinas de {self.alvo.mention}."),
+            view=MateriaDocenteView(self.alvo, self.admin_id, escolha),
+        )
+
+
+class FuncaoDocenteView(discord.ui.View):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        super().__init__(timeout=180)
+        self.add_item(FuncaoDocenteSelect(alvo, admin_id))
+
+
+class DocenteMembroSelect(discord.ui.UserSelect):
+    def __init__(self, admin_id: int):
+        super().__init__(placeholder="Selecione o professor ou diretor")
+        self.admin_id = admin_id
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _pode_gerir_docentes(interaction.user):
+            await interaction.response.send_message("Este painel pertence a outro administrador.", ephemeral=True)
+            return
+        alvo = self.values[0]
+        await interaction.response.edit_message(
+            embed=embed_admin_doc("Gestão do corpo docente", f"Membro: {alvo.mention}\nEscolha a função acadêmica."),
+            view=FuncaoDocenteView(alvo, self.admin_id),
+        )
+
+
+class DocenteMembroView(discord.ui.View):
+    def __init__(self, admin_id: int):
+        super().__init__(timeout=180)
+        self.add_item(DocenteMembroSelect(admin_id))
+
+
+class PresencaAulaProfessorView(discord.ui.View):
+    def __init__(self, materia: str, professor_id: int):
+        super().__init__(timeout=3600)
+        self.materia = materia
+        self.professor_id = professor_id
+        self.presentes: set[int] = set()
+
+    @discord.ui.button(label="Registrar presença", emoji="✅", style=discord.ButtonStyle.success)
+    async def presenca(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id in self.presentes:
+            await interaction.response.send_message("Sua presença já foi registrada nesta aula.", ephemeral=True)
+            return
+        user = get_user(interaction.user.id)
+        if normalizar_materia(user.get("matricula_ativa")) != self.materia:
+            await interaction.response.send_message("Você precisa estar matriculado nesta disciplina.", ephemeral=True)
+            return
+        self.presentes.add(interaction.user.id)
+        academia = _load_academia()
+        uid = str(interaction.user.id)
+        academia.setdefault(uid, {})["presencas"] = academia.setdefault(uid, {}).get("presencas", 0) + 1
+        academia[uid]["ultima_presenca"] = datetime.utcnow().isoformat()
+        _save_academia(academia)
+        user["xp"] = user.get("xp", 0) + 5
+        save_user(interaction.user.id, user)
+        await interaction.response.send_message(
+            f"Presença confirmada em **{MATERIAS[self.materia]['nome']}**. Total: {academia[uid]['presencas']}/3.", ephemeral=True
+        )
+
+
 class Academia:
     def __init__(self, bot):
         self.bot = bot
+
+    async def handle_gerenciar_professor(self, message, args):
+        if not _pode_gerir_docentes(message.author):
+            await message.channel.send(embed=embed_perigo_doc("Acesso restrito", "Somente o Imperador ou administradores gerenciam docentes."))
+            return
+        if not message.guild.me or not message.guild.me.guild_permissions.manage_roles:
+            await message.channel.send(embed=embed_perigo_doc("Permissão necessária", "Conceda ao bot **Gerenciar Cargos**."))
+            return
+        if message.mentions:
+            alvo = message.mentions[0]
+            embed = embed_admin_doc("Gestão do corpo docente", f"Membro: {alvo.mention}\nEscolha a função acadêmica.")
+            view = FuncaoDocenteView(alvo, message.author.id)
+        else:
+            embed = embed_admin_doc("Selecionar docente", "Escolha quem será professor, coordenador ou diretor.")
+            view = DocenteMembroView(message.author.id)
+        await message.channel.send(embed=embed, view=view)
+
+    async def handle_professores(self, message, args):
+        docentes = []
+        for uid, user in get_all_users().items():
+            if not (user.get("professor") or user.get("diretor_academia")):
+                continue
+            member = message.guild.get_member(int(uid)) if message.guild else None
+            nome = member.display_name if member else f"ID {uid}"
+            materias = user.get("materias_professor", [])
+            if "todas" in materias:
+                materias_fmt = "Todas as disciplinas"
+            else:
+                materias_fmt = ", ".join(MATERIAS[m]["nome"] for m in materias if m in MATERIAS) or "Não definidas"
+            docentes.append(
+                f"**{nome}** — {user.get('funcao_academica', 'Professor')}\n"
+                f"Disciplinas: {materias_fmt} • Aulas: {user.get('aulas_ministradas', 0)}"
+            )
+        descricao = "\n\n".join(docentes[:25]) or "Nenhum docente cadastrado."
+        await message.channel.send(embed=embed_doc("Corpo Docente — Tenshi Academy", descricao, COR_ADMIN))
+
+    async def handle_ministrar_aula(self, message, args):
+        user = get_user(message.author.id)
+        if message.author.id != IMPERADOR_ID and not user.get("professor"):
+            await message.channel.send(embed=embed_perigo_doc("Acesso docente necessário", "Apenas professores, coordenação ou direção podem ministrar aulas."))
+            return
+        if not args:
+            permitidas = user.get("materias_professor", [])
+            if message.author.id == IMPERADOR_ID or "todas" in permitidas:
+                permitidas = list(CURSOS_VISIVEIS)
+            lista = "\n".join(f"• `{key}` — {MATERIAS[key]['nome']}" for key in permitidas if key in MATERIAS)
+            await message.channel.send(embed=embed_doc(
+                "Ministrar Aula", f"Uso: `Tenshi, ministrar-aula [materia] [tema]`\n\n{lista or 'Nenhuma disciplina atribuída.'}", COR_ADMIN
+            ))
+            return
+        materia = normalizar_materia(args[0])
+        if materia not in MATERIAS:
+            await message.channel.send(embed=embed_perigo_doc("Disciplina inválida", f"`{args[0]}` não existe na grade."))
+            return
+        permitidas = user.get("materias_professor", [])
+        acesso_total = message.author.id == IMPERADOR_ID or user.get("diretor_academia") or "todas" in permitidas
+        if not acesso_total and materia not in permitidas:
+            await message.channel.send(embed=embed_perigo_doc("Disciplina não atribuída", "Você não está cadastrado como docente desta matéria."))
+            return
+        tema = " ".join(args[1:]).strip() or "tema central da disciplina"
+        curso = MATERIAS[materia]
+        aguardando = await message.channel.send(embed=embed_doc(
+            f"{curso['emoji']} Preparando aula — {curso['nome']}", f"Professor: {message.author.mention}\nTema: **{tema}**", COR_GERAL
+        ))
+        sistema = (
+            f"{curso['prompt']}\nVocê auxilia um professor humano da Tenshi Academy. Produza uma aula em PT-BR "
+            "com introdução, três tópicos, exemplo aplicado ao RPG de Tenshi e exercício final. Máximo 1200 caracteres."
+        )
+        aula = await ia_analitica(sistema, f"Professor: {message.author.display_name}\nTema solicitado: {tema}", max_tokens=650)
+        user["aulas_ministradas"] = user.get("aulas_ministradas", 0) + 1
+        user["ultima_aula_ministrada"] = datetime.utcnow().isoformat()
+        save_user(message.author.id, user)
+        embed = embed_doc(
+            f"{curso['emoji']} Aula — {curso['nome']}",
+            f"**Professor:** {message.author.mention}\n**Tema:** {tema}\n\n{aula[:3000]}\n\n"
+            "Alunos matriculados podem registrar presença durante 1 hora.",
+            COR_GERAL,
+        )
+        await aguardando.edit(embed=embed, view=PresencaAulaProfessorView(materia, message.author.id))
 
     # ─── MATRÍCULA ────────────────────────────────────────────────────────────
 

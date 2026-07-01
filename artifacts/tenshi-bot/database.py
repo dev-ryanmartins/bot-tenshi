@@ -43,6 +43,8 @@ def get_user(user_id: int) -> dict:
         for k, v in defaults.items():
             if k not in data[uid]:
                 data[uid][k] = v
+        for atributo, valor in defaults["atributos"].items():
+            data[uid].setdefault("atributos", {}).setdefault(atributo, valor)
         _save(DB_FILE, data)
     return data[uid]
 
@@ -65,7 +67,12 @@ def _default_user() -> dict:
         "habilidades": [],
         # Espécie e atributos
         "especie": None,
-        "atributos": {"vida": 100, "mana": 100, "forca": 100, "agilidade": 100},
+        "atributos": {
+            "vida": 100, "mana": 100, "forca": 100, "agilidade": 100,
+            "inteligencia": 100, "sabedoria": 100, "carisma": 100, "resistencia": 100,
+            "destreza": 100, "sorte": 100, "honra": 100, "reputacao": 100,
+            "lideranca": 100, "magia": 100, "defesa": 100, "velocidade": 100,
+        },
         "poderes": [],
         "ficha_aprovada": False,
         # Localização
@@ -78,6 +85,9 @@ def _default_user() -> dict:
         "faccao": None,
         "faccao_pontos": 0,
         "status_bonus": {},
+        "prestigio": "Bronze",
+        "prestigio_chave": "bronze",
+        "prestigio_atribuido_por": None,
         "missoes_completas": 0,
         # Cooldowns
         "ultimo_treino": None,
@@ -106,6 +116,17 @@ def _default_user() -> dict:
         "salario": 0,
         "familia_id": None,
         "cargo_familia": None,
+        "professor": False,
+        "diretor_academia": False,
+        "funcao_academica": None,
+        "materias_professor": [],
+        "aulas_ministradas": 0,
+        "parentesco": None,
+        "parentesco_emoji": None,
+        "cargo_parentesco_id": None,
+        "parentesco_origem": None,
+        "parentesco_atribuido_por": None,
+        "parentesco_atualizado_em": None,
         # Ficha completa
         "ficha": {},
     }
@@ -115,10 +136,16 @@ def _template_usuario() -> dict:
     return {
         "nome": None, "titulo": "Cidadão do Império", "pegada": "imperial",
         "avatar_desc": None, "historia": None, "habilidades": [],
-        "especie": None, "atributos": {"vida": 100, "mana": 100, "forca": 100, "agilidade": 100},
+        "especie": None, "atributos": {
+            "vida": 100, "mana": 100, "forca": 100, "agilidade": 100,
+            "inteligencia": 100, "sabedoria": 100, "carisma": 100, "resistencia": 100,
+            "destreza": 100, "sorte": 100, "honra": 100, "reputacao": 100,
+            "lideranca": 100, "magia": 100, "defesa": 100, "velocidade": 100,
+        },
         "poderes": [], "ficha_aprovada": False, "local_atual": "cidadela",
         "nivel": 1, "xp": 0, "poder": 100, "inventario": [],
         "faccao": None, "faccao_pontos": 0, "status_bonus": {}, "missoes_completas": 0,
+        "prestigio": "Bronze", "prestigio_chave": "bronze", "prestigio_atribuido_por": None,
         "ultimo_treino": None, "ultima_missao": None, "ultimo_tarot": None,
         "ultimo_duelo": None, "ultimo_trabalho": None,
         "emprego_id": None, "emprego_nome": None, "cargo_trabalho": None,
@@ -126,7 +153,11 @@ def _template_usuario() -> dict:
         "moedas": 100, "conta_banco": 0, "emprestimos": [], "historico_financeiro": [],
         "casa_id": None, "casa_condominio": None, "fadiga": 0,
         "ultimo_descanso_lazer": None, "empresa_id": None, "cargo_empresa": None,
-        "salario": 0, "familia_id": None, "cargo_familia": None, "ficha": {},
+        "salario": 0, "familia_id": None, "cargo_familia": None,
+        "professor": False, "diretor_academia": False, "funcao_academica": None,
+        "materias_professor": [], "aulas_ministradas": 0,
+        "parentesco": None, "parentesco_emoji": None, "cargo_parentesco_id": None, "parentesco_origem": None,
+        "parentesco_atribuido_por": None, "parentesco_atualizado_em": None, "ficha": {},
         # Módulos 13-15
         "divida": 0, "juros_acumulados": 0, "banco_congelado": False,
         "isento_fiscal": False, "cidadania": False, "estrangeiro": True,
@@ -509,6 +540,27 @@ LOJA_ITEMS = [
     {"id": "distintivo_mafia", "nome": "Distintivo da Máfia", "preco": 400, "tipo": "titulo", "bonus_poder": 40, "descricao": "Marca de respeito no submundo de Tenshi."},
     {"id": "alianca_familia", "nome": "Aliança da Família", "preco": 350, "tipo": "amuleto", "bonus_poder": 35, "descricao": "Símbolo de lealdade inabalável ao clã."},
     {"id": "pasta_executivo", "nome": "Pasta Executiva", "preco": 250, "tipo": "acessorio", "bonus_poder": 15, "descricao": "O poder nos negócios da Tenshi Enterprise."},
+    {"id": "escudo_carmesim", "nome": "Escudo Carmesim", "preco": 650, "tipo": "armadura", "bonus_poder": 65, "nivel_minimo": 4, "descricao": "Escudo cerimonial temperado pela Guarda Imperial."},
+    {"id": "lanca_celestial", "nome": "Lança Celestial", "preco": 900, "tipo": "arma", "bonus_poder": 100, "nivel_minimo": 6, "poder_minimo": 150, "descricao": "Reservada a guerreiros que já provaram seu valor."},
+    {"id": "coroa_nobre", "nome": "Título: Nobre de Tenshi", "preco": 1200, "tipo": "titulo", "bonus_poder": 20, "nivel_minimo": 8, "descricao": "Reconhecimento oficial dos cidadãos mais experientes."},
+    {"id": "grimorio_elemental", "nome": "Grimório Elemental", "preco": 780, "tipo": "grimório", "bonus_poder": 85, "nivel_minimo": 5, "mana_minima": 80, "descricao": "Fundamentos avançados dos quatro elementos."},
+    {"id": "anel_diplomatico", "nome": "Anel Diplomático", "preco": 560, "tipo": "acessorio", "bonus_poder": 25, "nivel_minimo": 3, "descricao": "Selo usado em negociações e tratados imperiais."},
+    {"id": "armadura_draconica", "nome": "Armadura Dracônica", "preco": 1800, "tipo": "armadura", "bonus_poder": 180, "nivel_minimo": 12, "poder_minimo": 350, "item_requerido": "Escudo Carmesim", "descricao": "Placas forjadas com escamas ancestrais."},
+    {"id": "katana_lunar", "nome": "Katana Lunar", "preco": 1350, "tipo": "arma", "bonus_poder": 145, "nivel_minimo": 10, "poder_minimo": 250, "descricao": "A lâmina reflete apenas a lua de Tenshi."},
+    {"id": "fenix_cristal", "nome": "Fênix de Cristal", "preco": 2100, "tipo": "relíquia", "bonus_poder": 220, "nivel_minimo": 15, "item_requerido": "Runa Anciã", "descricao": "Relíquia que guarda a centelha de uma segunda chance."},
+    {"id": "chave_arquivo", "nome": "Chave do Arquivo Imperial", "preco": 720, "tipo": "documento", "bonus_poder": 30, "nivel_minimo": 7, "descricao": "Permite consultar alas reservadas da memória histórica."},
+    {"id": "estandarte_guerra", "nome": "Estandarte de Guerra", "preco": 980, "tipo": "acessorio", "bonus_poder": 95, "nivel_minimo": 8, "poder_minimo": 200, "descricao": "Símbolo de comando em campanhas narrativas."},
+    {"id": "elixir_mana", "nome": "Elixir de Mana Superior", "preco": 420, "tipo": "pocao", "bonus_poder": 35, "nivel_minimo": 4, "descricao": "Concentrado alquímico para conjuradores veteranos."},
+    {"id": "runa_tempo", "nome": "Runa do Tempo", "preco": 1600, "tipo": "runa", "bonus_poder": 170, "nivel_minimo": 13, "mana_minima": 120, "item_requerido": "Runa Anciã", "descricao": "Fragmento instável das eras passadas e futuras."},
+    {"id": "manto_conselho", "nome": "Manto do Alto Conselho", "preco": 2500, "tipo": "armadura", "bonus_poder": 200, "nivel_minimo": 18, "poder_minimo": 500, "descricao": "Veste solene da elite administrativa."},
+    {"id": "medalha_guardiao", "nome": "Medalha do Guardião", "preco": 1100, "tipo": "titulo", "bonus_poder": 90, "nivel_minimo": 9, "cargo_requerido": "guarda", "descricao": "Honraria exclusiva para integrantes da guarda."},
+    {"id": "selo_academico", "nome": "Selo da Academia", "preco": 850, "tipo": "amuleto", "bonus_poder": 55, "nivel_minimo": 6, "descricao": "Marca de domínio intelectual e disciplina acadêmica."},
+    {"id": "orbe_abissal", "nome": "Orbe Abissal", "preco": 3200, "tipo": "relíquia", "bonus_poder": 300, "nivel_minimo": 22, "poder_minimo": 700, "mana_minima": 180, "descricao": "Artefato de risco extremo selado pelo Império."},
+    {"id": "trono_campanha", "nome": "Trono de Campanha", "preco": 4000, "tipo": "acessorio", "bonus_poder": 260, "nivel_minimo": 25, "poder_minimo": 900, "descricao": "Posto móvel de comando para grandes campanhas."},
+    {"id": "cajado_astral", "nome": "Cajado Astral", "preco": 1450, "tipo": "arma", "bonus_poder": 155, "nivel_minimo": 11, "mana_minima": 140, "descricao": "Canaliza mapas celestes e energia arcana."},
+    {"id": "brasao_mercador", "nome": "Brasão do Magnata", "preco": 1750, "tipo": "titulo", "bonus_poder": 75, "nivel_minimo": 10, "descricao": "Insígnia dos grandes comerciantes de Tenshi."},
+    {"id": "cofre_dimensional", "nome": "Cofre Dimensional", "preco": 2800, "tipo": "relíquia", "bonus_poder": 120, "nivel_minimo": 16, "item_requerido": "Chave do Arquivo Imperial", "descricao": "Compartimento selado fora do espaço convencional."},
+    {"id": "espada_eclipse", "nome": "Espada do Eclipse", "preco": 5000, "tipo": "arma", "bonus_poder": 420, "nivel_minimo": 30, "poder_minimo": 1200, "item_requerido": "Katana Lunar", "descricao": "Arma máxima, acessível apenas à elite do RPG."},
 ]
 
 # ─────────────────────────────────────────────
@@ -559,7 +611,7 @@ def get_vizinhanca() -> dict:
     if not dados:
         dados = {}
         from datetime import datetime
-        for n in range(1, 19):
+        for n in range(1, 51):
             dados[str(n)] = {
                 "numero": n,
                 "nome": f"Casa-{n}",
@@ -572,7 +624,7 @@ def get_vizinhanca() -> dict:
             }
         _save(VIZINHANCA_FILE, dados)
     else:
-        for n in range(1, 19):
+        for n in range(1, 51):
             chave = str(n)
             if chave not in dados:
                 dados[chave] = {

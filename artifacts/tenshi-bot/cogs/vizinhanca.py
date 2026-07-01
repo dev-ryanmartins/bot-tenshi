@@ -14,9 +14,10 @@ from utils import embed_imperial, SEP, RODAPE_IMPERIAL
 # CONSTANTES DO CONDOMÍNIO
 # ─────────────────────────────────────────────────────────────────────────────
 
-TAXA_COMPRA   = 800    # moedas para comprar uma casa
-TAXA_ALUGUEL  = 200    # moedas para alugar uma casa
-TAXA_SEMANAL  = 50     # taxa de condomínio/aluguel semanal
+TOTAL_CASAS = 50
+TAXA_COMPRA   = 1500   # menor preço do novo catálogo
+TAXA_ALUGUEL  = 500    # menor aluguel do novo catálogo
+TAXA_SEMANAL  = 100    # menor taxa semanal
 COOLDOWN_DESCANSO = 5 * 60  # 5 minutos entre usos de descanso
 
 # Bônus de regeneração de energia por canal de lazer (fadiga removida por uso)
@@ -44,17 +45,52 @@ CRONICAS_CONDOMINIO = [
     "*Dizem que a casa-11 esconde uma passagem secreta no quarto dos fundos. Verdade ou lenda urbana de Tenshi?*",
 ]
 
-# Nomes imersivos para as casas numeradas
-def get_nome_casa(numero: int) -> str:
-    nomes = {
-        1: "Residência Aurora",  2: "Chalé das Sombras",  3: "Abrigo do Crepúsculo",
-        4: "Morada Imperial",    5: "Lar da Chama Viva",  6: "Casarão do Véu",
-        7: "Mansão Sussurrante", 8: "Porto Sereno",       9: "Toca do Oráculo",
-        10: "Villa Estrelada",  11: "Ninho do Trovão",   12: "Refúgio Místico",
-        13: "Forte Interior",   14: "Encruzilhada",      15: "Torre dos Sonhos",
-        16: "Casa do Guardião", 17: "Morada Arcana",     18: "Palacete do Fim",
+NOMES_CASAS = (
+    "Residência Aurora", "Chalé das Sombras", "Abrigo do Crepúsculo", "Morada Imperial",
+    "Lar da Chama Viva", "Casarão do Véu", "Mansão Sussurrante", "Porto Sereno",
+    "Toca do Oráculo", "Villa Estrelada", "Ninho do Trovão", "Refúgio Místico",
+    "Forte Interior", "Solar da Encruzilhada", "Torre dos Sonhos", "Casa do Guardião",
+    "Morada Arcana", "Palacete do Fim", "Villa das Camélias", "Solar do Lago Dourado",
+    "Mansão da Lua Rubra", "Residência dos Ventos", "Torre da Alvorada", "Palácio de Cristal",
+    "Fortaleza do Grifo", "Casa das Sete Chaves", "Villa do Jardim Eterno", "Solar das Runas",
+    "Mansão do Dragão Branco", "Refúgio do Eclipse", "Cidadela Carmesim", "Palácio das Marés",
+    "Torre do Conselho", "Fortaleza Celestial", "Mansão dos Espelhos", "Solar da Fênix",
+    "Castelo da Névoa", "Palácio do Lótus", "Cidadela do Trovão", "Fortaleza das Estrelas",
+    "Palácio do Sol Negro", "Castelo do Tempo", "Mansão do Trono Vazio", "Santuário Imperial",
+    "Fortaleza do Infinito", "Palácio da Coroa Astral", "Castelo do Último Guardião",
+    "Domínio do Eclipse Eterno", "Cidadela do Imperador", "Palácio Celestial de Tenshi",
+)
+
+TIPOS_CASAS = ("Residencial", "Nobre", "Mística", "Fortificada", "Lendária")
+
+
+def get_dados_casa(numero: int) -> dict:
+    indice = max(1, min(numero, TOTAL_CASAS)) - 1
+    faixa = min(indice // 10, 4)
+    preco = 1500 + indice * 275 + faixa * 750
+    return {
+        "numero": numero,
+        "nome": NOMES_CASAS[indice],
+        "tipo": TIPOS_CASAS[faixa],
+        "preco": preco,
+        "aluguel": max(500, preco // 4),
+        "taxa": max(100, preco // 25),
+        "comodos": 3 + indice // 3,
     }
-    return nomes.get(numero, f"Casa-{numero}")
+
+
+def get_nome_casa(numero: int) -> str:
+    return get_dados_casa(numero)["nome"] if 1 <= numero <= TOTAL_CASAS else f"Casa-{numero}"
+
+
+def _nome_canal_novo(guild: discord.Guild, numero: int) -> str:
+    """Reaproveita o prefixo visual dos canais existentes mostrados no servidor."""
+    for canal in guild.text_channels:
+        nome = canal.name
+        indice = nome.casefold().rfind("casa-")
+        if indice >= 0 and nome[indice + 5:].isdigit():
+            return f"{nome[:indice]}casa-{numero}"[:100]
+    return f"🏡・casa-{numero}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -85,7 +121,8 @@ class BotaoCasaCondominio(discord.ui.Button):
         dados = get_vizinhanca().get(str(self.numero), {})
         user  = get_user(interaction.user.id)
         dono  = dados.get("id_dono")
-        nome_casa = get_nome_casa(self.numero)
+        casa_info = get_dados_casa(self.numero)
+        nome_casa = casa_info["nome"]
 
         if dono is not None and str(dono) != str(interaction.user.id):
             membro_nome = f"<@{dono}>"
@@ -121,10 +158,11 @@ class BotaoCasaCondominio(discord.ui.Button):
             description=f"*Uma residência disponível no condomínio imperial...*\n{SEP}",
             color=0x8B6914
         )
-        embed.add_field(name="💰 Comprar", value=f"**{TAXA_COMPRA}** moedas (permanente*)", inline=True)
-        embed.add_field(name="🔑 Alugar",  value=f"**{TAXA_ALUGUEL}** moedas + **{TAXA_SEMANAL}/semana**", inline=True)
+        embed.add_field(name="💰 Comprar", value=f"**{casa_info['preco']}** moedas", inline=True)
+        embed.add_field(name="🔑 Alugar",  value=f"**{casa_info['aluguel']}** moedas + **{casa_info['taxa']}/semana**", inline=True)
+        embed.add_field(name="🏷️ Classe", value=f"**{casa_info['tipo']}** • {casa_info['comodos']} cômodos", inline=False)
         embed.add_field(name="💼 Seu saldo", value=f"**{total}** moedas", inline=False)
-        embed.set_footer(text=f"*Taxa semanal de condomínio: {TAXA_SEMANAL} moedas  •  {RODAPE_IMPERIAL}")
+        embed.set_footer(text=f"Taxa semanal: {casa_info['taxa']} moedas  •  {RODAPE_IMPERIAL}")
         view = ConfirmarAquisicaoCasa(self.numero, interaction.user.id)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
@@ -144,10 +182,11 @@ class ConfirmarAquisicaoCasa(discord.ui.View):
         if interaction.user.id != self.user_id:
             await interaction.response.send_message("Esta confirmação não é sua!", ephemeral=True)
             return
+        await interaction.response.defer()
         ok, msg = await _adquirir_casa(interaction, self.numero, "comprada")
         cor = 0x006400 if ok else 0x8B0000
         self.clear_items()
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             embed=embed_imperial("✅ Compra Realizada!" if ok else "❌ Erro", msg, cor),
             view=self
         )
@@ -157,10 +196,11 @@ class ConfirmarAquisicaoCasa(discord.ui.View):
         if interaction.user.id != self.user_id:
             await interaction.response.send_message("Esta confirmação não é sua!", ephemeral=True)
             return
+        await interaction.response.defer()
         ok, msg = await _adquirir_casa(interaction, self.numero, "alugada")
         cor = 0x2B6CB0 if ok else 0x8B0000
         self.clear_items()
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             embed=embed_imperial("✅ Aluguel Confirmado!" if ok else "❌ Erro", msg, cor),
             view=self
         )
@@ -173,11 +213,47 @@ class ConfirmarAquisicaoCasa(discord.ui.View):
         )
 
 
+async def _criar_canal_casa(guild: discord.Guild, numero: int, dono: discord.Member | None = None):
+    """Cria o canal privado na categoria atual ou abre uma nova ala quando ela lotar."""
+    categorias = []
+    for canal in guild.text_channels:
+        if canal.category and ("casa-" in canal.name.casefold() or "portaria" in canal.name.casefold()):
+            if canal.category not in categorias:
+                categorias.append(canal.category)
+    categoria = next((cat for cat in categorias if len(cat.channels) < 50), None)
+    if categoria is None:
+        indice = len(categorias) + 1
+        if categorias:
+            nome_categoria = f"{categorias[0].name} • ala-{indice}"[:100]
+        else:
+            nome_categoria = "🏘️ Vizinhança & Condomínio"
+        categoria = await guild.create_category(nome_categoria)
+
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(view_channel=False),
+    }
+    if dono:
+        overwrites[dono] = discord.PermissionOverwrite(view_channel=True, read_messages=True, send_messages=True)
+    if guild.me:
+        overwrites[guild.me] = discord.PermissionOverwrite(
+            view_channel=True, read_messages=True, send_messages=True, manage_channels=True,
+        )
+    info = get_dados_casa(numero)
+    return await guild.create_text_channel(
+        _nome_canal_novo(guild, numero),
+        category=categoria,
+        topic=f"🏠 {info['nome']} • {info['tipo']} • propriedade privada do Condomínio Tenshi",
+        overwrites=overwrites,
+        reason=f"Estrutura da Casa-{numero}" + (f" adquirida por {dono}" if dono else " sincronizada"),
+    )
+
+
 async def _adquirir_casa(interaction: discord.Interaction, numero: int, modo: str) -> tuple[bool, str]:
     viz = get_vizinhanca()
     chave = str(numero)
     dados = viz.get(chave, {})
-    nome_casa = get_nome_casa(numero)
+    casa_info = get_dados_casa(numero)
+    nome_casa = casa_info["nome"]
 
     if dados.get("id_dono") is not None:
         return False, "Esta residência já foi adquirida por outro morador."
@@ -186,10 +262,33 @@ async def _adquirir_casa(interaction: discord.Interaction, numero: int, modo: st
     if user.get("casa_condominio"):
         return False, "Você já possui uma residência no condomínio. Devolva-a antes de adquirir outra."
 
-    custo = TAXA_COMPRA if modo == "comprada" else TAXA_ALUGUEL
+    custo = casa_info["preco"] if modo == "comprada" else casa_info["aluguel"]
     total = user["moedas"] + user.get("conta_banco", 0)
     if total < custo:
         return False, f"Saldo insuficiente. Você tem **{total}** moedas e precisa de **{custo}**."
+
+    if not interaction.guild:
+        return False, "A compra precisa ser realizada dentro do servidor."
+
+    canal = None
+    canal_id = dados.get("id_canal")
+    if canal_id:
+        canal = interaction.guild.get_channel(int(canal_id))
+    if canal is None:
+        canal = next(
+            (ch for ch in interaction.guild.text_channels if ch.name.casefold().endswith(f"casa-{numero}")),
+            None,
+        )
+    try:
+        if canal is None:
+            canal = await _criar_canal_casa(interaction.guild, numero, interaction.user)
+        else:
+            await canal.set_permissions(interaction.guild.default_role, view_channel=False)
+            await canal.set_permissions(interaction.user, view_channel=True, read_messages=True, send_messages=True)
+    except discord.Forbidden:
+        return False, "O bot precisa da permissão **Gerenciar Canais** para preparar esta residência."
+    except discord.HTTPException:
+        return False, "Não foi possível criar o canal da casa agora. Tente novamente em instantes."
 
     # Descontar custo
     if user["moedas"] >= custo:
@@ -206,41 +305,22 @@ async def _adquirir_casa(interaction: discord.Interaction, numero: int, modo: st
     viz[chave] = {
         "numero": numero,
         "nome": nome_casa,
-        "id_canal": dados.get("id_canal"),
+        "id_canal": str(canal.id),
         "id_dono": str(interaction.user.id),
         "lista_moradores": [],
         "status_aluguel": modo,
         "data_aquisicao": datetime.utcnow().isoformat(),
         "ultima_cobranca": datetime.utcnow().isoformat(),
+        "preco_compra": casa_info["preco"],
+        "taxa_semanal": casa_info["taxa"],
+        "tipo": casa_info["tipo"],
+        "comodos": casa_info["comodos"],
+        "trancada": False,
     }
     save_vizinhanca(viz)
 
-    # Alterar permissões do canal no Discord em tempo real
-    canal = None
-    canal_id = dados.get("id_canal")
-    if canal_id and interaction.guild:
-        canal = interaction.guild.get_channel(int(canal_id))
-    if canal is None and interaction.guild:
-        # Procurar pelo nome casa-N
-        nome_canal = f"casa-{numero}"
-        for ch in interaction.guild.text_channels:
-            if ch.name.lower() == nome_canal:
-                canal = ch
-                # Salvar o ID encontrado
-                viz[chave]["id_canal"] = str(ch.id)
-                save_vizinhanca(viz)
-                break
-
-    if canal:
-        try:
-            membro = interaction.guild.get_member(interaction.user.id)
-            if membro:
-                await canal.set_permissions(membro, read_messages=True, send_messages=True)
-        except Exception:
-            pass
-
     tipo_txt = "comprada com sucesso" if modo == "comprada" else "alugada com sucesso"
-    taxa_txt = f"\n💸 Taxa semanal de condomínio: **{TAXA_SEMANAL} moedas/semana**" if modo == "alugada" else f"\n🏛️ Taxa de condomínio semanal: **{TAXA_SEMANAL} moedas/semana**"
+    taxa_txt = f"\n🏛️ Taxa de condomínio semanal: **{casa_info['taxa']} moedas/semana**"
     return True, (
         f"**{nome_casa}** foi {tipo_txt}!\n"
         f"Você agora tem acesso exclusivo ao canal `casa-{numero}`.\n{taxa_txt}\n\n"
@@ -249,7 +329,7 @@ async def _adquirir_casa(interaction: discord.Interaction, numero: int, modo: st
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# VIEW: PAINEL DA PORTARIA (18 casas)
+# VIEW: PAINEL DA PORTARIA (50 casas)
 # ─────────────────────────────────────────────────────────────────────────────
 
 class PainelPortaria(discord.ui.View):
@@ -261,9 +341,9 @@ class PainelPortaria(discord.ui.View):
 
     def _build(self):
         self.clear_items()
-        inicio = self.pagina * 9
-        fim    = inicio + 9
-        nums   = list(range(1, 19))[inicio:fim]
+        inicio = self.pagina * 10
+        fim    = inicio + 10
+        nums   = list(range(1, TOTAL_CASAS + 1))[inicio:fim]
         for n in nums:
             dados = self.vizinhanca.get(str(n), {})
             self.add_item(BotaoCasaCondominio(n, dados))
@@ -271,7 +351,7 @@ class PainelPortaria(discord.ui.View):
             b = discord.ui.Button(label="◀ Anterior", style=discord.ButtonStyle.blurple, row=3)
             b.callback = self._anterior
             self.add_item(b)
-        if fim < 18:
+        if fim < TOTAL_CASAS:
             b = discord.ui.Button(label="Próxima ▶", style=discord.ButtonStyle.blurple, row=3)
             b.callback = self._proxima
             self.add_item(b)
@@ -310,14 +390,17 @@ class Vizinhanca:
     async def handle_portaria(self, message):
         viz = get_vizinhanca()
         ocupadas   = sum(1 for v in viz.values() if v.get("id_dono"))
-        disponiveis = 18 - ocupadas
+        disponiveis = TOTAL_CASAS - ocupadas
+        menor = get_dados_casa(1)
+        maior = get_dados_casa(TOTAL_CASAS)
 
         embed = discord.Embed(
             title="🏘️ CONDOMÍNIO IMPERIAL — PORTARIA",
             description=(
                 f"*Bem-vindo à Vizinhança do Condomínio de Tenshi.*\n{SEP}\n\n"
                 f"🟢 **{disponiveis}** residências disponíveis  |  🔴 **{ocupadas}** ocupadas\n\n"
-                f"**Compra:** {TAXA_COMPRA} moedas  •  **Aluguel:** {TAXA_ALUGUEL} moedas + {TAXA_SEMANAL}/semana\n\n"
+                f"**50 residências únicas:** compras entre {menor['preco']} e {maior['preco']} moedas.\n"
+                f"Aluguel e taxa variam conforme a classe da propriedade.\n\n"
                 f"Clique na residência desejada para adquiri-la.\n"
                 f"🟢 Disponível  🔴 Comprada  🟡 Alugada"
             ),
@@ -326,6 +409,67 @@ class Vizinhanca:
         embed.set_footer(text=f"🏛️ Condomínio Tenshi  •  {RODAPE_IMPERIAL}")
         view = PainelPortaria(viz, pagina=0)
         await message.channel.send(embed=embed, view=view)
+
+    async def handle_sincronizar_canais(self, message, args):
+        """Cria ou registra os 50 canais residenciais preservando a estética existente."""
+        perms = getattr(message.author, "guild_permissions", None)
+        if not perms or not perms.administrator:
+            await message.channel.send(embed=embed_imperial(
+                "🚫 Acesso restrito", "Somente administradores podem gerar a estrutura do condomínio.", 0x8B0000
+            ))
+            return
+        if not message.guild.me or not message.guild.me.guild_permissions.manage_channels:
+            await message.channel.send(embed=embed_imperial(
+                "⚠️ Permissão necessária", "Conceda ao bot a permissão **Gerenciar Canais**.", 0x8B0000
+            ))
+            return
+
+        aviso = await message.channel.send(embed=embed_imperial(
+            "🏗️ Sincronizando condomínio", "Preparando 50 residências e preservando o padrão visual existente...", 0x8B6914
+        ))
+        viz = get_vizinhanca()
+        criados = 0
+        vinculados = 0
+        falhas = []
+        for numero in range(1, TOTAL_CASAS + 1):
+            dados = viz.get(str(numero), {})
+            canal = None
+            if dados.get("id_canal"):
+                canal = message.guild.get_channel(int(dados["id_canal"]))
+            if canal is None:
+                canal = next(
+                    (ch for ch in message.guild.text_channels if ch.name.casefold().endswith(f"casa-{numero}")),
+                    None,
+                )
+            dono = message.guild.get_member(int(dados["id_dono"])) if dados.get("id_dono") else None
+            try:
+                if canal is None:
+                    canal = await _criar_canal_casa(message.guild, numero, dono)
+                    criados += 1
+                else:
+                    vinculados += 1
+                    await canal.set_permissions(message.guild.default_role, view_channel=False)
+                    if dono:
+                        await canal.set_permissions(dono, view_channel=True, send_messages=True)
+                for uid in dados.get("lista_moradores", []):
+                    morador = message.guild.get_member(int(uid))
+                    if morador:
+                        await canal.set_permissions(
+                            morador, view_channel=True,
+                            send_messages=not dados.get("trancada", False),
+                        )
+                dados["id_canal"] = str(canal.id)
+                dados["nome"] = get_nome_casa(numero)
+                viz[str(numero)] = dados
+            except (discord.Forbidden, discord.HTTPException) as exc:
+                falhas.append(f"casa-{numero}: {str(exc)[:70]}")
+        save_vizinhanca(viz)
+        await aviso.edit(embed=embed_imperial(
+            "✅ Condomínio sincronizado",
+            f"**Canais criados:** {criados}\n**Já existentes vinculados:** {vinculados}\n"
+            f"**Falhas:** {len(falhas)}\n" + ("\n".join(falhas[:5]) if falhas else "Estrutura pronta."),
+            0x1A5C2E if not falhas else 0xFF8C00,
+        ))
 
     # ── MINHA CASA NO CONDOMÍNIO ──────────────────────────────────────────────
 
@@ -341,6 +485,7 @@ class Vizinhanca:
             return
         viz = get_vizinhanca()
         dados = viz.get(str(numero), {})
+        casa_info = get_dados_casa(numero)
         moradores = dados.get("lista_moradores", [])
         moradores_fmt = "\n".join(f"• <@{m}>" for m in moradores) or "*Nenhum convidado*"
         embed = discord.Embed(
@@ -349,7 +494,9 @@ class Vizinhanca:
             color=0x2B6CB0
         )
         embed.add_field(name="🏷️ Status",     value=dados.get("status_aluguel", "comprada").capitalize(), inline=True)
-        embed.add_field(name="💸 Taxa semanal", value=f"{TAXA_SEMANAL} moedas", inline=True)
+        embed.add_field(name="🏷️ Classe", value=f"{casa_info['tipo']} • {casa_info['comodos']} cômodos", inline=True)
+        embed.add_field(name="💎 Valor", value=f"{casa_info['preco']} moedas", inline=True)
+        embed.add_field(name="💸 Taxa semanal", value=f"{dados.get('taxa_semanal', casa_info['taxa'])} moedas", inline=True)
         embed.add_field(name="👥 Convidados",  value=moradores_fmt, inline=False)
         embed.set_footer(text=f"Use 'Tenshi, convidar @usuario' para dar acesso  •  {RODAPE_IMPERIAL}")
         await message.channel.send(embed=embed)
@@ -398,7 +545,10 @@ class Vizinhanca:
         canal = await self._get_canal_casa(message.guild, numero, dados)
         if canal:
             try:
-                await canal.set_permissions(alvo, read_messages=True, send_messages=True)
+                await canal.set_permissions(
+                    alvo, view_channel=True, read_messages=True,
+                    send_messages=not dados.get("trancada", False),
+                )
             except Exception:
                 pass
 
@@ -493,7 +643,7 @@ class Vizinhanca:
         reembolso = 0
         status = dados.get("status_aluguel", "comprada")
         if status == "comprada":
-            reembolso = int(TAXA_COMPRA * 0.3)
+            reembolso = int(dados.get("preco_compra", get_dados_casa(numero)["preco"]) * 0.3)
             user["moedas"] = user.get("moedas", 0) + reembolso
 
         # Remover permissões de todos os moradores
@@ -601,7 +751,7 @@ class Vizinhanca:
             description=f"*Lista completa dos residentes do Condomínio Imperial...*\n{SEP}",
             color=0x8B6914
         )
-        for n in range(1, 19):
+        for n in range(1, TOTAL_CASAS + 1):
             dados = viz.get(str(n), {})
             dono  = dados.get("id_dono")
             if dono:
@@ -643,7 +793,7 @@ class Vizinhanca:
                 return canal
         nome_canal = f"casa-{numero}"
         for ch in guild.text_channels:
-            if ch.name.lower() == nome_canal:
+            if ch.name.casefold().endswith(nome_canal):
                 viz = get_vizinhanca()
                 viz[str(numero)]["id_canal"] = str(ch.id)
                 save_vizinhanca(viz)
@@ -692,12 +842,13 @@ class Vizinhanca:
                     continue
 
             user = get_user(int(dono_id))
+            taxa = int(dados.get("taxa_semanal", get_dados_casa(int(chave))["taxa"]))
             total = user.get("moedas", 0) + user.get("conta_banco", 0)
-            if total >= TAXA_SEMANAL:
-                if user["moedas"] >= TAXA_SEMANAL:
-                    user["moedas"] -= TAXA_SEMANAL
+            if total >= taxa:
+                if user["moedas"] >= taxa:
+                    user["moedas"] -= taxa
                 else:
-                    resto = TAXA_SEMANAL - user["moedas"]
+                    resto = taxa - user["moedas"]
                     user["moedas"] = 0
                     user["conta_banco"] = user.get("conta_banco", 0) - resto
                 dados["ultima_cobranca"] = datetime.utcnow().isoformat()

@@ -10,6 +10,7 @@ import asyncio
 import random
 from datetime import datetime, timedelta
 from database import get_user, save_user, get_casamentos, save_casamentos
+from cogs.parentesco import aplicar_parentesco
 from utils import SEP, RODAPE_IMPERIAL, IMPERADOR_ID
 
 COR_IMPERIAL = 0x2C3E50
@@ -82,6 +83,12 @@ class VotosView(discord.ui.View):
         u2["conjuge"]     = str(self.noivo1.id)
         u1["taxa_casa_divisao"] = True
         u2["taxa_casa_divisao"] = True
+        for user in (u1, u2):
+            user["parentesco_antes_casamento"] = user.get("parentesco") or "Membro"
+            user["parentesco_emoji_antes_casamento"] = user.get("parentesco_emoji") or "👤"
+            user["parentesco"] = "Familiar"
+            user["parentesco_emoji"] = "👨‍👩‍👧"
+            user["parentesco_origem"] = "casamento"
         # Cônjuge do Imperador recebe acesso executivo
         if self.noivo1.id == IMPERADOR_ID or self.noivo2.id == IMPERADOR_ID:
             conjuge_id = self.noivo2.id if self.noivo1.id == IMPERADOR_ID else self.noivo1.id
@@ -90,6 +97,11 @@ class VotosView(discord.ui.View):
             save_user(conjuge_id, conj_user)
         save_user(self.noivo1.id, u1)
         save_user(self.noivo2.id, u2)
+        for membro in (self.noivo1, self.noivo2):
+            try:
+                await aplicar_parentesco(membro, "Familiar", "👨‍👩‍👧", origem="casamento")
+            except (discord.Forbidden, discord.HTTPException):
+                pass
         embed = discord.Embed(
             title="⚜ Certidão Imperial de União",
             description=(
@@ -104,7 +116,7 @@ class VotosView(discord.ui.View):
             color=COR_DOURADO
         )
         embed.set_footer(text=RODAPE_IMPERIAL)
-        await interaction.response.edit_message(embed=embed, view=self)
+        await interaction.message.edit(embed=embed, view=self)
 
 
 # ─── LAVANDERIA ───────────────────────────────────────────────────────────────
@@ -229,12 +241,39 @@ class Social:
         user["conjuge"] = None
         user["taxa_casa_divisao"] = False
         user["co_soberano"] = False
+        restaurar_autor = None
+        if user.get("parentesco_origem") == "casamento":
+            restaurar_autor = (
+                user.pop("parentesco_antes_casamento", "Membro"),
+                user.pop("parentesco_emoji_antes_casamento", "👤"),
+            )
+            user["parentesco"], user["parentesco_emoji"] = restaurar_autor
+            user["parentesco_origem"] = "restaurado"
         save_user(message.author.id, user)
         conj = get_user(int(conjuge_id))
         conj["conjuge"]   = None
         conj["taxa_casa_divisao"] = False
         conj["co_soberano"] = False
+        restaurar_conjuge = None
+        if conj.get("parentesco_origem") == "casamento":
+            restaurar_conjuge = (
+                conj.pop("parentesco_antes_casamento", "Membro"),
+                conj.pop("parentesco_emoji_antes_casamento", "👤"),
+            )
+            conj["parentesco"], conj["parentesco_emoji"] = restaurar_conjuge
+            conj["parentesco_origem"] = "restaurado"
         save_user(int(conjuge_id), conj)
+        if restaurar_autor:
+            try:
+                await aplicar_parentesco(message.author, *restaurar_autor, origem="restaurado")
+            except (discord.Forbidden, discord.HTTPException):
+                pass
+        membro_conjuge = message.guild.get_member(int(conjuge_id)) if message.guild else None
+        if restaurar_conjuge and membro_conjuge:
+            try:
+                await aplicar_parentesco(membro_conjuge, *restaurar_conjuge, origem="restaurado")
+            except (discord.Forbidden, discord.HTTPException):
+                pass
         casamentos = get_casamentos()
         cid1 = f"{min(message.author.id, int(conjuge_id))}_{max(message.author.id, int(conjuge_id))}"
         if cid1 in casamentos:

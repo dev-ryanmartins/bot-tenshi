@@ -1,3 +1,4 @@
+import asyncio
 import unicodedata
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
@@ -13,6 +14,7 @@ from database import (
 )
 from ia_router import ia_rapida
 from lei_imperial import RITO_REAL_PASSOS
+from cogs.parentesco import aplicar_parentesco
 from utils import IMPERADOR_ID, RODAPE_IMPERIAL, SEP
 
 COR_DOURADO = 0x9E7815
@@ -171,6 +173,16 @@ def _registrar_uniao(n1: discord.Member, n2: discord.Member, registro: dict) -> 
     u2["conjuge"] = str(n1.id)
     u1["taxa_casa_divisao"] = True
     u2["taxa_casa_divisao"] = True
+    u1["parentesco_antes_casamento"] = u1.get("parentesco") or "Membro"
+    u2["parentesco_antes_casamento"] = u2.get("parentesco") or "Membro"
+    u1["parentesco_emoji_antes_casamento"] = u1.get("parentesco_emoji") or "👤"
+    u2["parentesco_emoji_antes_casamento"] = u2.get("parentesco_emoji") or "👤"
+    u1["parentesco"] = "Familiar"
+    u2["parentesco"] = "Familiar"
+    u1["parentesco_emoji"] = "👨‍👩‍👧"
+    u2["parentesco_emoji"] = "👨‍👩‍👧"
+    u1["parentesco_origem"] = "casamento"
+    u2["parentesco_origem"] = "casamento"
     if n1.id == IMPERADOR_ID or n2.id == IMPERADOR_ID:
         conjuge_id = n2.id if n1.id == IMPERADOR_ID else n1.id
         conjuge = get_user(conjuge_id)
@@ -178,6 +190,36 @@ def _registrar_uniao(n1: discord.Member, n2: discord.Member, registro: dict) -> 
         save_user(conjuge_id, conjuge)
     save_user(n1.id, u1)
     save_user(n2.id, u2)
+    for membro in (n1, n2):
+        if getattr(membro, "guild", None):
+            asyncio.get_running_loop().create_task(_aplicar_cargo_familiar(membro))
+
+
+async def _aplicar_cargo_familiar(member: discord.Member) -> None:
+    try:
+        await aplicar_parentesco(member, "Familiar", "👨‍👩‍👧", origem="casamento")
+    except (discord.Forbidden, discord.HTTPException) as exc:
+        print(f"[AVISO] Não foi possível aplicar cargo Familiar a {member}: {exc}")
+
+
+def _preparar_restauracao_parentesco(user: dict) -> tuple[str, str] | None:
+    if user.get("parentesco_origem") != "casamento":
+        return None
+    vinculo = user.pop("parentesco_antes_casamento", "Membro")
+    emoji = user.pop("parentesco_emoji_antes_casamento", "👤")
+    user["parentesco"] = vinculo
+    user["parentesco_emoji"] = emoji
+    user["parentesco_origem"] = "restaurado"
+    return vinculo, emoji
+
+
+async def _restaurar_cargo_parentesco(member: discord.Member, restauracao: tuple[str, str] | None) -> None:
+    if not restauracao:
+        return
+    try:
+        await aplicar_parentesco(member, *restauracao, origem="restaurado")
+    except (discord.Forbidden, discord.HTTPException) as exc:
+        print(f"[AVISO] Não foi possível restaurar parentesco de {member}: {exc}")
 
 
 async def _gerar_cerimonia_ia(n1: discord.Member, n2: discord.Member, registro: dict) -> str:
@@ -845,13 +887,19 @@ class Matrimonio:
             user["conjuge"] = None
             user["co_soberano"] = False
             user["taxa_casa_divisao"] = False
+            restaurar_autor = _preparar_restauracao_parentesco(user)
             save_user(message.author.id, user)
             
             conjuge = get_user(conjuge_id_int)
             conjuge["conjuge"] = None
             conjuge["co_soberano"] = False
             conjuge["taxa_casa_divisao"] = False
+            restaurar_conjuge = _preparar_restauracao_parentesco(conjuge)
             save_user(conjuge_id_int, conjuge)
+            await _restaurar_cargo_parentesco(message.author, restaurar_autor)
+            membro_conjuge = message.guild.get_member(conjuge_id_int) if message.guild else None
+            if membro_conjuge:
+                await _restaurar_cargo_parentesco(membro_conjuge, restaurar_conjuge)
             
             await message.channel.send(embed=_embed(
                 "Casamento dissolvido",
@@ -962,12 +1010,16 @@ class Matrimonio:
         user1["conjuge"] = None
         user1["co_soberano"] = False
         user1["taxa_casa_divisao"] = False
+        restaurar1 = _preparar_restauracao_parentesco(user1)
         user2["conjuge"] = None
         user2["co_soberano"] = False
         user2["taxa_casa_divisao"] = False
+        restaurar2 = _preparar_restauracao_parentesco(user2)
         
         save_user(usuario1.id, user1)
         save_user(usuario2.id, user2)
+        await _restaurar_cargo_parentesco(usuario1, restaurar1)
+        await _restaurar_cargo_parentesco(usuario2, restaurar2)
         
         await message.channel.send(embed=_embed(
             "Casamento anulado por ordem imperial",

@@ -27,6 +27,50 @@ TIPO_EMOJI = {
 }
 
 
+def _nomes_inventario(user: dict) -> set[str]:
+    nomes = set()
+    for item in user.get("inventario", []):
+        nomes.add(str(item.get("nome", "")) if isinstance(item, dict) else str(item))
+    return nomes
+
+
+def formatar_requisitos(item: dict) -> str:
+    requisitos = []
+    if item.get("nivel_minimo"):
+        requisitos.append(f"Nível {item['nivel_minimo']}+")
+    if item.get("poder_minimo"):
+        requisitos.append(f"Poder {item['poder_minimo']}+")
+    if item.get("mana_minima"):
+        requisitos.append(f"Mana {item['mana_minima']}+")
+    if item.get("item_requerido"):
+        requisitos.append(f"Possuir {item['item_requerido']}")
+    if item.get("cargo_requerido"):
+        requisitos.append(f"Cargo contendo “{item['cargo_requerido']}”")
+    return " • ".join(requisitos) or "Livre"
+
+
+def verificar_requisitos(item: dict, user: dict, member=None) -> tuple[bool, str]:
+    faltando = []
+    if user.get("nivel", 1) < item.get("nivel_minimo", 0):
+        faltando.append(f"nível {item['nivel_minimo']}")
+    if user.get("poder", 0) < item.get("poder_minimo", 0):
+        faltando.append(f"poder {item['poder_minimo']}")
+    mana_atual = user.get("mana", user.get("atributos", {}).get("mana", 0))
+    if mana_atual < item.get("mana_minima", 0):
+        faltando.append(f"mana {item['mana_minima']}")
+    requerido = item.get("item_requerido")
+    if requerido and requerido not in _nomes_inventario(user):
+        faltando.append(f"item {requerido}")
+    cargo = item.get("cargo_requerido")
+    if cargo:
+        roles = getattr(member, "roles", []) if member else []
+        if not any(cargo.casefold() in role.name.casefold() for role in roles):
+            faltando.append(f"cargo contendo {cargo}")
+    if faltando:
+        return False, "Requisitos ausentes: **" + ", ".join(faltando) + "**."
+    return True, ""
+
+
 class LojaView(discord.ui.View):
     """Loja com paginação e botão de compra"""
 
@@ -57,7 +101,8 @@ class LojaView(discord.ui.View):
                 name=f"{emoji} **{item['nome']}** — `{item['preco']}` moedas",
                 value=(
                     f"*{item['descricao']}*\n"
-                    f"⚡ +{item['bonus_poder']} Poder  `•`  ID: `{item['id']}`"
+                    f"⚡ +{item['bonus_poder']} Poder  `•`  ID: `{item['id']}`\n"
+                    f"🔐 **Requisitos:** {formatar_requisitos(item)}"
                 ),
                 inline=False
             )
@@ -98,10 +143,17 @@ class LojaView(discord.ui.View):
                 await interaction.response.send_message("*Esta loja foi aberta para outro comprador.*", ephemeral=True)
                 return
             user = get_user(interaction.user.id)
-            if item["nome"] in user.get("inventario", []):
+            if item["nome"] in _nomes_inventario(user):
                 await interaction.response.send_message(
                     embed=embed_imperial("⚠️", f"Você já possui **{item['nome']}**.", 0xFF8C00),
                     ephemeral=True
+                )
+                return
+            permitido, motivo = verificar_requisitos(item, user, interaction.user)
+            if not permitido:
+                await interaction.response.send_message(
+                    embed=embed_imperial("🔒 Requisitos não cumpridos", motivo, 0x8B0000),
+                    ephemeral=True,
                 )
                 return
             if user["moedas"] < item["preco"]:
@@ -218,8 +270,12 @@ class Economia:
             await message.channel.send(embed=embed_imperial("❌", f"Item `{item_id}` não encontrado.", 0x6B0000))
             return
         user = get_user(message.author.id)
-        if item["nome"] in user.get("inventario", []):
+        if item["nome"] in _nomes_inventario(user):
             await message.channel.send(embed=embed_imperial("⚠️", f"Você já possui **{item['nome']}**.", 0xFF8C00))
+            return
+        permitido, motivo = verificar_requisitos(item, user, message.author)
+        if not permitido:
+            await message.channel.send(embed=embed_imperial("🔒 Requisitos não cumpridos", motivo, 0x8B0000))
             return
         if user["moedas"] < item["preco"]:
             await message.channel.send(embed=embed_imperial("💸", f"Faltam **{item['preco'] - user['moedas']}** moedas.", 0x6B0000))

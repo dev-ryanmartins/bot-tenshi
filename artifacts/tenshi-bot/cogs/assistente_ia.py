@@ -2,8 +2,10 @@ import time
 
 import discord
 from ia_router import ia_soberana
+from database_infractions import register_infraction
 from lei_imperial import prompt_lei_imperial
 from utils import RODAPE_IMPERIAL, SEP
+from violation_checker import check_violation, should_auto_warn
 
 COR_DOURADO = 0x9E7815
 COR_NEUTRO = 0x3D3D3D

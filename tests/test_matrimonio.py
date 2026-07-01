@@ -92,6 +92,8 @@ class MatrimonioHelpersTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(casamento["segunda_madrinha"], "8")
         self.assertEqual(casamento["terceira_madrinha"], "9")
         self.assertEqual(usuarios[1]["conjuge"], "2")
+        self.assertEqual(usuarios[1]["parentesco"], "Familiar")
+        self.assertEqual(usuarios[2]["parentesco_origem"], "casamento")
 
     async def test_fluxo_visual_tem_seis_testemunhas_ritualista_e_botoes_de_aceite(self):
         n1, n2 = FakeMember(1), FakeMember(2)
