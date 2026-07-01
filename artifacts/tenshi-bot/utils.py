@@ -558,6 +558,7 @@ AJUDA_TEXTO = f"""
 
 **💰 Economia & Comércio**
 `carteira` `mercado` `mercado-negro` `comprar [item]` `leilao [item]` `sorteio-real` `trabalhar` `emprego`
+*O mercado possui 30 itens; equipamentos avançados exigem nível, poder, mana, item anterior ou cargo.*
 
 **🏦 Banco & Finanças**
 `banco` `depositar [v]` `sacar [v]` `transferir @user [v]` `emprestimo [v]` `pagar-divida` `historico`
@@ -566,6 +567,8 @@ AJUDA_TEXTO = f"""
 **🏠 Propriedades & Condomínio**
 `casas` `minha-casa` `vender-casa` `portaria` `residencia` `convidar @user` `expulsar @user`
 `devolver-casa` `moradores` `relaxar` `fofoca` `trancar-casa` `destrancar-casa`
+*A portaria oferece 50 casas; canais privados são criados automaticamente após compra ou aluguel.*
+`sincronizar-condominio` *(admin; gera/vincula os 50 canais mantendo a estética existente)*
 
 **🚗 Garagem, Esportes & Pets**
 `garagem` `vender-veiculo` `abastecer [v]` `basquete @user` `futebol @user`
@@ -605,12 +608,16 @@ AJUDA_TEXTO = f"""
 `matricular [mat.]` `trancar-matricula [mat.]` `presenca [mat.]` `iniciar-aula [mat.]`
 `ler-apostila [mat.]` `prestar-exame [mat.]` `historico-escolar` `segunda-via-diploma`
 `entrar-clube [nome]` `cofre-clube`
+`professor [@user]` *(admin; define função e disciplinas)* `professores`
+`ministrar-aula [mat.] [tema]` *(corpo docente; aula com IA e presença)*
 
 **🏢 Empresa**
 `empresa criar/info/contratar/demitir/funcionarios/pagar` `carreiras` `emprego legal [id]`
 
 **👨‍👩‍👧 Família, Máfia & Facções**
 `familia criar/entrar/info/membros/missao/depositar` `entrar [facção]` `ranking`
+`parentesco [@user]` *(admin; Filho, Filha, Irmão, Irmã, Familiar ou personalizado)*
+*Novos participantes recebem Membro; casamentos aplicam Familiar automaticamente.*
 
 **🛡️ Moderação Imperial** *(Admin)*
 `decreto [msg]` `promover @user [cargo]` `criar-cargo [emoji] [nome]` `criar-secoes-cargos`
@@ -623,10 +630,11 @@ AJUDA_TEXTO = f"""
 `tesouro [v]` `veto [ação]` `ban` `kick` `mute [min]` `unmute @user` `unban [ID]`
 `clear [n]` `slowmode [seg]` `warn @user` `aviso @user [motivo]` `nota @user [texto]`
 `notas @user` `info @user` `historico @user`
+*Censura multilíngue: palavrões são camuflados e cada leitor decide se deseja revelar o original.*
 
 **👑 Prerrogativas Soberanas** *(Imperador)*
 `emitir-moeda` `confiscar-fortuna` `congelar-banco` `perdoar-divida` `isencao-fiscal`
-`set-status @user` `apagar-ficha` `conceder-item` `imortalidade`
+`set-status @user` *(admin; atributos e prestígio Bronze–Irídio)* `apagar-ficha` `conceder-item` `imortalidade`
 `estado-de-sitio` `dissolver-mafia` `anistia-geral` `exilio-supremo`
 `atualizar-diretriz` `apagar-memoria-ia` `forcar-cronica` `censo-imperial`
 `reset-era` `irradiar [msg]` `congelar-economia` `exportar-banco` `desligar`

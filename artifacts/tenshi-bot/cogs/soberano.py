@@ -17,6 +17,7 @@ from design import (embed_doc, embed_soberano_decreto, embed_admin_doc,
                     COR_GERAL, COR_DECRETO, COR_JUDICIAL, COR_CRIME,
                     COR_ADMIN, COR_SUCESSO, COR_PERIGO, COR_NEUTRO, rodape_padrao)
 from ia_router import ia_soberana, ia_narrativa, ia_relatorio
+from cogs.parentesco import aplicar_cargo_exclusivo, garantir_cargo_grupo
 
 # ─── ESTADO GLOBAL SOBERANO ───────────────────────────────────────────────────
 _economia_congelada    = False
@@ -24,6 +25,199 @@ _bypass_cooldown_ids:  set = set()
 _termos_censurados:    list = []
 _sys_prompt_override:  str | None = None
 _memoria_ia:           list = []   # histórico de contexto da IA
+
+STATUS_LIMITES = {
+    "vida": (0, 1000, "❤️"),
+    "mana": (0, 1000, "🔮"),
+    "forca": (0, 1000, "💪"),
+    "agilidade": (0, 1000, "💨"),
+    "poder": (0, 100_000, "⚡"),
+    "xp": (0, 1_000_000, "✨"),
+    "nivel": (1, 100, "📊"),
+    "fadiga": (0, 100, "💤"),
+    "moedas": (0, 1_000_000, "🪙"),
+    "conta_banco": (0, 5_000_000, "🏦"),
+    "inteligencia": (0, 1000, "🧠"),
+    "sabedoria": (0, 1000, "📖"),
+    "carisma": (0, 1000, "🎭"),
+    "resistencia": (0, 1000, "🛡️"),
+    "destreza": (0, 1000, "🏹"),
+    "sorte": (0, 1000, "🍀"),
+    "honra": (0, 1000, "⚜️"),
+    "reputacao": (0, 1000, "🌟"),
+    "lideranca": (0, 1000, "👑"),
+    "magia": (0, 1000, "🪄"),
+    "defesa": (0, 1000, "🏰"),
+    "velocidade": (0, 1000, "⚡"),
+}
+
+ATRIBUTOS_FICHA = {"vida", "mana", "forca", "agilidade", "inteligencia", "sabedoria", "carisma", "resistencia", "destreza", "sorte", "honra", "reputacao", "lideranca", "magia", "defesa", "velocidade"}
+
+PRESTIGIOS = {
+    "bronze": ("Bronze", "🥉", 0xCD7F32),
+    "prata": ("Prata", "🥈", 0xC0C0C0),
+    "ouro": ("Ouro", "🥇", 0xFFD700),
+    "platina": ("Platina", "💠", 0xE5E4E2),
+    "diamante": ("Diamante", "💎", 0x5CE1E6),
+    "obsidiana": ("Obsidiana", "🖤", 0x2B2B2B),
+    "iridio": ("Irídio", "🌌", 0xE6E6FA),
+}
+
+CARGOS_SUPREMOS = (
+    ("Fundador", "⚜️"), ("Imperador", "👑"), ("Rei", "♔"),
+    ("Líder Supremo", "🌌"), ("Administrador", "🛡️"),
+    ("Chefe da Máfia", "🔫"), ("Diretor da Academia", "🎓"), ("Professor Imperial", "📚"),
+)
+
+
+def _administrador(member) -> bool:
+    if getattr(member, "id", None) == IMPERADOR_ID:
+        return True
+    perms = getattr(member, "guild_permissions", None)
+    return bool(perms and perms.administrator)
+
+
+def aplicar_perfil_supremo_imperador() -> dict:
+    """Mantém o perfil do fundador no teto do sistema em toda inicialização."""
+    user = get_user(IMPERADOR_ID)
+    atributos = user.setdefault("atributos", {})
+    for atributo in ATRIBUTOS_FICHA:
+        atributos[atributo] = STATUS_LIMITES[atributo][1]
+    for atributo in ("poder", "xp", "nivel", "moedas", "conta_banco"):
+        user[atributo] = STATUS_LIMITES[atributo][1]
+    user["fadiga"] = 0
+    user["prestigio"] = "Irídio"
+    user["prestigio_chave"] = "iridio"
+    user["titulo"] = "Imperador Supremo de Tenshi"
+    user["acesso_total"] = True
+    user["imortal"] = True
+    user["fundador"] = True
+    user["admin_imperial"] = True
+    user["diretor_academia"] = True
+    user["professor"] = True
+    user["funcao_academica"] = "Diretor e Professor Imperial"
+    user["materias_professor"] = ["todas"]
+    user["cargos_supremos"] = [nome for nome, _ in CARGOS_SUPREMOS]
+    save_user(IMPERADOR_ID, user)
+    return user
+
+
+async def garantir_cargos_supremos(member: discord.Member) -> None:
+    if member.id != IMPERADOR_ID:
+        return
+    for nome, emoji in CARGOS_SUPREMOS:
+        cargo = await garantir_cargo_grupo(member.guild, nome, emoji, "autoridade_imperial")
+        if cargo not in member.roles:
+            await member.add_roles(cargo, reason="Autoridade absoluta do Fundador de Tenshi")
+    await aplicar_cargo_exclusivo(member, "Irídio", "🌌", "prestigio")
+
+
+class StatusValorModal(discord.ui.Modal, title="Definir status do personagem"):
+    valor = discord.ui.TextInput(label="Novo valor", placeholder="Digite somente números", max_length=10)
+
+    def __init__(self, alvo: discord.Member, atributo: str, admin_id: int):
+        super().__init__()
+        self.alvo = alvo
+        self.atributo = atributo
+        self.admin_id = admin_id
+        minimo, maximo, _ = STATUS_LIMITES[atributo]
+        self.valor.placeholder = f"Entre {minimo} e {maximo}"
+
+    async def on_submit(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Somente o administrador que abriu o painel pode concluir.", ephemeral=True)
+            return
+        try:
+            valor = int(self.valor.value.strip())
+        except ValueError:
+            await interaction.response.send_message("Informe um número inteiro válido.", ephemeral=True)
+            return
+        minimo, maximo, emoji = STATUS_LIMITES[self.atributo]
+        if self.alvo.id == IMPERADOR_ID:
+            valor = minimo if self.atributo == "fadiga" else maximo
+        if not minimo <= valor <= maximo:
+            await interaction.response.send_message(
+                f"O valor de **{self.atributo}** deve ficar entre **{minimo}** e **{maximo}**.",
+                ephemeral=True,
+            )
+            return
+        user = get_user(self.alvo.id)
+        if self.atributo in ATRIBUTOS_FICHA:
+            anterior = user.setdefault("atributos", {}).get(self.atributo, 0)
+            user["atributos"][self.atributo] = valor
+        else:
+            anterior = user.get(self.atributo, 0)
+            user[self.atributo] = valor
+        save_user(self.alvo.id, user)
+        await interaction.response.send_message(embed=embed_soberano_decreto(
+            "Intervenção Administrativa — Status",
+            f"• **Alvo:** {self.alvo.mention}\n"
+            f"• **Atributo:** {emoji} {self.atributo}\n"
+            f"• **Valor anterior:** {anterior}\n"
+            f"• **Novo valor:** {valor}\n"
+            f"• **Limite permitido:** {minimo}–{maximo}\n"
+            f"• **Administrador:** {interaction.user.mention}"
+        ))
+
+
+class StatusAtributoSelect(discord.ui.Select):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        self.alvo = alvo
+        self.admin_id = admin_id
+        options = [
+            discord.SelectOption(
+                label=atributo.replace("_", " ").title(), value=atributo, emoji=emoji,
+                description=f"Valor permitido: {minimo} a {maximo}",
+            )
+            for atributo, (minimo, maximo, emoji) in STATUS_LIMITES.items()
+        ]
+        super().__init__(placeholder="Selecione o status que deseja alterar", options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Este painel pertence a outro administrador.", ephemeral=True)
+            return
+        await interaction.response.send_modal(StatusValorModal(self.alvo, self.values[0], self.admin_id))
+
+
+class StatusPainelView(discord.ui.View):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        super().__init__(timeout=180)
+        self.add_item(StatusAtributoSelect(alvo, admin_id))
+        self.add_item(PrestigioSelect(alvo, admin_id))
+
+
+class PrestigioSelect(discord.ui.Select):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        self.alvo = alvo
+        self.admin_id = admin_id
+        options = [
+            discord.SelectOption(label=nome, value=chave, emoji=emoji, description=f"Classe de prestígio {nome}")
+            for chave, (nome, emoji, _) in PRESTIGIOS.items()
+        ]
+        super().__init__(placeholder="Selecionar classe: Bronze, Prata, Ouro...", options=options, row=1)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Este painel pertence a outro administrador.", ephemeral=True)
+            return
+        chave = "iridio" if self.alvo.id == IMPERADOR_ID else self.values[0]
+        nome, emoji, cor = PRESTIGIOS[chave]
+        await interaction.response.defer(ephemeral=True)
+        user = get_user(self.alvo.id)
+        user["prestigio"] = nome
+        user["prestigio_chave"] = chave
+        user["prestigio_atribuido_por"] = str(interaction.user.id)
+        save_user(self.alvo.id, user)
+        try:
+            cargo = await aplicar_cargo_exclusivo(self.alvo, nome, emoji, "prestigio")
+            try:
+                cargo = await cargo.edit(color=discord.Color(cor), reason=f"Classe de prestígio {nome}") or cargo
+            except discord.HTTPException:
+                pass
+            await interaction.followup.send(f"{self.alvo.mention} recebeu **{emoji} {nome}** ({cargo.mention}).", ephemeral=True)
+        except discord.Forbidden:
+            await interaction.followup.send("Prestígio salvo, mas não consegui aplicar o cargo por hierarquia.", ephemeral=True)
 
 def economia_congelada() -> bool:
     return _economia_congelada
@@ -145,23 +339,27 @@ class Soberano:
     # ─── B) MANIPULAÇÃO DO RPG ────────────────────────────────────────────────
 
     async def cmd_set_status(self, message, args):
-        if not self._verificar(message, "set-status"): return
-        if not message.mentions or len(args) < 3:
-            await message.author.send("> ⚠️ Uso: `Tenshi, set-status @user [atributo] [valor]`"); return
+        if not _administrador(message.author):
+            await message.channel.send(embed=embed_perigo_doc(
+                "Acesso Restrito", "Somente administradores do servidor podem alterar status."
+            ))
+            return
+        if not message.mentions:
+            await message.channel.send(embed=embed_doc("Uso", "`Tenshi, set-status @usuario`", COR_ADMIN))
+            return
         alvo = message.mentions[0]
-        atributo = args[1].lower(); valor_str = args[2]
-        try: valor = int(valor_str)
-        except: await message.author.send("> ⚠️ Valor inválido."); return
-        u = get_user(alvo.id)
-        if atributo in ("poder", "vida", "mana", "xp", "nivel", "fadiga"):
-            u[atributo] = valor
-        else:
-            u.setdefault("atributos", {})[atributo] = valor
-        save_user(alvo.id, u)
-        await message.channel.send(embed=embed_soberano_decreto(
-            "Intervenção de Estado — Modificação de Status",
-            f"• **Alvo:** {alvo.mention}\n• **Atributo:** {atributo}\n• **Novo valor:** {valor}"
-        ))
+        user = get_user(alvo.id)
+        resumo = "\n".join(
+            f"{emoji} **{atributo.replace('_', ' ').title()}:** "
+            f"{user.get('atributos', {}).get(atributo, 0) if atributo in ATRIBUTOS_FICHA else user.get(atributo, 0)}"
+            for atributo, (_, _, emoji) in STATUS_LIMITES.items()
+        )
+        embed = embed_admin_doc(
+            "Painel de Status do Personagem",
+            f"• **Alvo:** {alvo.mention}\n• **Prestígio:** {user.get('prestigio', 'Bronze')}\n\n{resumo}\n\n"
+            "Selecione abaixo o atributo. Em seguida, informe o novo valor dentro do limite exibido."
+        )
+        await message.channel.send(embed=embed, view=StatusPainelView(alvo, message.author.id))
 
     async def cmd_apagar_ficha(self, message, args):
         if not self._verificar(message, "apagar-ficha"): return

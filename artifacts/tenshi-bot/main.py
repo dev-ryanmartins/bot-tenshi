@@ -60,6 +60,7 @@ from cogs.avancado import Avancado
 from cogs.biblioteca_imperial import BibliotecaImperial
 from cogs.cargos_admin import CargosAdmin
 from cogs.casas import Casas
+from cogs.censura import CensuraMultilingue
 from cogs.clero import Clero
 from cogs.clima_ia import ClimaIA
 from cogs.correio import Correio
@@ -87,12 +88,13 @@ from cogs.matrimonio import Matrimonio
 from cogs.mistico import Mistico
 from cogs.moderacao import Moderacao
 from cogs.npcs import NPCs
+from cogs.parentesco import Parentesco, aplicar_membro_inicial
 from cogs.perfil_config import PerfilConfig
 from cogs.permissoes_canais import PermissoesCanais
 from cogs.poderes import Poderes
 from cogs.psicologia import Psicologia
 from cogs.rpg import RPG
-from cogs.soberano import Soberano
+from cogs.soberano import Soberano, aplicar_perfil_supremo_imperador, garantir_cargos_supremos
 from cogs.social import Social
 from cogs.temporadas import Temporadas
 from cogs.vizinhanca import Vizinhanca
@@ -118,9 +120,11 @@ eventos     = Eventos(bot)
 moderacao   = Moderacao(bot)
 loremaster  = LoreMaster(bot)
 casas       = Casas(bot)
+censura     = CensuraMultilingue(bot)
 empresa     = Empresa(bot)
 financeiro  = Financeiro(bot)
 familia     = Familia(bot)
+parentesco  = Parentesco(bot)
 perfil_cfg  = PerfilConfig(bot)
 especies    = Especies(bot)
 poderes_cog = Poderes(bot)
@@ -281,6 +285,14 @@ async def on_ready():
     # cada reconexão criaria novas tarefas duplicadas causando embeds duplos.
     if not _bg_tasks_initialized:
         _bg_tasks_initialized = True
+        aplicar_perfil_supremo_imperador()
+        for guild in bot.guilds:
+            imperador = guild.get_member(IMPERADOR_ID)
+            if imperador:
+                try:
+                    await garantir_cargos_supremos(imperador)
+                except (discord.Forbidden, discord.HTTPException) as exc:
+                    print(f"[AVISO] Cargos supremos não aplicados em {guild.name}: {exc}")
         await bot.add_cog(infractions)
         try:
             sincronizados = await bot.tree.sync()
@@ -377,6 +389,11 @@ async def on_message(message):
     eh_comando     = resto_comando is not None
     if _conteudo_repetido(message, conteudo):
         return
+
+    if not eh_comando and message.guild:
+        if await censura.processar_local(message):
+            return
+        censura.agendar_analise_ia(message)
 
     # Saudação automática ao Imperador (apenas em mensagens sem prefixo de comando)
     if message.author.id == IMPERADOR_ID and not eh_comando:
@@ -635,17 +652,26 @@ async def on_message(message):
 
     # ── CASAS (mercado imobiliário geral) ─────────────────────────────────────
     elif cmd in ("casas", "imoveis", "propriedades"):
-        await casas.handle_casas(message)
+        await vizinhanca.handle_portaria(message)
 
     elif cmd in ("minha-casa", "minhacasa", "meu-lar"):
-        await casas.handle_minha_casa(message)
+        if get_user(message.author.id).get("casa_condominio"):
+            await vizinhanca.handle_meu_lar(message)
+        else:
+            await casas.handle_minha_casa(message)
 
     elif cmd in ("vender-casa", "vendercasa"):
-        await casas.handle_vender_casa(message)
+        if get_user(message.author.id).get("casa_condominio"):
+            await vizinhanca.handle_devolver_casa(message)
+        else:
+            await casas.handle_vender_casa(message)
 
     # ── VIZINHANÇA / CONDOMÍNIO ────────────────────────────────────────────────
     elif cmd in ("portaria", "condominio", "condomínio", "residencias"):
         await vizinhanca.handle_portaria(message)
+
+    elif cmd in ("sincronizar-condominio", "gerar-casas", "criar-canais-casas"):
+        await vizinhanca.handle_sincronizar_canais(message, args)
 
     elif cmd in ("meu-lar-cond", "meuların", "residencia", "residência"):
         await vizinhanca.handle_meu_lar(message)
@@ -675,6 +701,9 @@ async def on_message(message):
     # ── FAMÍLIA / MÁFIA ───────────────────────────────────────────────────────
     elif cmd in ("familia", "família", "mafia", "máfia", "cla", "org"):
         await familia.handle_familia(message, args)
+
+    elif cmd in ("parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar"):
+        await parentesco.handle_parentesco(message, args)
 
     # ── FACÇÕES ───────────────────────────────────────────────────────────────
     elif cmd in ("entrar", "faccao", "facção"):
@@ -1217,6 +1246,15 @@ async def on_message(message):
     elif cmd in ("presença", "presenca", "registrar-presenca"):
         await academia.handle_presenca(message, args)
 
+    elif cmd in ("professor", "gerenciar-professor", "definir-professor"):
+        await academia.handle_gerenciar_professor(message, args)
+
+    elif cmd in ("professores", "corpo-docente", "docentes"):
+        await academia.handle_professores(message, args)
+
+    elif cmd in ("ministrar-aula", "dar-aula", "aula-professor"):
+        await academia.handle_ministrar_aula(message, args)
+
     elif cmd in ("iniciar-aula", "iniciar_aula"):
         await academia.handle_iniciar_aula(message, args)
 
@@ -1529,6 +1567,13 @@ async def _handle_historia_tenshi(message):
 
 @bot.event
 async def on_member_join(member):
+    try:
+        await aplicar_membro_inicial(member)
+    except discord.Forbidden:
+        print(f"[AVISO] Não foi possível aplicar o cargo Membro a {member}.")
+    except discord.HTTPException as exc:
+        print(f"[AVISO] Falha ao preparar parentesco de {member}: {exc}")
+
     canal = member.guild.system_channel
     if not canal:
         for ch in member.guild.text_channels:
@@ -1557,6 +1602,7 @@ async def on_member_join(member):
                 f"• `Tenshi, criar-ficha` — Crie seu personagem com espécie\n"
                 f"• `Tenshi, status` — Ver seu perfil imperial\n"
                 f"• `Tenshi, especies` — Ver todas as espécies\n"
+                f"• Você recebeu o vínculo inicial **Membro**; a administração pode definir seu parentesco\n"
                 f"• `Tenshi, ajuda` — Todos os pergaminhos\n\n{SEP}"
             ),
             color=0x2B0A3D
