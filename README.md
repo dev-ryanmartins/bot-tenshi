@@ -34,7 +34,9 @@ ADMIN_SECRET=um_segredo_forte
 ENABLE_SITE=1
 ```
 
-Nao coloque o token direto no codigo e nao envie `.env` para o GitHub.
+Tambem deixei o arquivo `railway.env.example` com os nomes exatos das variaveis para voce copiar para o painel da Railway.
+
+Nao coloque token ou chave direto no codigo e nao envie `.env` para o GitHub. As chaves reais devem ficar apenas em **Railway -> Variables**.
 
 Para Worker, nao configure `PORT`, `SITE_PORT` ou `SITE_HOST`. Se depois voce quiser abrir o painel web publicamente, crie um Web Service separado ou gere dominio publico e adicione `TENSHI_SITE_URL`.
 
