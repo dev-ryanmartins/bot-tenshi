@@ -331,7 +331,7 @@ CURRICULO_ACADEMIA: dict[str, dict] = {
         "nome": "Mestres Cerimoniais",
         "emoji": "🕯️",
         "faculdade": "Academias Especiais",
-        "cargo_destino": "Mestre Cerimonial",
+        "cargo_destino": "Ritualista de Tenshi",
         "tempo_estudo_h": 16,
         "competencias": [
             "casamento imperial",
@@ -341,9 +341,9 @@ CURRICULO_ACADEMIA: dict[str, dict] = {
             "organizacao de ritos",
         ],
         "permissoes_rpg": [
-            "organizar casamentos e coroacoes de RP sob celebracao do padre",
+            "organizar casamentos e coroacoes de RP celebrados pela Tenshi IA",
             "preparar juramentos e ritos solenes",
-            "atuar como mestre de cerimonias sem substituir a autoridade religiosa",
+            "atuar como Ritualista e mestre de cerimonias sem substituir a Tenshi IA",
         ],
         "empregos": ["mestre_cerimonial", "organizador_coroacoes", "oficial_matrimonial"],
         "prompt": (

@@ -125,7 +125,7 @@ class ExpansaoSistemasTest(unittest.IsolatedAsyncioTestCase):
         self.assertGreaterEqual(len(EMPREGOS_LEGAIS), 79)
         for curso in CURRICULO_ACADEMIA.values():
             self.assertTrue(set(curso.get("empregos", [])).issubset(ids))
-        self.assertEqual(_detectar_npc("capela-cerimonia")["nome"], "Padre Celestino")
+        self.assertEqual(_detectar_npc("capela-cerimonia")["nome"], "Ritualista Celestino")
 
 
 if __name__ == "__main__":
