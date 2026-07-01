@@ -10,6 +10,8 @@ import random
 from datetime import datetime, date
 from database import get_user, save_user, get_internados, save_internados
 from utils import SEP, RODAPE_IMPERIAL, IMPERADOR_ID
+from ia_router import ia_analitica
+from academia_curriculo import resumo_curso, tem_diploma as tem_diploma_curriculo
 
 COR_IMPERIAL = 0x2C3E50
 COR_DOURADO  = 0x9E7815
@@ -70,6 +72,61 @@ EMPREGOS_ENTREVISTA = {
             "Como você equilibra a aplicação da lei com a presunção de inocência em Tenshi?",
         ],
     },
+    "ministro_imperial": {
+        "nome": "Ministro Imperial",
+        "local": "palacio",
+        "salario": 210,
+        "requer_diploma": "governo_imperial",
+        "perguntas": [
+            "Uma crise publica ameaca a confianca na Coroa. Quais sao suas tres primeiras medidas?",
+            "Como voce organiza um conselho sem ferir a autoridade soberana do Imperador?",
+            "Explique como equilibrar eficiencia administrativa, lei imperial e bem-estar dos suditos.",
+        ],
+    },
+    "chanceler_diplomatico": {
+        "nome": "Chanceler Diplomatico",
+        "local": "chancelaria",
+        "salario": 190,
+        "requer_diploma": "diplomacia",
+        "perguntas": [
+            "Um tratado rival chega com clausula ambigua. Como voce conduz a negociacao?",
+            "Quais elementos de protocolo voce preserva em uma recepcao diplomatica?",
+            "Como mediar conflito entre faccoes sem enfraquecer a posicao de Tenshi?",
+        ],
+    },
+    "engenheiro_ia": {
+        "nome": "Engenheiro de IA Imperial",
+        "local": "nucleo-tecnologico",
+        "salario": 200,
+        "requer_diploma": "tecnologia_ia",
+        "perguntas": [
+            "Como voce projetaria uma automacao segura para apoiar a administracao do servidor?",
+            "Quais cuidados eticos usa ao criar respostas de IA para membros?",
+            "Explique como registraria logs, falhas e revisoes de um sistema imperial.",
+        ],
+    },
+    "diretor_enterprise": {
+        "nome": "Diretor Tenshi Enterprise",
+        "local": "enterprise",
+        "salario": 220,
+        "requer_diploma": "tenshi_enterprise",
+        "perguntas": [
+            "Como voce avaliaria um investimento de alto risco para a Enterprise?",
+            "O que faria ao encontrar conflito entre lucro e compliance imperial?",
+            "Monte uma estrategia curta para crescimento economico sem abusar dos membros.",
+        ],
+    },
+    "mestre_cerimonial": {
+        "nome": "Mestre Cerimonial",
+        "local": "salao-cerimonial",
+        "salario": 170,
+        "requer_diploma": "mestres_cerimoniais",
+        "perguntas": [
+            "Como voce prepara um casamento imperial sem transformar a historia em discurso longo?",
+            "Quais partes de um rito solene nunca podem faltar?",
+            "Como corrigir um erro durante a cerimonia sem quebrar a solenidade?",
+        ],
+    },
 }
 
 _entrevistas_ativas: dict = {}
@@ -115,8 +172,32 @@ class EntrevistaView(discord.ui.View):
 
     async def _avaliar(self, interaction: discord.Interaction):
         cargo = EMPREGOS_ENTREVISTA[self.cargo_id]
-        min_chars = sum(len(r) for r in self.respostas)
-        aprovado = min_chars >= 80
+        feedback = ""
+        try:
+            respostas = "\n".join(
+                f"Pergunta {idx + 1}: {pergunta}\nResposta: {self.respostas[idx]}"
+                for idx, pergunta in enumerate(self.perguntas)
+            )
+            req = cargo.get("requer_diploma")
+            curso = resumo_curso(req) if req else "Cargo sem diploma obrigatorio."
+            texto = await ia_analitica(
+                "Voce e Diretor de RH do Imperio Tenshi. Avalie entrevista de emprego de RPG com rigor administrativo. "
+                "Responda primeiro com RESULTADO: APROVADO ou RESULTADO: REPROVADO, depois 2-4 bullets de justificativa.",
+                f"Cargo: {cargo['nome']}\nRequisito: {curso}\n\n{respostas}",
+                max_tokens=700,
+            )
+            upper = texto.upper()
+            aprovado = "RESULTADO: APROVADO" in upper or (upper.startswith("APROVADO") and "REPROVADO" not in upper[:60])
+            feedback = texto
+            if texto.startswith("⚠"):
+                raise RuntimeError(texto)
+        except Exception:
+            min_chars = sum(len(r) for r in self.respostas)
+            aprovado = min_chars >= 160
+            feedback = (
+                "Avaliacao local aplicada porque a IA nao respondeu. "
+                f"Total de desenvolvimento: {min_chars} caracteres."
+            )
         if aprovado:
             user = get_user(self.candidato_id)
             user.setdefault("empregos_aprovados", [])
@@ -129,6 +210,7 @@ class EntrevistaView(discord.ui.View):
                     "Entrevista Concluída — Aprovado",
                     f"O Diretor avaliou suas respostas e considera o candidato **apto** para o cargo de **{cargo['nome']}**.\n\n"
                     f"**Salário:** {cargo['salario']} moedas/trabalho\n\n"
+                    f"**Parecer:**\n{feedback[:1200]}\n\n"
                     f"*A contratação foi registrada no banco de dados imperial.*",
                     COR_SUCESSO
                 ),
@@ -139,6 +221,7 @@ class EntrevistaView(discord.ui.View):
                 embed=embed_soberano(
                     "Entrevista Concluída — Reprovado",
                     f"O Diretor considera as respostas insuficientes para a vaga de **{cargo['nome']}**.\n\n"
+                    f"**Parecer:**\n{feedback[:1200]}\n\n"
                     f"*Estude mais sobre as normas e diretrizes do Império antes de candidatar-se novamente.*",
                     COR_PERIGO
                 ),
@@ -274,9 +357,11 @@ class Temporadas:
                 color=COR_IMPERIAL
             )
             for cid, c in EMPREGOS_ENTREVISTA.items():
+                req = c.get("requer_diploma")
+                extra = f"\nDiploma: `{req}`" if req else ""
                 embed.add_field(
                     name=f"{c['nome']}",
-                    value=f"Salário: {c['salario']} moedas\n`Tenshi, entrevista {cid}`",
+                    value=f"Salário: {c['salario']} moedas{extra}\n`Tenshi, entrevista {cid}`",
                     inline=True
                 )
             embed.set_footer(text=RODAPE_IMPERIAL)
@@ -290,6 +375,15 @@ class Temporadas:
             await message.channel.send(embed=embed_soberano("Entrevista em Andamento", "Você já possui uma entrevista ativa.", COR_NEUTRO))
             return
         cargo = EMPREGOS_ENTREVISTA[cargo_id]
+        req = cargo.get("requer_diploma")
+        if req and not tem_diploma_curriculo(get_user(message.author.id), req):
+            await message.channel.send(embed=embed_soberano(
+                "Diploma Necessario",
+                f"**{cargo['nome']}** exige certificado academico.\n\n{resumo_curso(req)}\n\n"
+                f"Use `Tenshi, matricular {req}` para iniciar a formacao.",
+                COR_PERIGO,
+            ))
+            return
         _entrevistas_ativas[message.author.id] = cargo_id
         perguntas = cargo["perguntas"]
         view = EntrevistaView(message.author.id, cargo_id, perguntas)

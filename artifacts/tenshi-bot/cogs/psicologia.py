@@ -201,7 +201,7 @@ def _selecionar_autores_relevantes(dilema: str) -> list[tuple[str, str, list[str
     return selecionados
 
 
-async def _chamar_groq(prompt_sistema: str, mensagem_usuario: str) -> str:
+async def _chamar_ia(prompt_sistema: str, mensagem_usuario: str) -> str:
     """Chama a IA analítica para pareceres estratégicos."""
     return await ia_analitica(prompt_sistema, mensagem_usuario, max_tokens=1200)
 
@@ -246,7 +246,7 @@ class Psicologia:
                 f"AUTORES PRIORITÁRIOS PARA ESTE CASO (use obrigatoriamente):\n{autores_info}"
             )
 
-            resposta = await _chamar_groq(prompt_com_contexto, f"DILEMA APRESENTADO: {dilema}")
+            resposta = await _chamar_ia(prompt_com_contexto, f"DILEMA APRESENTADO: {dilema}")
 
         # Embed do parecer
         nomes_autores = " · ".join(a for a, _, _ in autores_selecionados)
@@ -281,7 +281,7 @@ class Psicologia:
             return
 
         async with message.channel.typing():
-            resposta = await _chamar_groq(SYS_CONSELHEIRO, f"DILEMA APRESENTADO: {conteudo}")
+            resposta = await _chamar_ia(SYS_CONSELHEIRO, f"DILEMA APRESENTADO: {conteudo}")
 
         autores_selecionados = _selecionar_autores_relevantes(conteudo)
         nomes_autores = " · ".join(a for a, _, _ in autores_selecionados)

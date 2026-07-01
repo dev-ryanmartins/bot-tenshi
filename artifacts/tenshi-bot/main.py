@@ -1,11 +1,43 @@
 import discord
 import os
 import asyncio
-from datetime import datetime
+import json
+from datetime import UTC, datetime
 
-from keep_alive import keep_alive, set_bot
+
+def _configurar_console_utf8():
+    import sys
+
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
+_configurar_console_utf8()
+
+
+def _carregar_env_local():
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env")
+    if not os.path.exists(env_path):
+        return
+    with open(env_path, "r", encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            name, value = line.split("=", 1)
+            os.environ.setdefault(name.strip(), value.strip())
+
+
+_carregar_env_local()
+
+
+def _utcnow():
+    return datetime.now(UTC).replace(tzinfo=None)
+
 from utils import PREFIXO, embed_imperial, AJUDA_TEXTO, IMPERADOR_ID, SEP, RODAPE_IMPERIAL
 from database import get_user, save_user
+from site_server import start_site_server_thread
 
 from cogs.rpg           import RPG
 from cogs.economia      import Economia
@@ -42,6 +74,12 @@ from cogs.academia             import Academia
 from cogs.infraestrutura_critica import InfraestruturaCritica
 from cogs.npcs                   import NPCs
 from cogs.psicologia             import Psicologia
+from cogs.matrimonio             import Matrimonio
+from cogs.governanca_ia          import GovernancaIA
+from cogs.cargos_admin           import CargosAdmin
+from cogs.assistente_ia          import AssistenteIA
+from cogs.permissoes_canais      import PermissoesCanais
+from cogs.biblioteca_imperial    import BibliotecaImperial
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -49,7 +87,6 @@ intents.members = True
 intents.guilds   = True
 
 bot = discord.Client(intents=intents)
-set_bot(bot)
 
 # ── Módulos ───────────────────────────────────────────────────────────────────
 rpg         = RPG(bot)
@@ -87,6 +124,12 @@ academia    = Academia(bot)
 infra       = InfraestruturaCritica(bot)
 npcs_cog    = NPCs(bot)
 psicologia  = Psicologia(bot)
+matrimonio  = Matrimonio(bot)
+governanca_ia = GovernancaIA(bot)
+cargos_admin = CargosAdmin(bot)
+assistente_ia = AssistenteIA(bot)
+permissoes_canais = PermissoesCanais(bot)
+biblioteca_imperial = BibliotecaImperial(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -100,6 +143,7 @@ import time as _time
 
 _seen_msg_ids: set = set()
 _seen_msg_deque: _deque = _deque(maxlen=500)
+_recent_content_keys: dict = {}
 
 def _ja_processou(mid: int) -> bool:
     if mid in _seen_msg_ids:
@@ -110,6 +154,21 @@ def _ja_processou(mid: int) -> bool:
         _seen_msg_ids.discard(oldest)
     _seen_msg_deque.append(mid)
     _seen_msg_ids.add(mid)
+    return False
+
+
+def _conteudo_repetido(message, conteudo: str) -> bool:
+    agora = _time.monotonic()
+    for key, ts in list(_recent_content_keys.items()):
+        if agora - ts > 5.0:
+            _recent_content_keys.pop(key, None)
+
+    key = (message.author.id, message.channel.id, conteudo.strip().lower())
+    ultimo = _recent_content_keys.get(key)
+    if ultimo and agora - ultimo < 3.0:
+        return True
+
+    _recent_content_keys[key] = agora
     return False
 
 # ── Guard 2: cooldown 2s por (user, cmd) — evita "digitou 2x rápido" ──────────
@@ -127,11 +186,52 @@ def _em_cooldown(user_id: int, cmd: str) -> bool:
 # ── Guard 3: flag para garantir que on_ready só inicializa tarefas UMA VEZ ────
 _bg_tasks_initialized: bool = False
 _task_aniversario = None
+_task_status = None
+_site_thread = None
+STATUS_FILE = os.path.join("data", "status.json")
+SAUDACOES_FILE = os.path.join("data", "saudacoes.json")
+BANDEIRA_FILE = os.path.join(os.path.dirname(__file__), "assets", "tenshi-bandeira.png")
+
+
+def _salvar_status_bot(online: bool):
+    os.makedirs(os.path.dirname(STATUS_FILE), exist_ok=True)
+    payload = {
+        "online": online,
+        "guilds": len(bot.guilds) if online and bot.is_ready() else 0,
+        "latency": round(bot.latency * 1000, 1) if online and bot.is_ready() else 0,
+        "user": str(bot.user) if online and bot.user else None,
+        "updated_at": _utcnow().isoformat(),
+    }
+    with open(STATUS_FILE, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+async def _loop_status_bot():
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        _salvar_status_bot(True)
+        await asyncio.sleep(15)
+
+
+def _carregar_saudacoes() -> dict:
+    if not os.path.exists(SAUDACOES_FILE):
+        return {}
+    try:
+        with open(SAUDACOES_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _salvar_saudacoes(data: dict):
+    os.makedirs(os.path.dirname(SAUDACOES_FILE), exist_ok=True)
+    with open(SAUDACOES_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 @bot.event
 async def on_ready():
-    global _bg_tasks_initialized, _task_aniversario
+    global _bg_tasks_initialized, _task_aniversario, _task_status
 
     print(f"⚜️  Bot Tenshi v2 online | {bot.user.name} ({bot.user.id})")
     print(f"🏛️  Servidores: {len(bot.guilds)}")
@@ -158,14 +258,16 @@ async def on_ready():
         clima_cog.cog_load()
         infra.cog_load()
         _task_aniversario = bot.loop.create_task(_loop_aniversario())
+        _task_status = bot.loop.create_task(_loop_status_bot())
         print("✅ Tarefas de background inicializadas.")
+    _salvar_status_bot(True)
 
 
 async def _loop_aniversario():
     """Verifica diariamente se é aniversário de Tenshi (06/06)"""
     await bot.wait_until_ready()
     while not bot.is_closed():
-        agora = datetime.utcnow()
+        agora = _utcnow()
         chave = f"{agora.year}-aniversario"
         if agora.month == 6 and agora.day == 6 and chave not in _aniversario_anunciado:
             _aniversario_anunciado.add(chave)
@@ -201,7 +303,7 @@ async def _anunciar_aniversario(anos: int):
             f"*{anos} anos do Imperador Alloy guiando esta nação com mão de ferro e coração de ouro.*\n\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
             f"**Fundado em:** 06/06/2016\n"
-            f"**Aniversariante:** {datetime.utcnow().year}\n"
+            f"**Aniversariante:** {_utcnow().year}\n"
             f"**Imperador Eterno:** Alloy Tenshi\n\n"
             f"*Que o Império persista por mais {anos} anos — e muito além!*"
         ),
@@ -232,6 +334,8 @@ async def on_message(message):
 
     conteudo       = message.content.strip()
     conteudo_lower = conteudo.lower()
+    if _conteudo_repetido(message, conteudo):
+        return
 
     # Saudação automática ao Imperador (apenas em mensagens sem prefixo de comando)
     if message.author.id == IMPERADOR_ID and not conteudo_lower.startswith(PREFIXO):
@@ -248,7 +352,7 @@ async def on_message(message):
         if bloq:
             try:
                 from datetime import datetime as _dt
-                if _dt.utcnow() < _dt.fromisoformat(bloq):
+                if _utcnow() < _dt.fromisoformat(bloq):
                     return
                 else:
                     u_data["bloqueado_ate"] = None
@@ -277,6 +381,8 @@ async def on_message(message):
         # Canal de Psicologia Estratégica — resposta automática da IA
         if "psicologia" in canal_nome.lower() and "estrategia" in canal_nome.lower():
             await psicologia.handle_canal_psicologia(message)
+            return
+        if await assistente_ia.talvez_responder(message, conteudo, PREFIXO):
             return
         await loremaster.handle_lore_natural(message, conteudo)
         return
@@ -526,6 +632,42 @@ async def on_message(message):
     elif cmd in ("promover",):
         await moderacao.handle_promover_cargo(message, args)
 
+    elif cmd in ("criar-cargo", "cargo-imperial", "novo-cargo"):
+        await moderacao.handle_criar_cargo_imperial(message, args)
+
+    elif cmd in ("criar-secoes-cargos", "criar-seções-cargos", "separar-cargos"):
+        await cargos_admin.handle_criar_secoes_cargos(message, args)
+
+    elif cmd in ("cargos-servidor", "listar-cargos", "roles"):
+        await cargos_admin.handle_cargos_servidor(message, args)
+
+    elif cmd in ("mapear-cargos", "sincronizar-cargos"):
+        await cargos_admin.handle_mapear_cargos(message, args)
+
+    elif cmd in ("auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia"):
+        await cargos_admin.handle_auditoria_cargos_ia(message, args)
+
+    elif cmd in ("cargo-info", "info-cargo"):
+        await cargos_admin.handle_cargo_info(message, args)
+
+    elif cmd in ("funcao-cargo", "função-cargo", "definir-funcao-cargo"):
+        await cargos_admin.handle_funcao_cargo(message, args)
+
+    elif cmd in ("publicar-mapa-cargos", "manual-cargos"):
+        await cargos_admin.handle_publicar_mapa(message, args)
+
+    elif cmd in ("auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões"):
+        await permissoes_canais.handle_auditoria_permissoes(message, args)
+
+    elif cmd in ("corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot"):
+        await permissoes_canais.handle_corrigir_permissoes_bot(message, args)
+
+    elif cmd in ("mapa-canais", "mapa-chats", "estrutura-chats"):
+        await permissoes_canais.handle_mapa_canais(message, args)
+
+    elif cmd in ("aplicar-perfil-canal", "perfil-canal", "organizar-chat"):
+        await permissoes_canais.handle_aplicar_perfil_canal(message, args)
+
     elif cmd in ("punir-audacia", "punir"):
         await moderacao.handle_punir_audacia(message, args)
 
@@ -598,8 +740,17 @@ async def on_message(message):
         await avancado.handle_vender_pet(message)
 
     # ── CASAMENTO & DIVÓRCIO ──────────────────────────────────────────────────
-    elif cmd in ("casar", "noivado", "marry"):
-        await social_cog.handle_casar(message, args)
+    elif cmd in ("casar", "pedido", "noivado", "marry"):
+        await matrimonio.handle_pedido_comum(message, args)
+
+    elif cmd in ("pedido-real", "pedido_rei", "pedido-rei", "noivado-real"):
+        await matrimonio.handle_pedido_real(message, args)
+
+    elif cmd in ("rito-real", "casamento-real", "matrimonio-real", "matrimônio-real"):
+        await matrimonio.handle_rito_real(message, args)
+
+    elif cmd in ("registro-casamento", "certidao-casamento", "certidão-casamento"):
+        await matrimonio.handle_registro_casamento(message, args)
 
     elif cmd in ("divorcio", "divórcio", "separar", "divorce"):
         await social_cog.handle_divorcio(message)
@@ -659,6 +810,15 @@ async def on_message(message):
     elif cmd in ("sindicancia", "sindicância", "investigar-usuario"):
         await clero_cog.handle_sindicancia(message, args)
 
+    elif cmd in ("consultar-lei", "codigo-imperial", "código-imperial", "lei"):
+        await governanca_ia.handle_consultar_lei(message, args)
+
+    elif cmd in ("parecer-ia", "ia-admin", "oraculo-admin", "oráculo-admin"):
+        await governanca_ia.handle_parecer_ia(message, args)
+
+    elif cmd in ("plano-admin", "governar-ia", "administrar-ia"):
+        await governanca_ia.handle_plano_admin(message, args)
+
     # ── JURÍDICO ──────────────────────────────────────────────────────────────
     elif cmd in ("ficha-criminal", "ficha_criminal", "historico-criminal"):
         await juridico.handle_ficha_criminal(message, args)
@@ -684,6 +844,9 @@ async def on_message(message):
 
     elif cmd in ("vdd", "verdade-ou-desafio", "verdade-desafio"):
         await intel.handle_vdd(message)
+
+    elif cmd in ("chat", "perguntar", "assistente", "tenshi-ia"):
+        await assistente_ia.handle_chat(message, args)
 
     # ── UTILITÁRIOS ───────────────────────────────────────────────────────────
     elif cmd in ("ajuda", "help", "comandos", "menu"):
@@ -713,8 +876,38 @@ async def on_message(message):
     elif cmd in ("backup",):
         await _handle_backup(message)
 
+    elif cmd in ("bandeira", "brasao", "brasão", "simbolo", "símbolo", "estandarte"):
+        await _handle_bandeira(message)
+
+    elif cmd in ("historia-tenshi", "história-tenshi", "base-historica", "base-histórica", "origem-tenshi"):
+        await _handle_historia_tenshi(message)
+
+    elif cmd in ("biblioteca-imperial", "biblioteca", "documentos-imperiais"):
+        await biblioteca_imperial.handle_biblioteca(message, args)
+
+    elif cmd in ("documento", "pdf", "pergaminho"):
+        await biblioteca_imperial.handle_documento(message, args)
+
+    elif cmd in ("memoria-imperial", "memória-imperial", "consultar-memoria", "consultar-memória"):
+        await biblioteca_imperial.handle_memoria(message, args)
+
+    elif cmd in ("aula-imperial", "aula", "ensinar"):
+        await biblioteca_imperial.handle_aula_imperial(message, args)
+
+    elif cmd in ("missao-historica", "missão-histórica", "missao-histórica", "missão-historica"):
+        await biblioteca_imperial.handle_missao_historica(message, args)
+
+    elif cmd in ("juramento-tenshi", "juramento", "voto-tenshi"):
+        await biblioteca_imperial.handle_juramento_tenshi(message, args)
+
+    elif cmd in ("protocolo-imperial", "protocolo"):
+        await biblioteca_imperial.handle_protocolo_imperial(message, args)
+
+    elif cmd in ("quiz-imperial", "quiz-tenshi", "quiz"):
+        await biblioteca_imperial.handle_quiz_imperial(message, args)
+
     elif cmd in ("aniversario", "aniversário", "birthday"):
-        anos = datetime.utcnow().year - FUNDACAO_TENSHI.year
+        anos = _utcnow().year - FUNDACAO_TENSHI.year
         await _anunciar_aniversario(anos)
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -915,6 +1108,15 @@ async def on_message(message):
     elif cmd in ("matricular", "matricula", "matrícula", "inscrever-materia"):
         await academia.handle_matricular(message, args)
 
+    elif cmd in ("grade-academia", "grade_academia", "faculdades", "curriculo-academia", "curriculo"):
+        await academia.handle_grade_academia(message, args)
+
+    elif cmd in ("certificado", "certificado-info", "diploma-info", "ver-certificado"):
+        await academia.handle_certificado_info(message, args)
+
+    elif cmd in ("aptidao-academica", "aptidão-acadêmica", "avaliar-aptidao", "avaliar-aptidão"):
+        await academia.handle_aptidao_academica(message, args)
+
     elif cmd in ("trancar-matricula", "trancar_matricula", "cancelar-materia"):
         await academia.handle_trancar_matricula(message, args)
 
@@ -1056,11 +1258,11 @@ async def on_message(message):
                 f"*Status em tempo real dos 8 motores de inteligência artificial.*\n{SEP}\n\n"
                 + "\n".join(linhas) +
                 f"\n\n{SEP}\n**🟢 Ativo** = chave configurada  •  **🔴 Inativo** = sem chave\n"
-                f"Use o fallback `GROQ_API_KEY` garante que o bot nunca fique sem IA."
+                f"Use `OPENROUTER_API_KEY` para manter a IA ativa."
             ),
             color=0x1A1A2E
         )
-        embed.set_footer(text=f"⚙️ 8 Modelos Groq  •  {RODAPE_IMPERIAL}")
+        embed.set_footer(text=f"⚙️ OpenRouter  •  {RODAPE_IMPERIAL}")
         await message.channel.send(embed=embed)
 
     else:
@@ -1076,10 +1278,18 @@ async def on_message(message):
 # Saudação automática ao Imperador
 # ─────────────────────────────────────────────────────────────────────────────
 async def _saudar_imperador_se_necessario(message):
-    chave = f"{message.channel.id}-{message.created_at.date()}"
+    hoje = datetime.now().date().isoformat()
+    chave = f"imperador-presenca:{hoje}"
     if chave in _imperador_saudado:
         return
+    saudacoes = _carregar_saudacoes()
+    if saudacoes.get("ultima_presenca_imperador") == hoje:
+        _imperador_saudado.add(chave)
+        return
     _imperador_saudado.add(chave)
+    saudacoes["ultima_presenca_imperador"] = hoje
+    saudacoes["ultimo_canal"] = str(message.channel.id)
+    _salvar_saudacoes(saudacoes)
     embed = discord.Embed(
         title="⚜️ 👑 O IMPERADOR RETORNA 👑 ⚜️",
         description=(
@@ -1174,6 +1384,51 @@ async def _handle_backup(message):
     await message.channel.send(embed=embed)
 
 
+async def _handle_bandeira(message):
+    embed = discord.Embed(
+        title="⚜️ Bandeira Oficial da Família Tenshi",
+        description=(
+            f"*O estandarte da Casa Imperial Tenshi é erguido.*\n{SEP}\n\n"
+            f"**Símbolo:** Elmo imperial, louros de vitória e o nome Tenshi.\n"
+            f"**Uso:** identidade oficial da família, do Império e do bot.\n\n"
+            f"*Onde esta bandeira aparece, a Casa Tenshi está presente.*"
+        ),
+        color=0x0D0D0D,
+    )
+    embed.set_footer(text=RODAPE_IMPERIAL)
+    if os.path.exists(BANDEIRA_FILE):
+        file = discord.File(BANDEIRA_FILE, filename="tenshi-bandeira.png")
+        embed.set_image(url="attachment://tenshi-bandeira.png")
+        await message.channel.send(file=file, embed=embed)
+        return
+    await message.channel.send(embed=embed)
+
+
+async def _handle_historia_tenshi(message):
+    from historia_tenshi import FONTE_HISTORICA, PAGINAS_FONTE_HISTORICA, HISTORIA_TOPICOS
+
+    embed = discord.Embed(
+        title="📜 Bases Históricas do Império Tenshi",
+        description=(
+            f"*Resumo oficial contabilizado pelo bot.*\n{SEP}\n\n"
+            f"**Fonte:** `{FONTE_HISTORICA}`\n"
+            f"**Extensão:** {PAGINAS_FONTE_HISTORICA} páginas\n\n"
+            f"*A IA usa esta base para manter a memória histórica do Império; em cerimônias, "
+            f"usa apenas a versão essencial.*"
+        ),
+        color=0x9E7815,
+    )
+    for item in HISTORIA_TOPICOS[:6]:
+        embed.add_field(name=item["tema"], value=item["texto"][:900], inline=False)
+    embed.set_footer(text=RODAPE_IMPERIAL)
+    if os.path.exists(BANDEIRA_FILE):
+        file = discord.File(BANDEIRA_FILE, filename="tenshi-bandeira.png")
+        embed.set_thumbnail(url="attachment://tenshi-bandeira.png")
+        await message.channel.send(file=file, embed=embed)
+        return
+    await message.channel.send(embed=embed)
+
+
 @bot.event
 async def on_member_join(member):
     canal = member.guild.system_channel
@@ -1225,6 +1480,11 @@ async def on_member_remove(member):
 
 
 @bot.event
+async def on_disconnect():
+    _salvar_status_bot(False)
+
+
+@bot.event
 async def on_error(event, *args, **kwargs):
     import traceback
     print(f"[ERRO] Evento: {event}")
@@ -1232,9 +1492,20 @@ async def on_error(event, *args, **kwargs):
 
 
 if __name__ == "__main__":
-    keep_alive()
+    _site_thread = start_site_server_thread(bot)
     token = os.environ.get("DISCORD_TOKEN")
     if not token:
-        print("❌ DISCORD_TOKEN não encontrado nos secrets!")
+        print("❌ DISCORD_TOKEN não encontrado no ambiente!")
     else:
-        bot.run(token)
+        try:
+            bot.run(token)
+        except discord.LoginFailure:
+            print("[ERRO] Token do Discord invalido. Gere um novo token no Discord Developer Portal e atualize o .env.")
+            raise
+        except Exception as exc:
+            if "Cannot connect to host discord.com:443" in str(exc) or "Acesso negado" in str(exc):
+                print("[ERRO] O Windows bloqueou a conexao do Python com discord.com:443.")
+                print("[ERRO] Libere o python.exe no Firewall/antivirus/proxy e tente iniciar novamente.")
+            raise
+        finally:
+            _salvar_status_bot(False)

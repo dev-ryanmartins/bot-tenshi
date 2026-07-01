@@ -400,13 +400,13 @@ class Estado:
             f"• **Latência da API:** {latencia}ms\n"
             f"• **Tamanho total dos dados (JSON):** {db_size / 1024:.1f} KB\n"
             f"• **Servidores ativos:** {len(self.bot.guilds)}\n"
-            f"• **IA:** {'Groq conectado' if self._groq_ok() else 'Sem chave configurada'}\n"
-            f"• **Keep-Alive:** Ativo via Flask"
+            f"• **IA:** {'OpenRouter conectado' if self._openrouter_ok() else 'Sem chave configurada'}\n"
+            f"• **Execução:** processo Python contínuo"
         )
         await message.channel.send(embed=e)
 
-    def _groq_ok(self) -> bool:
-        import os; return bool(os.environ.get("GROQ_API_KEY"))
+    def _openrouter_ok(self) -> bool:
+        import os; return bool(os.environ.get("OPENROUTER_API_KEY"))
 
     # ── AUDITORIA BANCÁRIA ──────────────────────────────────────────────────
 

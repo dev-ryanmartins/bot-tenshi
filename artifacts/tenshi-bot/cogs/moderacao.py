@@ -98,6 +98,73 @@ class Moderacao:
     def __init__(self, bot):
         self.bot = bot
 
+    def _tem_manage_roles(self, message) -> bool:
+        try:
+            return message.author.guild_permissions.manage_roles or message.author.guild_permissions.administrator
+        except Exception:
+            return False
+
+    def _nome_cargo_tenshi(self, nome: str, emoji: str = "最", nivel: str | None = None) -> str:
+        base = f"” ͎ᵎ  ⊰ {emoji}  {nome.strip()}"
+        if nivel:
+            base = f"{base}  ʚ 最—{nivel}"
+        return base[:100]
+
+    async def handle_criar_cargo_imperial(self, message, args):
+        if not self._tem_manage_roles(message) and message.author.id != IMPERADOR_ID:
+            await message.channel.send(embed=embed_imperial("🚫", "Sem permissão para criar cargos imperiais.", 0x6B0000))
+            return
+        if not args:
+            await message.channel.send(embed=embed_imperial(
+                "❓ Criar Cargo Imperial",
+                "`Tenshi, criar-cargo 👑 Rei --nivel 1`\n"
+                "`Tenshi, criar-cargo 最 Guarda Imperial`\n\n"
+                "Formato gerado: `” ͎ᵎ  ⊰ [emoji]  [nome]`",
+                0x2B0A3D,
+            ))
+            return
+
+        tokens = list(args)
+        nivel = None
+        if "--nivel" in tokens:
+            idx = tokens.index("--nivel")
+            if idx + 1 < len(tokens):
+                nivel = tokens[idx + 1]
+            tokens = tokens[:idx] + tokens[idx + 2:]
+
+        emoji = "最"
+        if tokens and (not tokens[0].replace("-", "").isalnum() or tokens[0].startswith("<:") or tokens[0].startswith("<a:")):
+            emoji = tokens.pop(0)
+
+        nome_base = " ".join(tokens).strip()
+        if not nome_base:
+            await message.channel.send(embed=embed_imperial("❓", "Informe o nome do cargo.", 0x6B0000))
+            return
+
+        nome_cargo = self._nome_cargo_tenshi(nome_base, emoji, nivel)
+        existente = discord.utils.get(message.guild.roles, name=nome_cargo)
+        if existente:
+            await message.channel.send(embed=embed_imperial("⚜️ Cargo Existente", f"O cargo {existente.mention} já existe.", 0x9E7815))
+            return
+        try:
+            cargo = await message.guild.create_role(
+                name=nome_cargo,
+                color=discord.Color(0x9E7815),
+                mentionable=True,
+                reason=f"Cargo imperial criado por {message.author} via Tenshi Bot",
+            )
+            await message.channel.send(embed=embed_imperial(
+                "⚜️ Cargo Imperial Criado",
+                f"**Nome:** {cargo.mention}\n"
+                f"**Estética:** `{nome_cargo}`\n"
+                f"**Criado por:** {message.author.mention}",
+                0xFFD700,
+            ))
+        except discord.Forbidden:
+            await message.channel.send(embed=embed_imperial("❌", "Não tenho permissão/hierarquia para criar esse cargo.", 0x6B0000))
+        except Exception as exc:
+            await message.channel.send(embed=embed_imperial("❌", f"Erro ao criar cargo: {str(exc)[:120]}", 0x6B0000))
+
     async def handle_julgamento(self, message, args):
         if not message.mentions:
             await message.channel.send(embed=embed_imperial(

@@ -326,6 +326,11 @@ class LoreMaster:
             "assassino": ("Assassino das Sombras", "Você não devia ter me visto. Mas já que nos encontramos... o que quer?"),
             "sacerdotisa": ("Sacerdotisa da Ordem Esotérica", "As runas me disseram que você viria. Sente — o éter está denso hoje."),
             "general": ("General Draven, Mão do Imperador", "Fale depressa. Não tenho tempo para hesitantes — só para guerreiros de verdade."),
+            "arquivista": ("Arquivista Aurelius", "Nenhum império sobrevive sem memória. Diga o tema, e buscarei nos arquivos da Coroa."),
+            "cerimonial": ("Mestre Celestino", "Todo rito exige forma, silêncio e palavra correta. O que será celebrado?"),
+            "chanceler": ("Chanceler Seraphina", "Toda crise pode virar tratado, se a honra ainda couber na mesa."),
+            "professora": ("Professora Livia", "A Academia Imperial não entrega respostas fáceis. Entrega método, disciplina e dever."),
+            "engenheira": ("Dra. Ayla Voss", "Se o sistema falhou, há causa. Se há causa, há protocolo. Vamos ao diagnóstico."),
         }
         if not args:
             lista = " • ".join(NPCS.keys())

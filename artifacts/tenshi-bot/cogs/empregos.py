@@ -9,23 +9,25 @@ from datetime import datetime, timedelta
 from database import get_user, save_user, calcular_nivel
 from utils import embed_imperial, SEP, RODAPE_IMPERIAL, CORES_PEGADA
 from ia_router import ia_rapida, ia_analitica
+from academia_curriculo import materias_academicas, tem_diploma as tem_diploma_curriculo
 
 COOLDOWN_TRABALHO = 45 * 60  # 45 minutos
 
 # ─── MATÉRIAS E SEUS DADOS DE ESTUDO ─────────────────────────────────────────
-# Espelho dos dados de cogs/academia.py para evitar importação circular
 MATERIAS_INFO = {
-    "tatica_militar":      {"nome": "Tática Militar",          "emoji": "⚔️",  "presenças": 3, "tempo_estudo_h": 12},
-    "historia_lore":       {"nome": "História e Lore de Tenshi","emoji": "📜",  "presenças": 3, "tempo_estudo_h": 12},
-    "ciencias_esotéricas": {"nome": "Ciências Esotéricas",     "emoji": "🔮",  "presenças": 3, "tempo_estudo_h": 12},
-    "direito_imperial":    {"nome": "Direito Imperial",         "emoji": "⚖️",  "presenças": 3, "tempo_estudo_h": 12},
-    "logística_engenharia":{"nome": "Logística e Engenharia",   "emoji": "🔧",  "presenças": 3, "tempo_estudo_h": 12},
+    key: {
+        "nome": value.get("nome", key),
+        "emoji": value.get("emoji", "🎓"),
+        "presenças": 3,
+        "tempo_estudo_h": value.get("tempo_estudo_h", 12),
+    }
+    for key, value in materias_academicas().items()
 }
 
 
 def _tem_diploma(user: dict, materia: str) -> bool:
     """Verifica se o usuário possui diploma na matéria especificada."""
-    return any(d.get("materia") == materia for d in user.get("diplomas", []))
+    return tem_diploma_curriculo(user, materia)
 
 
 def _info_curso(materia: str) -> str:
@@ -272,6 +274,198 @@ EMPREGOS_LEGAIS = [
 # ─────────────────────────────────────────────────────────────────────────────
 # EMPREGOS ILEGAIS
 # ─────────────────────────────────────────────────────────────────────────────
+EMPREGOS_LEGAIS.extend([
+    {
+        "id": "ministro_imperial",
+        "nome": "Ministro Imperial", "emoji": "👑", "area": "Governo",
+        "narrativa": "*Coordenando decretos, crises e agendas de Estado com disciplina de gabinete...*",
+        "moedas": (150, 260), "xp": (35, 70), "poder": (2, 8),
+        "requer_diploma": "governo_imperial",
+        "nivel_minimo": 12,
+        "descricao_cargo": "Cargo alto de governo. Exige Governo Imperial e nivel 12+.",
+    },
+    {
+        "id": "gestor_crises",
+        "nome": "Gestor de Crises", "emoji": "🏛️", "area": "Governo",
+        "narrativa": "*Organizando respostas rapidas para conflitos, falhas de infraestrutura e tensoes politicas...*",
+        "moedas": (120, 220), "xp": (32, 62), "poder": (1, 6),
+        "requer_diploma": "governo_imperial",
+        "nivel_minimo": 8,
+        "descricao_cargo": "Planejamento e resposta administrativa a crises imperiais.",
+    },
+    {
+        "id": "chanceler_juridico",
+        "nome": "Chanceler Juridico", "emoji": "⚖️", "area": "Direito",
+        "narrativa": "*Emitindo pareceres sobre tratados, sucessao e conflitos administrativos do Trono...*",
+        "moedas": (140, 240), "xp": (30, 60), "poder": (1, 6),
+        "requer_diploma": "direito_imperial",
+        "nivel_minimo": 12,
+        "descricao_cargo": "Direito de alta patente para pareceres e tratados.",
+    },
+    {
+        "id": "diretor_enterprise",
+        "nome": "Diretor Tenshi Enterprise", "emoji": "💼", "area": "Corporativo",
+        "narrativa": "*Supervisionando contratos, investimentos e estrategia economica da Enterprise...*",
+        "moedas": (150, 280), "xp": (28, 58), "poder": (0, 5),
+        "requer_diploma": "tenshi_enterprise",
+        "nivel_minimo": 10,
+        "descricao_cargo": "Gestao corporativa de alto escalao.",
+    },
+    {
+        "id": "analista_investimentos",
+        "nome": "Analista de Investimentos", "emoji": "📈", "area": "Financas",
+        "narrativa": "*Avaliando risco, patrimonio e oportunidades de mercado para a Coroa...*",
+        "moedas": (110, 210), "xp": (25, 50), "poder": (0, 4),
+        "requer_diploma": "tenshi_enterprise",
+        "nivel_minimo": 6,
+        "descricao_cargo": "Financas, bolsa, venture capital e gestao patrimonial.",
+    },
+    {
+        "id": "diretor_compliance",
+        "nome": "Diretor de Compliance", "emoji": "📋", "area": "Corporativo",
+        "narrativa": "*Revisando contratos, condutas e riscos para manter a Enterprise dentro da lei imperial...*",
+        "moedas": (120, 230), "xp": (25, 55), "poder": (0, 4),
+        "requer_diploma": "tenshi_enterprise",
+        "nivel_minimo": 8,
+        "descricao_cargo": "Compliance, ESG e auditoria corporativa.",
+    },
+    {
+        "id": "engenheiro_ia",
+        "nome": "Engenheiro de IA Imperial", "emoji": "🤖", "area": "Tecnologia",
+        "narrativa": "*Treinando automacoes e sistemas inteligentes para apoiar a administracao imperial...*",
+        "moedas": (140, 260), "xp": (35, 75), "poder": (0, 5),
+        "requer_diploma": "tecnologia_ia",
+        "nivel_minimo": 8,
+        "descricao_cargo": "IA, dados, automacao e sistemas.",
+    },
+    {
+        "id": "arquiteto_cloud",
+        "nome": "Arquiteto Cloud", "emoji": "☁️", "area": "Tecnologia",
+        "narrativa": "*Mantendo servidores, backups e aplicacoes imperiais resilientes em nuvem...*",
+        "moedas": (120, 230), "xp": (28, 62), "poder": (0, 4),
+        "requer_diploma": "tecnologia_ia",
+        "nivel_minimo": 7,
+        "descricao_cargo": "Cloud, banco de dados e disponibilidade de sistemas.",
+    },
+    {
+        "id": "defensor_cibernetico",
+        "nome": "Defensor Cibernetico", "emoji": "🛡️", "area": "Seguranca Digital",
+        "narrativa": "*Auditorias defensivas protegem dados, canais e registros da Casa Tenshi...*",
+        "moedas": (130, 250), "xp": (34, 72), "poder": (0, 6),
+        "requer_diploma": "seguranca_digital",
+        "nivel_minimo": 8,
+        "descricao_cargo": "Defesa digital, criptografia e resposta a incidentes de RP.",
+    },
+    {
+        "id": "criptografo",
+        "nome": "Criptografo Imperial", "emoji": "🔐", "area": "Seguranca Digital",
+        "narrativa": "*Selando registros, rotas de comunicacao e arquivos sigilosos com protocolos de cifra...*",
+        "moedas": (115, 220), "xp": (28, 60), "poder": (0, 4),
+        "requer_diploma": "seguranca_digital",
+        "nivel_minimo": 6,
+        "descricao_cargo": "Criptografia narrativa e protecao de dados.",
+    },
+    {
+        "id": "engenheiro_aeroespacial",
+        "nome": "Engenheiro Aeroespacial", "emoji": "🚀", "area": "Engenharia",
+        "narrativa": "*Projetando mecanismos de voo, propulsao e transporte estrategico do Imperio...*",
+        "moedas": (130, 245), "xp": (32, 66), "poder": (0, 5),
+        "requer_diploma": "engenharia_imperial",
+        "nivel_minimo": 9,
+        "descricao_cargo": "Especializacao avancada da Engenharia Imperial.",
+    },
+    {
+        "id": "engenheiro_biomedico",
+        "nome": "Engenheiro Biomedico", "emoji": "⚕️", "area": "Engenharia/Saude",
+        "narrativa": "*Criando equipamentos e protocolos tecnicos para o Hospital Imperial...*",
+        "moedas": (115, 225), "xp": (30, 64), "poder": (0, 4),
+        "requer_diploma": "engenharia_imperial",
+        "nivel_minimo": 7,
+        "descricao_cargo": "Integra medicina, ciencia e engenharia.",
+    },
+    {
+        "id": "oficial_guarda",
+        "nome": "Oficial da Guarda Imperial", "emoji": "⚔️", "area": "Seguranca",
+        "narrativa": "*Comandando rondas, escoltas e protocolos de protecao da Coroa...*",
+        "moedas": (105, 210), "xp": (34, 70), "poder": (6, 16),
+        "requer_diploma": "militar_imperial",
+        "nivel_minimo": 7,
+        "descricao_cargo": "Comando militar e protecao executiva.",
+    },
+    {
+        "id": "analista_inteligencia",
+        "nome": "Analista de Inteligencia", "emoji": "🕵️", "area": "Inteligencia",
+        "narrativa": "*Cruzando relatos, mapas de risco e sinais politicos para orientar a Coroa...*",
+        "moedas": (115, 230), "xp": (34, 72), "poder": (1, 7),
+        "requer_diploma": "inteligencia_imperial",
+        "nivel_minimo": 8,
+        "descricao_cargo": "Analise de risco e relatorios estrategicos.",
+    },
+    {
+        "id": "chanceler",
+        "nome": "Chanceler Diplomatico", "emoji": "🤝", "area": "Diplomacia",
+        "narrativa": "*Conduzindo tratados, mediacoes e recepcoes formais em nome da Casa...*",
+        "moedas": (130, 240), "xp": (30, 64), "poder": (0, 5),
+        "requer_diploma": "diplomacia",
+        "nivel_minimo": 8,
+        "descricao_cargo": "Diplomacia, protocolo e mediacao de conflitos.",
+    },
+    {
+        "id": "interprete_diplomatico",
+        "nome": "Interprete Diplomatico", "emoji": "📚", "area": "Linguas",
+        "narrativa": "*Traduzindo acordos, discursos e documentos cerimoniais com precisao...*",
+        "moedas": (90, 175), "xp": (25, 55), "poder": (0, 3),
+        "requer_diploma": "linguas_imperiais",
+        "nivel_minimo": 4,
+        "descricao_cargo": "Traducao e protocolo linguistico.",
+    },
+    {
+        "id": "biomedico",
+        "nome": "Biomedico Imperial", "emoji": "🧬", "area": "Saude/Ciencia",
+        "narrativa": "*Analisando amostras, laudos e pesquisas para apoiar o Hospital Imperial...*",
+        "moedas": (105, 205), "xp": (30, 65), "poder": (0, 3),
+        "requer_diploma": "medicina_ciencias",
+        "nivel_minimo": 6,
+        "descricao_cargo": "Medicina, ciencias e diagnostico narrativo.",
+    },
+    {
+        "id": "mestre_etiqueta",
+        "nome": "Mestre de Etiqueta Imperial", "emoji": "🎭", "area": "Cultura",
+        "narrativa": "*Preparando recepcoes, postura de salao e oratoria para eventos nobres...*",
+        "moedas": (85, 170), "xp": (25, 52), "poder": (0, 3),
+        "requer_diploma": "artes_etiqueta",
+        "nivel_minimo": 4,
+        "descricao_cargo": "Etiqueta, artes, oratoria e protocolo social.",
+    },
+    {
+        "id": "genealogista",
+        "nome": "Genealogista da Coroa", "emoji": "📜", "area": "Arquivo",
+        "narrativa": "*Registrando linhagens, titulos, sucessoes e memoria historica da Familia Imperial...*",
+        "moedas": (95, 190), "xp": (28, 58), "poder": (0, 4),
+        "requer_diploma": "familia_imperial",
+        "nivel_minimo": 5,
+        "descricao_cargo": "Genealogia, arquivo imperial e administracao da Coroa.",
+    },
+    {
+        "id": "mestre_cerimonial",
+        "nome": "Mestre Cerimonial", "emoji": "🕯️", "area": "Cerimonial",
+        "narrativa": "*Ensaiando votos, juramentos, coroacoes e ritos solenes com precisao impecavel...*",
+        "moedas": (110, 220), "xp": (32, 70), "poder": (0, 5),
+        "requer_diploma": "mestres_cerimoniais",
+        "nivel_minimo": 7,
+        "descricao_cargo": "Conduz casamentos, coroacoes e cerimonias imperiais de RP.",
+    },
+    {
+        "id": "regente_treinamento",
+        "nome": "Regente em Treinamento", "emoji": "🏛️", "area": "Coroa",
+        "narrativa": "*Assumindo simulacoes de governo, sucessao e gestao de Estado sob supervisao...*",
+        "moedas": (160, 300), "xp": (40, 85), "poder": (2, 10),
+        "requer_diploma": "herdeiros_coroa",
+        "nivel_minimo": 15,
+        "descricao_cargo": "Programa obrigatorio dos herdeiros e lideranca de Estado.",
+    },
+])
+
 EMPREGOS_ILEGAIS = [
     {"id": "contrabandista",  "nome": "Contrabandista",            "emoji": "📦", "area": "Comércio Ilegal",  "narrativa": "*Transportando cargas proibidas pelas rotas secretas abaixo das muralhas de Tenshi...*",      "moedas": (80,  180), "xp": (15, 30), "poder": (2, 7),  "risco": 0.25, "requer_diploma": None, "nivel_minimo": 1},
     {"id": "assassino",       "nome": "Assassino de Aluguel",      "emoji": "🗡️", "area": "Violência",        "narrativa": "*Um contrato foi cumprido nas sombras. Ninguém viu. Ninguém saberá. O pagamento chegou...*",   "moedas": (120, 250), "xp": (20, 40), "poder": (5, 15), "risco": 0.35, "requer_diploma": None, "nivel_minimo": 5},
@@ -299,6 +493,15 @@ class SelectEmpregoView(discord.ui.View):
         self.tipo      = tipo
         self.user_data = user_data
         lista = EMPREGOS_LEGAIS if tipo == "legal" else EMPREGOS_ILEGAIS
+        lista = sorted(
+            lista,
+            key=lambda e: (
+                (not e.get("requer_diploma") or _tem_diploma(user_data, e.get("requer_diploma"))),
+                user_data.get("nivel", 1) >= e.get("nivel_minimo", 1),
+                e.get("nivel_minimo", 1),
+            ),
+            reverse=True,
+        )
         self.add_item(EmpregoSelect(user_id, lista[:25], tipo, user_data))
 
 
@@ -504,11 +707,15 @@ class Empregos:
                 nivel_ok = user.get("nivel",1) >= e.get("nivel_minimo",1)
                 ok = tem_dipl and nivel_ok
                 icon = "✅" if ok else "🔒"
-                nomes.append(f"{icon} {e['emoji']} {e['nome']} (Nv.{e['nivel_minimo']}+)")
+                nomes.append(f"{icon} `{e['id']}` - {e['emoji']} {e['nome']} (Nv.{e['nivel_minimo']}+)")
             dipl_str = "✅ Você possui este diploma" if tem_dipl else f"🔒 `Tenshi, matricular {mat_key}`"
+            linhas = nomes[:9]
+            if len(nomes) > 9:
+                linhas.append(f"... +{len(nomes) - 9} cargos neste diploma")
+            valor = dipl_str + "\n" + "\n".join(linhas)
             embed.add_field(
                 name=f"{m.get('emoji','📚')} {m.get('nome', mat_key)} — ~{m.get('tempo_estudo_h',12)}h de estudo",
-                value=dipl_str + "\n" + "\n".join(nomes),
+                value=valor[:1000],
                 inline=False
             )
         if sem_req:
@@ -519,6 +726,93 @@ class Empregos:
                 inline=False
             )
         embed.set_footer(text=f"Tenshi Academy • Use 'Tenshi, matricular [materia]' para iniciar  •  {RODAPE_IMPERIAL}")
+        await message.channel.send(embed=embed)
+
+    async def _executar_emprego_direto(self, message, tipo: str, emprego_id: str):
+        lista = EMPREGOS_LEGAIS if tipo == "legal" else EMPREGOS_ILEGAIS
+        emprego_id = emprego_id.lower().replace("-", "_")
+        emprego = next((e for e in lista if e["id"] == emprego_id), None)
+        if not emprego:
+            await message.channel.send(embed=embed_imperial(
+                "Cargo nao encontrado",
+                f"`{emprego_id}` nao existe nesta categoria. Use `Tenshi, carreiras` para ver os IDs.",
+                0x6B0000,
+            ))
+            return
+
+        user = get_user(message.author.id)
+        requer = emprego.get("requer_diploma")
+        if requer and not _tem_diploma(user, requer):
+            await message.channel.send(embed=embed_imperial(
+                "Formacao necessaria",
+                f"**{emprego['emoji']} {emprego['nome']}** exige diploma.\n\n{_info_curso(requer)}",
+                0x2C3E50,
+            ))
+            return
+
+        nivel_min = emprego.get("nivel_minimo", 1)
+        if user.get("nivel", 1) < nivel_min:
+            await message.channel.send(embed=embed_imperial(
+                "Nivel insuficiente",
+                f"**{emprego['nome']}** exige nivel **{nivel_min}+**. Seu nivel atual: **{user.get('nivel', 1)}**.",
+                0x6B0000,
+            ))
+            return
+
+        agora = datetime.utcnow()
+        if user.get("ultimo_trabalho"):
+            ultimo = datetime.fromisoformat(user["ultimo_trabalho"])
+            if agora - ultimo < timedelta(seconds=COOLDOWN_TRABALHO):
+                restante = timedelta(seconds=COOLDOWN_TRABALHO) - (agora - ultimo)
+                mins = int(restante.total_seconds() // 60)
+                segs = int(restante.total_seconds() % 60)
+                await message.channel.send(embed=embed_imperial(
+                    "Em descanso",
+                    f"Proximo trabalho em: **{mins}m {segs}s**",
+                    0x2B0A3D,
+                ))
+                return
+
+        moedas = random.randint(*emprego["moedas"])
+        xp = random.randint(*emprego["xp"])
+        poder = random.randint(*emprego["poder"])
+
+        if tipo == "ilegal":
+            risco = emprego.get("risco", 0.25)
+            if random.random() < risco:
+                multa = int(moedas * 0.5)
+                user["moedas"] = max(0, user.get("moedas", 0) - multa)
+                user["ultimo_trabalho"] = agora.isoformat()
+                save_user(message.author.id, user)
+                await message.channel.send(embed=discord.Embed(
+                    title="INTERCEPTADO!",
+                    description=f"{emprego['narrativa']}\n\nMulta aplicada: **{multa}** moedas.",
+                    color=0x8B0000,
+                ).set_footer(text=RODAPE_IMPERIAL))
+                return
+
+        user["moedas"] = user.get("moedas", 0) + moedas
+        user["xp"] = user.get("xp", 0) + xp
+        user["poder"] = user.get("poder", 100) + poder
+        user["ultimo_trabalho"] = agora.isoformat()
+        nivel, _ = calcular_nivel(user["xp"])
+        user["nivel"] = nivel
+        save_user(message.author.id, user)
+
+        embed = discord.Embed(
+            title=f"{emprego['emoji']} {emprego['nome'].upper()}",
+            description=f"{emprego['narrativa']}\n\n{SEP}",
+            color=0x006400 if tipo == "legal" else 0x1C1C1C,
+        )
+        embed.add_field(name="Ganho", value=f"**+{moedas}** moedas", inline=True)
+        embed.add_field(name="XP", value=f"**+{xp}**", inline=True)
+        if poder > 0:
+            embed.add_field(name="Poder", value=f"**+{poder}**", inline=True)
+        embed.add_field(name="Area", value=emprego["area"], inline=True)
+        if requer:
+            m = MATERIAS_INFO.get(requer, {})
+            embed.add_field(name="Diploma usado", value=m.get("nome", requer), inline=True)
+        embed.set_footer(text=f"Proximo trabalho em 45 minutos  •  {RODAPE_IMPERIAL}")
         await message.channel.send(embed=embed)
 
     async def handle_emprego(self, message, args):
@@ -554,6 +848,19 @@ class Empregos:
                     0x6B0000
                 ))
                 return
+
+        job_id = None
+        if args:
+            primeiro = args[0].lower()
+            categorias = ("legal", "legais", "trabalho", "honesto", "ilegal", "ilegais", "crime", "mafia", "negro")
+            if primeiro in categorias:
+                if len(args) > 1:
+                    job_id = args[1]
+            else:
+                job_id = args[0]
+        if job_id:
+            await self._executar_emprego_direto(message, tipo, job_id)
+            return
 
         embed = discord.Embed(
             title=f"{'💼 EMPREGOS LEGAIS' if tipo == 'legal' else '🖤 SERVIÇOS DO SUBMUNDO'}",

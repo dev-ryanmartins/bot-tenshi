@@ -1,195 +1,171 @@
 """
-Motor Central de IA — Roteamento Inteligente por Modelo
-Cada função do bot usa o modelo mais adequado para o tipo de tarefa.
+Motor central de IA via OpenRouter.
+
+Configure a chave em OPENROUTER_API_KEY no ambiente da hospedagem.
 """
 import os
-import asyncio
-from groq import Groq
+import aiohttp
+from lei_imperial import prompt_lei_imperial
 
-# ══════════════════════════════════════════════════════════════════════════════
-# MAPA DE MODELOS & CHAVES
-# ══════════════════════════════════════════════════════════════════════════════
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+APP_TITLE = os.environ.get("OPENROUTER_APP_TITLE", "Tenshi Bot")
+APP_URL = os.environ.get("OPENROUTER_APP_URL", "")
+
+
 _MODELOS = {
-    # Narrativa épica, roleplay imersivo, crônicas — mais criativo e fluente
-    "llama4_maverick": {
-        "model": "meta-llama/llama-4-maverick-17b-128e-instruct",
-        "key_env": "GROQ_KEY_LLAMA4_MAVERICK",
-        "fallback": "llama3_70b",
+    "narrativa": {
+        "model": os.environ.get("OPENROUTER_MODEL_NARRATIVA", "meta-llama/llama-3.1-70b-instruct"),
+        "fallback": "analitica",
     },
-    # Raciocínio rápido, respostas curtas, moderação, triagem
-    "llama4_scout": {
-        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-        "key_env": "GROQ_KEY_LLAMA4_SCOUT",
-        "fallback": "llama3_70b",
+    "rapida": {
+        "model": os.environ.get("OPENROUTER_MODEL_RAPIDA", "meta-llama/llama-3.1-8b-instruct"),
+        "fallback": "analitica",
     },
-    # Análise profunda, jurídico, estratégia, exames acadêmicos
-    "llama3_70b": {
-        "model": "llama-3.3-70b-versatile",
-        "key_env": "GROQ_KEY_LLAMA3_70B",
-        "fallback": "mixtral",
+    "analitica": {
+        "model": os.environ.get("OPENROUTER_MODEL_ANALITICA", "openai/gpt-4o-mini"),
+        "fallback": None,
     },
-    # Contexto longo, econômico, relatórios, auditorias
-    "mixtral": {
-        "model": "mixtral-8x7b-32768",
-        "key_env": "GROQ_KEY_MIXTRAL",
-        "fallback": "gemma2",
+    "relatorio": {
+        "model": os.environ.get("OPENROUTER_MODEL_RELATORIO", "google/gemini-flash-1.5"),
+        "fallback": "analitica",
     },
-    # Respostas rápidas, NPCs simples, clima, dados curtos
-    "gemma2": {
-        "model": "gemma2-9b-it",
-        "key_env": "GROQ_KEY_GEMMA2",
-        "fallback": "llama3_70b",
+    "soberana": {
+        "model": os.environ.get("OPENROUTER_MODEL_SOBERANA", "anthropic/claude-3.5-sonnet"),
+        "fallback": "analitica",
     },
-    # Raciocínio avançado, geopolítica, soberania, decretos
-    "gpt120b": {
-        "model": "meta-llama/llama-4-maverick-17b-128e-instruct",
-        "key_env": "GROQ_KEY_GPT120B",
-        "fallback": "llama4_maverick",
+    "economia": {
+        "model": os.environ.get("OPENROUTER_MODEL_ECONOMIA", "openai/gpt-4o-mini"),
+        "fallback": "analitica",
     },
-    # Tarefas rápidas, economia, transações simples
-    "gpt20b": {
-        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-        "key_env": "GROQ_KEY_GPT20B",
-        "fallback": "llama4_scout",
+    "npc": {
+        "model": os.environ.get("OPENROUTER_MODEL_NPC", "meta-llama/llama-3.1-8b-instruct"),
+        "fallback": "rapida",
     },
 }
 
-# Chave principal de fallback global
-_KEY_GLOBAL = os.environ.get("GROQ_API_KEY")
-
-# Cache de clientes Groq inicializados
-_clientes: dict = {}
-
-def _get_cliente(modelo_key: str) -> tuple:
-    """Retorna (client, model_name) para o modelo solicitado, com fallback."""
-    if modelo_key in _clientes:
-        return _clientes[modelo_key]
-
-    cfg = _MODELOS.get(modelo_key)
-    if not cfg:
-        return _get_fallback_global()
-
-    api_key = os.environ.get(cfg["key_env"]) or _KEY_GLOBAL
-    if not api_key:
-        fallback = cfg.get("fallback")
-        if fallback:
-            return _get_cliente(fallback)
-        return _get_fallback_global()
-
-    try:
-        client = Groq(api_key=api_key)
-        result = (client, cfg["model"])
-        _clientes[modelo_key] = result
-        return result
-    except Exception:
-        fallback = cfg.get("fallback")
-        if fallback:
-            return _get_cliente(fallback)
-        return _get_fallback_global()
+_ALIASES = {
+    "llama4_maverick": "narrativa",
+    "llama4_scout": "rapida",
+    "llama3_70b": "analitica",
+    "mixtral": "relatorio",
+    "gemma2": "npc",
+    "gpt120b": "soberana",
+    "gpt20b": "economia",
+}
 
 
-def _get_fallback_global():
-    """Fallback final usando GROQ_API_KEY com llama3-70b."""
-    if not _KEY_GLOBAL:
-        return (None, None)
-    try:
-        client = Groq(api_key=_KEY_GLOBAL)
-        return (client, "llama-3.3-70b-versatile")
-    except Exception:
-        return (None, None)
+def _api_key() -> str | None:
+    return os.environ.get("OPENROUTER_API_KEY")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FUNÇÃO PRINCIPAL DE CHAMADA
-# ══════════════════════════════════════════════════════════════════════════════
+def _headers(api_key: str) -> dict:
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    if APP_TITLE:
+        headers["X-Title"] = APP_TITLE
+    if APP_URL:
+        headers["HTTP-Referer"] = APP_URL
+    return headers
+
+
+def _modelo_cfg(modelo: str) -> tuple[str, dict]:
+    key = _ALIASES.get(modelo, modelo)
+    cfg = _MODELOS.get(key) or _MODELOS["analitica"]
+    return key, cfg
+
+
+def _sistema_com_lei(sistema: str) -> str:
+    if os.environ.get("TENSHI_LEGAL_GUARD", "1").strip().lower() in {"0", "false", "nao", "não", "off"}:
+        return sistema
+    return f"{prompt_lei_imperial()}\n\nInstrucao especifica do modulo:\n{sistema}"
+
+
 async def chamar_ia(
     sistema: str,
     usuario: str,
-    modelo: str = "llama3_70b",
+    modelo: str = "analitica",
     max_tokens: int = 900,
     temperature: float = 0.8,
 ) -> str:
     """
-    Chama a IA de forma assíncrona com o modelo indicado.
-    Em caso de erro, tenta fallback automaticamente.
+    Chama a IA de forma assíncrona pelo OpenRouter.
 
     Parâmetros:
-        sistema: prompt de sistema (personalidade/regras)
+        sistema: prompt de sistema
         usuario: mensagem/contexto do usuário
-        modelo: chave do modelo (ver _MODELOS acima)
+        modelo: chave semântica do modelo
         max_tokens: limite de tokens na resposta
-        temperature: criatividade (0.0 = determinístico, 1.0 = criativo)
+        temperature: criatividade
     """
-    client, model_name = _get_cliente(modelo)
-    if not client:
-        return "⚠️ *A IA está temporariamente indisponível. Configure as chaves nos secrets.*"
+    api_key = _api_key()
+    if not api_key:
+        return "⚠️ *A IA está indisponível. Configure OPENROUTER_API_KEY no ambiente.*"
 
-    def _sync():
-        return client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": sistema},
-                {"role": "user",   "content": usuario},
-            ],
-            max_tokens=max_tokens,
-            temperature=temperature,
-        ).choices[0].message.content.strip()
+    modelo_key, cfg = _modelo_cfg(modelo)
+    payload = {
+        "model": cfg["model"],
+        "messages": [
+            {"role": "system", "content": _sistema_com_lei(sistema)},
+            {"role": "user", "content": usuario},
+        ],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
 
-    loop = asyncio.get_event_loop()
     try:
-        return await loop.run_in_executor(None, _sync)
-    except Exception as e:
-        # Tenta fallback do modelo
-        cfg = _MODELOS.get(modelo, {})
+        timeout = aiohttp.ClientTimeout(total=60)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(OPENROUTER_URL, headers=_headers(api_key), json=payload) as resp:
+                data = await resp.json(content_type=None)
+                if resp.status >= 400:
+                    detail = data.get("error", data)
+                    raise RuntimeError(str(detail)[:180])
+                return data["choices"][0]["message"]["content"].strip()
+    except Exception as exc:
         fallback = cfg.get("fallback")
-        if fallback and fallback != modelo:
+        if fallback and fallback != modelo_key:
             return await chamar_ia(sistema, usuario, fallback, max_tokens, temperature)
-        return f"⚠️ *Erro na IA ({model_name}): {str(e)[:100]}*"
+        return f"⚠️ *Erro na IA OpenRouter ({cfg['model']}): {str(exc)[:120]}*"
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ATALHOS SEMÂNTICOS — use estes nos cogs
-# ══════════════════════════════════════════════════════════════════════════════
 
 async def ia_narrativa(sistema: str, usuario: str, max_tokens: int = 1000) -> str:
-    """Narrativa épica, crônicas, roleplay imersivo — LLaMA 4 Maverick."""
-    return await chamar_ia(sistema, usuario, "llama4_maverick", max_tokens, 0.9)
+    return await chamar_ia(sistema, usuario, "narrativa", max_tokens, 0.9)
+
 
 async def ia_rapida(sistema: str, usuario: str, max_tokens: int = 400) -> str:
-    """Respostas rápidas, NPCs, clima, triagem — LLaMA 4 Scout."""
-    return await chamar_ia(sistema, usuario, "llama4_scout", max_tokens, 0.7)
+    return await chamar_ia(sistema, usuario, "rapida", max_tokens, 0.7)
+
 
 async def ia_analitica(sistema: str, usuario: str, max_tokens: int = 1000) -> str:
-    """Análise profunda, jurídico, estratégia, exames — LLaMA 3 70B."""
-    return await chamar_ia(sistema, usuario, "llama3_70b", max_tokens, 0.75)
+    return await chamar_ia(sistema, usuario, "analitica", max_tokens, 0.75)
+
 
 async def ia_relatorio(sistema: str, usuario: str, max_tokens: int = 1200) -> str:
-    """Relatórios longos, auditorias, economia, RH — Mixtral 8x7b."""
-    return await chamar_ia(sistema, usuario, "mixtral", max_tokens, 0.6)
+    return await chamar_ia(sistema, usuario, "relatorio", max_tokens, 0.6)
+
 
 async def ia_soberana(sistema: str, usuario: str, max_tokens: int = 1000) -> str:
-    """Decretos, geopolítica, soberania — GPT-OSS-120b / Maverick."""
-    return await chamar_ia(sistema, usuario, "gpt120b", max_tokens, 0.8)
+    return await chamar_ia(sistema, usuario, "soberana", max_tokens, 0.8)
+
 
 async def ia_economia(sistema: str, usuario: str, max_tokens: int = 600) -> str:
-    """Economia, transações, cálculos — GPT-OSS-20b / Scout."""
-    return await chamar_ia(sistema, usuario, "gpt20b", max_tokens, 0.5)
+    return await chamar_ia(sistema, usuario, "economia", max_tokens, 0.5)
+
 
 async def ia_npc(sistema: str, usuario: str, max_tokens: int = 350) -> str:
-    """NPCs simples, respostas curtas, clima — Gemma 2 9B."""
-    return await chamar_ia(sistema, usuario, "gemma2", max_tokens, 0.85)
+    return await chamar_ia(sistema, usuario, "npc", max_tokens, 0.85)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# DIAGNÓSTICO — chamado por "Tenshi, status-ia"
-# ══════════════════════════════════════════════════════════════════════════════
 def status_motores() -> dict:
-    """Retorna quais motores estão com chave configurada."""
-    resultado = {}
-    for key, cfg in _MODELOS.items():
-        tem_chave = bool(os.environ.get(cfg["key_env"]) or _KEY_GLOBAL)
-        resultado[key] = {
+    """Retorna os motores OpenRouter configurados."""
+    tem_chave = bool(_api_key())
+    return {
+        key: {
             "modelo": cfg["model"],
             "ativo": tem_chave,
         }
-    return resultado
+        for key, cfg in _MODELOS.items()
+    }

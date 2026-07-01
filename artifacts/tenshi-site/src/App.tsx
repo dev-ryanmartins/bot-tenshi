@@ -6,9 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ExternalLink, Search, ChevronRight, Copy, Check,
-  Lock, LogOut, RefreshCw, WifiOff, Server, Activity,
+  Lock, LogOut, RefreshCw, WifiOff, Server,
   Eye, EyeOff, AlertTriangle, CheckCircle2, Settings,
-  ArrowLeft, Wifi, Zap, Shield, Brain, BarChart3,
+  ArrowLeft, Zap, Shield, Brain, BarChart3,
   Users, MessageSquare, Sparkles, Terminal, Globe,
   Building2, Crown,
 } from "lucide-react";
@@ -20,7 +20,7 @@ const PREFIX = "tenshi,";
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const features = [
-  { icon: Brain, label: "IA Narrativa", desc: "7 modelos Groq roteados por contexto — desde crônicas épicas até triagem jurídica em tempo real." },
+  { icon: Brain, label: "IA Narrativa", desc: "7 motores OpenRouter roteados por contexto — desde crônicas épicas até triagem jurídica em tempo real." },
   { icon: BarChart3, label: "Economia Completa", desc: "Banco, mercado, ações, imóveis, empréstimos, lavagem de dinheiro e câmbio imperial." },
   { icon: Shield, label: "Moderação Inteligente", desc: "IA monitora canais públicos e aplica advertências automaticamente, sem intervenção humana." },
   { icon: Users, label: "RPG Social", desc: "Famílias, máfias, facções, casamentos, duelos e eventos coletivos que conectam toda a comunidade." },
@@ -517,7 +517,7 @@ function HomePage() {
       <section className={`border-t ${S.border} py-20`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <h2 className="text-2xl font-bold tracking-tight mb-2">7 Modelos de IA via Groq</h2>
+            <h2 className="text-2xl font-bold tracking-tight mb-2">7 Motores de IA via OpenRouter</h2>
             <p className={S.muted + " text-sm"}>Cada tarefa é roteada automaticamente para o modelo mais adequado.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -730,8 +730,6 @@ interface BotStatus { online: boolean; guilds: number; latency: number; user: st
 function AdminPanel({ token, onLogout }: { token: string; onLogout: () => void }) {
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
-  const [reconnecting, setReconnecting] = useState(false);
-  const [reconnectMsg, setReconnectMsg] = useState("");
   const authHeader = { Authorization: `Bearer ${token}` };
 
   const fetchStatus = useCallback(async () => {
@@ -745,17 +743,6 @@ function AdminPanel({ token, onLogout }: { token: string; onLogout: () => void }
   }, [token]);
 
   useEffect(() => { fetchStatus(); const t = setInterval(fetchStatus, 15000); return () => clearInterval(t); }, [fetchStatus]);
-
-  async function handleReconnect() {
-    setReconnecting(true);
-    setReconnectMsg("");
-    try {
-      const res = await fetch(`${API_BASE}/admin/bot/reconnect`, { method: "POST", headers: authHeader });
-      const data = await res.json();
-      setReconnectMsg(data.message ?? data.error ?? "Sinal enviado.");
-    } catch { setReconnectMsg("Erro ao enviar sinal."); }
-    finally { setReconnecting(false); setTimeout(fetchStatus, 4000); }
-  }
 
   return (
     <div className={`min-h-screen ${S.bg} ${S.text} font-sans antialiased`}>
@@ -824,32 +811,16 @@ function AdminPanel({ token, onLogout }: { token: string; onLogout: () => void }
             )}
           </div>
           <div className={`flex flex-wrap gap-2 px-5 pb-5 border-t ${S.border} pt-4`}>
-            {botStatus?.online ? (
-              <button onClick={handleReconnect} disabled={reconnecting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#2a2b31] hover:border-[#3a3b42] text-sm text-[#a0a0a8] rounded-lg transition-colors disabled:opacity-40">
-                <RefreshCw className={`w-3.5 h-3.5 ${reconnecting ? "animate-spin" : ""}`} />
-                {reconnecting ? "Reconectando..." : "Reconectar"}
-              </button>
-            ) : (
-              <button onClick={handleReconnect} disabled={reconnecting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-700 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-40">
-                <Wifi className="w-3.5 h-3.5" />
-                {reconnecting ? "Ligando..." : "Ligar Bot"}
-              </button>
-            )}
+            <button onClick={fetchStatus} disabled={statusLoading}
+              className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#2a2b31] hover:border-[#3a3b42] text-sm text-[#a0a0a8] rounded-lg transition-colors disabled:opacity-40">
+              <RefreshCw className={`w-3.5 h-3.5 ${statusLoading ? "animate-spin" : ""}`} />
+              Atualizar status
+            </button>
             <a href="https://discord.com/developers/applications/1427699671052320931/bot" target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#2a2b31] hover:border-[#3a3b42] text-sm text-[#71717a] rounded-lg transition-colors">
               <ExternalLink className="w-3.5 h-3.5" /> Developer Portal
             </a>
           </div>
-          <AnimatePresence>
-            {reconnectMsg && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                className={`mx-5 mb-5 flex items-center gap-2 text-xs text-[#a0a0a8] bg-[#111315] border ${S.border} px-3 py-2 rounded-lg`}>
-                <Activity className="w-3 h-3 shrink-0" />{reconnectMsg}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Info */}
@@ -860,7 +831,7 @@ function AdminPanel({ token, onLogout }: { token: string; onLogout: () => void }
               ["Prefixo", <code className="text-violet-400 font-mono text-xs">tenshi,</code>],
               ["Imperador", <span className="text-[#a0a0a8] text-xs">Alloy Tenshi</span>],
               ["Fundação", <span className="text-[#a0a0a8] text-xs font-mono">06/06/2016</span>],
-              ["Motores IA", <span className="text-[#a0a0a8] text-xs">7 via Groq</span>],
+              ["Motores IA", <span className="text-[#a0a0a8] text-xs">7 via OpenRouter</span>],
               ["Comandos", <span className="text-violet-400 text-xs font-mono">{totalCmds}+</span>],
               ["App ID", <code className="text-[#4a4b52] text-xs font-mono">1427699671052320931</code>],
             ].map(([k, v]) => (

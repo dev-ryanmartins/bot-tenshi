@@ -76,7 +76,7 @@ def barra_progresso(atual: int, maximo: int, tamanho: int = 12) -> str:
     return "█" * preenchido + "░" * (tamanho - preenchido)
 
 
-SITE_URL = "https://c5d65469-a79e-48a4-aa38-def706fcc844-00-3g7sob5uug1rk.janeway.replit.dev"
+SITE_URL = os.environ.get("TENSHI_SITE_URL", "http://localhost:8081")
 
 AJUDA_TEXTO = f"""
 {SEP}
@@ -98,6 +98,9 @@ AJUDA_TEXTO = f"""
 **📖 LoreMaster IA** *(Gerado por IA)*
 `cronica [militar/politico/esoterico/mafia/enterprise]`
 `evento-lore` `oraculo [pergunta]` `falar [NPC]` `lore-historico` `quadro-avisos`
+`biblioteca-imperial` `documento [pdf]` `memoria-imperial [tema]`
+`aula-imperial [tema]` `missao-historica [tema]` `juramento-tenshi [tema]`
+`protocolo-imperial [situação]` `quiz-imperial`
 
 **🔮 Místico**
 `tarot` `runa` `astros` `destino @user` `sacrificio [item]` `ritual-protecao`
@@ -122,17 +125,19 @@ AJUDA_TEXTO = f"""
 `pet-shop` `meu-pet` `vender-pet` `pool-party` *(admin)*
 
 **💑 Social & Cotidiano**
-`casar @user` `divorcio` `lavanderia` `sintetizar [item]` `cartaz [filme]`
+`pedido @user` `pedido-real @user` `rito-real @rei @rainha` `registro-casamento @user` `divorcio`
+`lavanderia` `sintetizar [item]` `cartaz [filme]`
 `psicologo [texto]` `beber [bebida]` `jornal-cotidiano` `correio` `estacoes`
 `entrevista [cargo]` `socorrer @user` `vdd`
 
 **🕵️ Crime & Inteligência**
 `assaltar @user` `mercado-negro-beco` `subornar-porteiro @user`
-`grampear-call` `iniciar-festa [local]` `registrar-perola [msg]`
+`grampear-call` `iniciar-festa [local]` `registrar-perola [msg]` `chat [pedido]`
 
 **⚖️ Jurídico & Clero**
 `ficha-criminal @user` `warn @user` `perdoar-aviso @user` `mandado @user`
 `pagar-fianca` `imunidade-diplomatica` `padre [rito]` `sindicancia @user`
+`consultar-lei [tema]` `parecer-ia [caso]` `plano-admin [objetivo]`
 `laudo-medico` `desintoxicacao` `doacao-sangue` `diagnostico-ia`
 
 **🌍 Geopolítica & Estado**
@@ -146,18 +151,24 @@ AJUDA_TEXTO = f"""
 `titulo-propriedade` `alugar-comercio`
 
 **🎓 Tenshi Academy**
+`grade-academia` `certificado [curso]` `aptidao-academica [curso/resposta]`
 `matricular [mat.]` `trancar-matricula [mat.]` `presenca [mat.]` `iniciar-aula [mat.]`
 `ler-apostila [mat.]` `prestar-exame [mat.]` `historico-escolar` `segunda-via-diploma`
 `entrar-clube [nome]` `cofre-clube`
 
 **🏢 Empresa**
-`empresa criar/info/contratar/demitir/funcionarios/pagar`
+`empresa criar/info/contratar/demitir/funcionarios/pagar` `carreiras` `emprego legal [id]`
 
 **👨‍👩‍👧 Família, Máfia & Facções**
 `familia criar/entrar/info/membros/missao/depositar` `entrar [facção]` `ranking`
 
 **🛡️ Moderação Imperial** *(Admin)*
-`decreto [msg]` `promover @user [cargo]` `punir-audacia @user` `julgamento @user`
+`decreto [msg]` `promover @user [cargo]` `criar-cargo [emoji] [nome]` `criar-secoes-cargos`
+`punir-audacia @user` `julgamento @user`
+`cargos-servidor` `mapear-cargos` `auditoria-cargos-ia` `cargo-info @cargo`
+`funcao-cargo @cargo [texto]` `publicar-mapa-cargos`
+`auditoria-permissoes` `corrigir-permissoes-bot` `mapa-canais`
+`aplicar-perfil-canal #canal [perfil]`
 `masmorra-prender @user [min]` `exilar @user` `anistia-real` `trancar-portoes`
 `tesouro [v]` `veto [ação]` `ban` `kick` `mute [min]` `clear [n]` `warn @user`
 
@@ -169,7 +180,8 @@ AJUDA_TEXTO = f"""
 `reset-era` `irradiar [msg]` `congelar-economia` `exportar-banco` `desligar`
 
 **🔧 Utilitários**
-`top` `servidor` `ping` `backup` `status-ia` `aniversario` `ajuda`
+`top` `servidor` `ping` `backup` `bandeira` `brasao` `historia-tenshi` `base-historica`
+`status-ia` `aniversario` `ajuda`
 {SEP}
 *🌐 Guia completo: {SITE_URL}*
 *{RODAPE_IMPERIAL}*
