@@ -1,9 +1,10 @@
-import discord
-import os
 import asyncio
 import json
+import os
 import sys
 from datetime import UTC, datetime
+
+import discord
 
 
 def _configurar_console_utf8():
@@ -36,63 +37,64 @@ _carregar_env_local()
 def _utcnow():
     return datetime.now(UTC).replace(tzinfo=None)
 
+from confirmacoes import processar_resposta
+from database import get_user, save_user
+from site_server import start_site_server_thread
 from utils import (
-    PREFIXO,
-    embed_imperial,
     AJUDA_TEXTO,
     IMPERADOR_ID,
-    SEP,
+    PREFIXO,
     RODAPE_IMPERIAL,
+    SEP,
+    embed_imperial,
     install_discord_safety_patch,
     safe_send_embed,
 )
-from database import get_user, save_user
-from confirmacoes import processar_resposta
-from site_server import start_site_server_thread
 
 install_discord_safety_patch()
 
-from cogs.rpg           import RPG
-from cogs.economia      import Economia
-from cogs.faccoes       import Faccoes
-from cogs.mistico       import Mistico
-from cogs.duelo         import Duelo
-from cogs.eventos       import Eventos
-from cogs.moderacao     import Moderacao
-from cogs.loremaster    import LoreMaster
-from cogs.casas         import Casas
-from cogs.empresa       import Empresa
-from cogs.financeiro    import Financeiro
-from cogs.familia       import Familia
-from cogs.perfil_config import PerfilConfig
-from cogs.especies      import Especies
-from cogs.poderes       import Poderes
-from cogs.empregos      import Empregos
-from cogs.vizinhanca    import Vizinhanca
-from cogs.avancado     import Avancado
-from cogs.social       import Social
-from cogs.crime        import Crime
-from cogs.cotidiano    import CotidianoCog
-from cogs.correio      import Correio
-from cogs.temporadas   import Temporadas
-from cogs.clero        import Clero
-from cogs.juridico     import Juridico
-from cogs.inteligencia import Inteligencia
-from cogs.soberano             import Soberano
-from cogs.geopolitica          import Geopolitica
-from cogs.estado               import Estado
-from cogs.eras                 import Eras
-from cogs.clima_ia             import ClimaIA
-from cogs.academia             import Academia
+from cogs.academia import Academia
+from cogs.assistente_ia import AssistenteIA
+from cogs.avancado import Avancado
+from cogs.biblioteca_imperial import BibliotecaImperial
+from cogs.cargos_admin import CargosAdmin
+from cogs.casas import Casas
+from cogs.clero import Clero
+from cogs.clima_ia import ClimaIA
+from cogs.correio import Correio
+from cogs.cotidiano import CotidianoCog
+from cogs.crime import Crime
+from cogs.duelo import Duelo
+from cogs.economia import Economia
+from cogs.empregos import Empregos
+from cogs.empresa import Empresa
+from cogs.eras import Eras
+from cogs.especies import Especies
+from cogs.estado import Estado
+from cogs.eventos import Eventos
+from cogs.faccoes import Faccoes
+from cogs.familia import Familia
+from cogs.financeiro import Financeiro
+from cogs.geopolitica import Geopolitica
+from cogs.governanca_ia import GovernancaIA
+from cogs.infractions import Infractions
 from cogs.infraestrutura_critica import InfraestruturaCritica
-from cogs.npcs                   import NPCs
-from cogs.psicologia             import Psicologia
-from cogs.matrimonio             import Matrimonio
-from cogs.governanca_ia          import GovernancaIA
-from cogs.cargos_admin           import CargosAdmin
-from cogs.assistente_ia          import AssistenteIA
-from cogs.permissoes_canais      import PermissoesCanais
-from cogs.biblioteca_imperial    import BibliotecaImperial
+from cogs.inteligencia import Inteligencia
+from cogs.juridico import Juridico
+from cogs.loremaster import LoreMaster
+from cogs.matrimonio import Matrimonio
+from cogs.mistico import Mistico
+from cogs.moderacao import Moderacao
+from cogs.npcs import NPCs
+from cogs.perfil_config import PerfilConfig
+from cogs.permissoes_canais import PermissoesCanais
+from cogs.poderes import Poderes
+from cogs.psicologia import Psicologia
+from cogs.rpg import RPG
+from cogs.soberano import Soberano
+from cogs.social import Social
+from cogs.temporadas import Temporadas
+from cogs.vizinhanca import Vizinhanca
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -143,6 +145,7 @@ cargos_admin = CargosAdmin(bot)
 assistente_ia = AssistenteIA(bot)
 permissoes_canais = PermissoesCanais(bot)
 biblioteca_imperial = BibliotecaImperial(bot)
+infractions = Infractions(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -151,8 +154,8 @@ _imperador_saudado: set = set()
 _aniversario_anunciado: set = set()
 
 # ── Guard 1: dedup por ID de mensagem (mesma msg processada 2x) ───────────────
-from collections import deque as _deque
 import time as _time
+from collections import deque as _deque
 
 _seen_msg_ids: set = set()
 _seen_msg_deque: _deque = _deque(maxlen=500)
@@ -730,6 +733,12 @@ async def on_message(message):
 
     elif cmd in ("clear", "limpar", "purge"):
         await moderacao.handle_clear(message, args)
+
+    elif cmd in ("notas", "infrações", "infrações", "avisos"):
+        await infractions.handle_notas(message, args)
+
+    elif cmd in ("info", "informacoes", "informações", "perfil-completo"):
+        await infractions.handle_info(message, args)
 
     # ── CONDOMÍNIO AVANÇADO ───────────────────────────────────────────────────
     elif cmd in ("trancar-casa", "trancar_casa", "lock-casa"):
@@ -1397,7 +1406,7 @@ async def _handle_servidor(message):
 
 
 async def _handle_backup(message):
-    from database import _load, DB_FILE, CASAS_FILE, EMPRESAS_FILE, FAMILIAS_FILE
+    from database import CASAS_FILE, DB_FILE, EMPRESAS_FILE, FAMILIAS_FILE, _load
     stats = {
         "usuarios":        len(_load(DB_FILE)),
         "casas_ocupadas":  sum(1 for c in _load(CASAS_FILE).values() if c.get("dono")),
@@ -1438,7 +1447,11 @@ async def _handle_bandeira(message):
 
 
 async def _handle_historia_tenshi(message):
-    from historia_tenshi import FONTE_HISTORICA, PAGINAS_FONTE_HISTORICA, HISTORIA_TOPICOS
+    from historia_tenshi import (
+        FONTE_HISTORICA,
+        HISTORIA_TOPICOS,
+        PAGINAS_FONTE_HISTORICA,
+    )
 
     embed = discord.Embed(
         title="📜 Bases Históricas do Império Tenshi",
