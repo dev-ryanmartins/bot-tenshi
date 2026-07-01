@@ -3,7 +3,6 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 import discord
-
 from database import (
     get_casamentos,
     get_cerimonias,
@@ -15,7 +14,6 @@ from database import (
 from ia_router import ia_rapida
 from lei_imperial import RITO_REAL_PASSOS
 from utils import IMPERADOR_ID, RODAPE_IMPERIAL, SEP
-
 
 COR_DOURADO = 0x9E7815
 COR_SUCESSO = 0x1A5C2E
