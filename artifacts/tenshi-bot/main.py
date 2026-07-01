@@ -42,19 +42,18 @@ from confirmacoes import processar_resposta
 from database import get_user, save_user
 from site_server import start_site_server_thread
 from utils import (
-    AJUDA_TEXTO,
     IMPERADOR_ID,
     PREFIXO,
     RODAPE_IMPERIAL,
     SEP,
     embed_imperial,
     install_discord_safety_patch,
-    safe_send_embed,
 )
 
 install_discord_safety_patch()
 
 from cogs.academia import Academia
+from cogs.ajuda import AjudaCog, enviar_ajuda
 from cogs.assistente_ia import AssistenteIA
 from cogs.avancado import Avancado
 from cogs.biblioteca_imperial import BibliotecaImperial
@@ -293,6 +292,7 @@ async def on_ready():
                 except (discord.Forbidden, discord.HTTPException) as exc:
                     print(f"[AVISO] Cargos do fundador não aplicados em {guild.name}: {exc}")
         await bot.add_cog(infractions)
+        await bot.add_cog(AjudaCog(bot))
         try:
             sincronizados = await bot.tree.sync()
             print(f"✅ {len(sincronizados)} comandos de barra sincronizados.")
@@ -699,6 +699,15 @@ async def on_message(message):
     elif cmd in ("parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar"):
         await parentesco.handle_parentesco(message, args)
 
+    elif cmd in ("meu-parentesco", "parentesco-info", "ver-parentesco"):
+        await parentesco.handle_meu_parentesco(message, args)
+
+    elif cmd in ("lista-parentescos", "parentescos", "tipos-parentesco"):
+        await parentesco.handle_lista_parentescos(message, args)
+
+    elif cmd in ("arvore-familiar", "árvore-familiar", "familia-imperial"):
+        await parentesco.handle_arvore_familiar(message, args)
+
     # ── FACÇÕES ───────────────────────────────────────────────────────────────
     elif cmd in ("entrar", "faccao", "facção"):
         await faccoes.handle_entrar_faccao(message, args)
@@ -967,13 +976,7 @@ async def on_message(message):
 
     # ── UTILITÁRIOS ───────────────────────────────────────────────────────────
     elif cmd in ("ajuda", "help", "comandos", "menu"):
-        embed = discord.Embed(
-            title="📜 PERGAMINHOS IMPERIAIS DE TENSHI",
-            description=AJUDA_TEXTO,
-            color=0x2B0A3D
-        )
-        embed.set_footer(text=RODAPE_IMPERIAL)
-        await safe_send_embed(message.channel, embed)
+        await enviar_ajuda(message)
 
     elif cmd in ("ping", "latencia"):
         lat = round(bot.latency * 1000)
