@@ -13,6 +13,7 @@ EMBED_FIELD_VALUE_LIMIT = 1024
 EMBED_FIELD_LIMIT = 25
 EMBED_TOTAL_LIMIT = 6000
 EMBEDS_PER_MESSAGE_LIMIT = 10
+EMBED_PAGE_DESCRIPTION_LIMIT = 1800
 
 _ORIGINAL_MESSAGEABLE_SEND = None
 _ORIGINAL_WEBHOOK_SEND = None
@@ -184,7 +185,7 @@ def split_embed(embed: discord.Embed) -> list[discord.Embed]:
     """Valida e divide um embed para respeitar todos os limites do Discord."""
     shell = _embed_shell(embed)
     overhead = _embed_text_length(shell)
-    description_limit = max(512, min(EMBED_DESCRIPTION_LIMIT, EMBED_TOTAL_LIMIT - overhead))
+    description_limit = max(512, min(EMBED_PAGE_DESCRIPTION_LIMIT, EMBED_TOTAL_LIMIT - overhead))
     description_chunks = split_text(embed.description or "", description_limit)
     field_parts: list[tuple[str, str, bool]] = []
     for field in embed.fields:
@@ -223,6 +224,51 @@ def split_embed(embed: discord.Embed) -> list[discord.Embed]:
         else:
             safe_embeds.append(item)
     return safe_embeds
+
+
+class EmbedContinuacaoView(discord.ui.View):
+    """Mostra textos longos em uma única mensagem, com navegação por botões."""
+
+    def __init__(self, paginas: list[discord.Embed]):
+        super().__init__(timeout=300)
+        self.paginas = paginas
+        self.atual = 0
+        self._atualizar_botoes()
+
+    def _atualizar_botoes(self):
+        self.voltar.disabled = self.atual == 0
+        self.continuar.disabled = self.atual >= len(self.paginas) - 1
+        self.indicador.label = f"Parte {self.atual + 1}/{len(self.paginas)}"
+        self.continuar.label = "Mostrar continuação" if self.atual == 0 else "Próxima parte"
+
+    @discord.ui.button(label="Voltar", emoji="◀️", style=discord.ButtonStyle.secondary)
+    async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.atual = max(0, self.atual - 1)
+        self._atualizar_botoes()
+        await interaction.response.edit_message(embed=self.paginas[self.atual], view=self)
+
+    @discord.ui.button(label="Parte 1/1", style=discord.ButtonStyle.secondary, disabled=True)
+    async def indicador(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
+
+    @discord.ui.button(label="Mostrar continuação", emoji="▶️", style=discord.ButtonStyle.primary)
+    async def continuar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.atual = min(len(self.paginas) - 1, self.atual + 1)
+        self._atualizar_botoes()
+        await interaction.response.edit_message(embed=self.paginas[self.atual], view=self)
+
+
+def _payload_paginado(content: Any, safe_embeds: list[discord.Embed], kwargs: dict[str, Any]) -> dict[str, Any] | None:
+    if len(safe_embeds) <= 1 or kwargs.get("view") is not None:
+        return None
+    if content is not None and len(_as_text(content)) > DISCORD_CONTENT_LIMIT:
+        return None
+    payload = dict(kwargs)
+    if content is not None:
+        payload["content"] = content
+    payload["embed"] = safe_embeds[0]
+    payload["view"] = EmbedContinuacaoView(safe_embeds)
+    return payload
 
 
 def _strip_non_reusable_send_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -304,6 +350,10 @@ async def _safe_send_with_original(original_send, target, *args, **kwargs):
     for item in raw_embeds:
         safe_embeds.extend(split_embed(item))
 
+    paginado = _payload_paginado(content, safe_embeds, kwargs)
+    if paginado is not None:
+        return await _try_send(original_send, target, *positional, **paginado)
+
     first_message = None
     for send_kwargs in _build_safe_send_payloads(content, safe_embeds, kwargs):
         msg = await _try_send(original_send, target, *positional, **send_kwargs)
@@ -327,6 +377,10 @@ async def _safe_interaction_response_send(original_send, response, *args, **kwar
     safe_embeds: list[discord.Embed] = []
     for item in raw_embeds:
         safe_embeds.extend(split_embed(item))
+
+    paginado = _payload_paginado(content, safe_embeds, kwargs)
+    if paginado is not None:
+        return await _try_send(original_send, response, *positional, **paginado)
 
     payloads = _build_safe_send_payloads(content, safe_embeds, kwargs)
     if not payloads:
@@ -486,7 +540,7 @@ AJUDA_TEXTO = f"""
 
 **⚡ Jornada Imperial**
 `treinar [ação]` `missao` `meditar` `descansar` `interagir [ação]` `dado [d4/d6/d10/d20/d100]`
-`trabalhar` `emprego` `profissao [classe]` `clima`
+`trabalhar` `emprego` `carreiras` `regras-trabalho` `profissao [classe]` `clima`
 
 **📖 LoreMaster IA** *(Gerado por IA)*
 `cronica [militar/politico/esoterico/mafia/enterprise]`
@@ -518,7 +572,7 @@ AJUDA_TEXTO = f"""
 `pet-shop` `meu-pet` `vender-pet` `pool-party` *(admin)*
 
 **💑 Social & Cotidiano**
-`pedido @user` `pedido-real @user` `cerimonia @parceiro`
+`pedido @user` `pedido-real @user` `confirmar` `cancelar` `cerimonia @parceiro`
 `iniciar-cerimonia @noivo1 @noivo2` *(padre escolhido)* `rito-real @rei @rainha` `registro-casamento @user` `divorcio`
 `lavanderia` `sintetizar [item]` `cartaz [filme]`
 `psicologo [texto]` `beber [bebida]` `jornal-cotidiano` `correio` `estacoes`

@@ -157,6 +157,8 @@ async def _build_perfil_embed(bot, member: discord.Member | discord.User) -> dis
     embed.add_field(name="🏠 Moradia",         value=casa_str,    inline=True)
     embed.add_field(name="👨‍👩‍👧 Organização",  value=familia_str, inline=True)
     embed.add_field(name="🏢 Empresa",         value=empresa_str, inline=True)
+    profissao = user.get("emprego_nome") or ficha.get("profissao") or "—"
+    embed.add_field(name="💼 Profissão", value=profissao, inline=True)
 
     pvp = f"⚔️ {user.get('vitorias_duelo',0)}V / 💀 {user.get('derrotas_duelo',0)}D"
     embed.add_field(name="🏟️ PvP", value=pvp, inline=True)
