@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 import discord
 
-from database import get_user, save_user
+from database import get_all_users, get_user, save_user
 from utils import IMPERADOR_ID, RODAPE_IMPERIAL
 
 
@@ -313,7 +313,12 @@ class ParentescoSelect(discord.ui.Select):
         self.alvo = alvo
         self.admin_id = admin_id
         options = [
-            discord.SelectOption(label=nome, value=chave, emoji=emoji)
+            discord.SelectOption(
+                label=nome,
+                value=chave,
+                emoji=emoji,
+                description="Exclusivo do fundador" if chave == "patriarca" else f"Aplicar vínculo: {nome}",
+            )
             for chave, (nome, emoji) in VINCULOS.items()
         ]
         options.append(discord.SelectOption(label="Outro vínculo", value="personalizado", emoji="✍️"))
@@ -390,3 +395,66 @@ class Parentesco:
             embed = _embed("Selecionar membro da família", "Escolha primeiro a pessoa que receberá o vínculo.")
             view = MembroView(message.author.id)
         await message.channel.send(embed=embed, view=view)
+
+    async def handle_meu_parentesco(self, message, args):
+        alvo = message.mentions[0] if message.mentions else message.author
+        user = get_user(alvo.id)
+        vinculo = user.get("parentesco") or "Membro"
+        emoji = user.get("parentesco_emoji") or "👤"
+        origem = {
+            "fundador": "Fundação da família",
+            "casamento": "Vínculo matrimonial",
+            "manual": "Definido pela administração",
+            "entrada": "Entrada no servidor",
+            "restaurado": "Restaurado após dissolução",
+        }.get(user.get("parentesco_origem"), "Registro familiar")
+        conjuge = f"<@{user['conjuge']}>" if user.get("conjuge") else "Não registrado"
+        embed = _embed(
+            f"{emoji} Registro de Parentesco",
+            f"### {alvo.display_name}\n"
+            f"**Vínculo:** {emoji} {vinculo}\n"
+            f"**Origem:** {origem}\n"
+            f"**Cônjuge:** {conjuge}",
+            0x6D28D9,
+        )
+        embed.set_thumbnail(url=alvo.display_avatar.url)
+        await message.channel.send(embed=embed)
+
+    async def handle_lista_parentescos(self, message, args):
+        linhas = [f"{emoji} **{nome}**" for nome, emoji in VINCULOS.values()]
+        embed = _embed(
+            "👨‍👩‍👧‍👦 Vínculos da Família Imperial",
+            "Escolha um membro com `tenshi parentesco @usuário` e use o menu para aplicar o vínculo.\n\n"
+            + "\n".join(linhas)
+            + "\n\n✍️ O painel também permite criar um vínculo personalizado.",
+            0x6D28D9,
+        )
+        await message.channel.send(embed=embed)
+
+    async def handle_arvore_familiar(self, message, args):
+        grupos: dict[str, list[str]] = {}
+        for uid, user in get_all_users().items():
+            try:
+                member = message.guild.get_member(int(uid))
+            except (TypeError, ValueError):
+                continue
+            if not member or member.bot:
+                continue
+            vinculo = user.get("parentesco") or "Membro"
+            emoji = user.get("parentesco_emoji") or "👤"
+            grupos.setdefault(f"{emoji} {vinculo}", []).append(member.mention)
+
+        linhas: list[str] = []
+        for vinculo, membros in sorted(grupos.items(), key=lambda item: (item[0] != "👑 Patriarca da Família", item[0])):
+            exibidos = ", ".join(membros[:12])
+            restante = f" e mais {len(membros) - 12}" if len(membros) > 12 else ""
+            bloco = f"### {vinculo}\n{exibidos}{restante}"
+            if len("\n\n".join([*linhas, bloco])) > 3900:
+                linhas.append("*A árvore continua; refine os registros para reduzir a lista.*")
+                break
+            linhas.append(bloco)
+        descricao = "\n\n".join(linhas) or "Nenhum parentesco foi registrado neste servidor."
+        embed = _embed("🌳 Árvore da Família Imperial", descricao, 0x1A5C2E)
+        if message.guild.icon:
+            embed.set_thumbnail(url=message.guild.icon.url)
+        await message.channel.send(embed=embed)

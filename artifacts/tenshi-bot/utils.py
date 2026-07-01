@@ -528,7 +528,7 @@ SITE_URL = os.environ.get("TENSHI_SITE_URL") or _site_url_padrao()
 AJUDA_TEXTO = f"""
 {SEP}
 **🏛️ PERGAMINHOS IMPERIAIS DE TENSHI**
-*Prefixos: `tenshi comando` ou `Tenshi, comando`  •  `/nota`, `/aviso`, `/historico` e `/info`*
+*Prefixos: `tenshi comando` ou `Tenshi, comando`  •  `/ajuda`, `/nota`, `/aviso`, `/historico` e `/info`*
 🌐 **Site oficial:** {SITE_URL}
 {SEP}
 
@@ -617,6 +617,7 @@ AJUDA_TEXTO = f"""
 **👨‍👩‍👧 Família, Máfia & Facções**
 `familia criar/entrar/info/membros/missao/depositar` `entrar [facção]` `ranking`
 `parentesco [@user]` *(admin; lista de filhos, irmãos, cunhad@, sobrinhos, netos e outros)*
+`meu-parentesco [@user]` `lista-parentescos` `arvore-familiar`
 *O fundador é Patriarca; novos membros recebem Membro e casamentos derivam vínculos por afinidade.*
 
 **🛡️ Moderação Imperial** *(Admin)*
