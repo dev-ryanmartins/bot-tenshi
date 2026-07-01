@@ -15,6 +15,9 @@ CANAIS_SISTEMA = (
     ("👨‍👩‍👧", "familia-imperial", "Família e parentescos", "Use `tenshi arvore-familiar`, `tenshi meu-parentesco` e `tenshi parentesco`."),
     ("⚔️", "aventuras-rpg", "Missões e combates", "Use `tenshi missao`, `tenshi duelo`, `tenshi treinar` e `tenshi cronica`."),
     ("🎉", "eventos-tenshi", "Eventos do servidor", "Canal para cerimônias, festas, invasões e eventos narrativos."),
+    ("🚓", "jornal-policial", "Jornal Policial", "Ocorrências do RPG, crimes registrados e informes investigativos fictícios."),
+    ("🗞️", "jornal-dia-a-dia", "Jornal Dia a Dia", "Acontecimentos públicos e crônicas cotidianas do servidor."),
+    ("🧳", "viajando-pelo-mundo", "Viajando pelo Mundo", "Use `tenshi mundo` para escolher continente, país e cidade."),
     ("🛠️", "suporte-tenshi", "Suporte do bot", "Informe aqui comandos com erro e dúvidas sobre os sistemas de Tenshi."),
 )
 

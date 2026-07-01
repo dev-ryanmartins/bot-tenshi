@@ -6,8 +6,8 @@ Módulo Crime — Funcionalidades 10-11
 import discord
 import random
 import asyncio
-from datetime import datetime, timedelta
-from database import get_user, save_user, registrar_infracao, get_infrações
+from datetime import UTC, datetime, timedelta
+from database import INFRACOES_FILE, _load, get_user, save_user, registrar_infracao, get_infrações
 from utils import SEP, RODAPE_IMPERIAL, IMPERADOR_ID
 
 COR_PRETO   = 0x111111
@@ -19,6 +19,15 @@ COR_DOURADO = 0x9E7815
 HORA_BECO_INICIO = 0   # 00:00 UTC
 HORA_BECO_FIM    = 4   # 04:00 UTC (madrugada)
 COOLDOWN_FURTO   = 45 * 60  # 45 minutos
+
+NOTICIAS_POLICIAIS_FICTICIAS = [
+    "A Guarda Imperial intensificou patrulhas nas rotas comerciais após denúncias de contrabando de artefatos.",
+    "Investigadores apuram movimentações suspeitas de famílias rivais próximas ao distrito financeiro.",
+    "Uma carga sem identificação foi apreendida nos portões da cidadela; a perícia arcana foi acionada.",
+    "Moradores relataram veículos sem brasão circulando durante a madrugada nas proximidades do Beco.",
+    "O Departamento Policial abriu operação preventiva contra falsificação de moedas imperiais.",
+    "Informantes apontam disputa silenciosa por território entre organizações do submundo de Tenshi.",
+]
 
 def embed_soberano(titulo: str, descricao: str, cor: int = COR_PRETO) -> discord.Embed:
     e = discord.Embed(title=titulo, description=descricao, color=cor)
@@ -57,7 +66,8 @@ class ConfirmarFurtoView(discord.ui.View):
         chance       = min(85, max(15, (agilidade_l - defesa_v // 5) + bonus_pet))
         sucesso      = random.randint(1, 100) <= chance
         if sucesso:
-            valor = random.randint(20, min(150, v_user.get("moedas", 0)))
+            maximo = min(150, max(0, v_user.get("moedas", 0)))
+            valor = random.randint(1, maximo) if maximo else 0
             if valor > 0:
                 v_user["moedas"] = max(0, v_user.get("moedas", 0) - valor)
                 l_user["moedas"] = l_user.get("moedas", 0) + valor
@@ -76,6 +86,8 @@ class ConfirmarFurtoView(discord.ui.View):
             embed.set_footer(text=RODAPE_IMPERIAL)
             await interaction.response.edit_message(embed=embed, view=self)
             registrar_infracao(self.ladrão.id, "assalto_beco", f"Assalto bem-sucedido contra {self.vitima.id}")
+            if self.canal_jornal:
+                await self._gerar_boletim(self.canal_jornal, sucesso=True, valor=valor)
         else:
             embed = discord.Embed(
                 title="Assalto — Operação Fracassada",
@@ -98,7 +110,7 @@ class ConfirmarFurtoView(discord.ui.View):
                 ))
             if self.canal_jornal:
                 await asyncio.sleep(3)
-                await self._gerar_boletim(self.canal_jornal)
+                await self._gerar_boletim(self.canal_jornal, sucesso=False)
             registrar_infracao(self.ladrão.id, "tentativa_assalto", f"Tentativa fracassada contra {self.vitima.id}")
 
     @discord.ui.button(label="Abortar", style=discord.ButtonStyle.secondary)
@@ -113,18 +125,22 @@ class ConfirmarFurtoView(discord.ui.View):
             view=self
         )
 
-    async def _gerar_boletim(self, canal):
+    async def _gerar_boletim(self, canal, sucesso: bool, valor: int = 0):
         data_str = datetime.utcnow().strftime('%d/%m/%Y às %H:%M UTC')
+        resultado = (
+            f"O autor conseguiu subtrair **{valor} moedas** e deixou o local antes da chegada da Guarda. "
+            "A ocorrência permanece sob investigação."
+            if sucesso else
+            "A Guarda neutralizou a ação antes da consumação. O suspeito foi conduzido para averiguação."
+        )
         embed = discord.Embed(
-            title="Jornal Policial de Tenshi",
+            title="🚓 Plantão — Jornal Policial de Tenshi",
             description=(
                 f"*Edição de {data_str}*\n{SEP}\n\n"
-                f"**TENTATIVA DE ASSALTO NO BECO**\n\n"
-                f"*Nas primeiras horas da madrugada, autoridades imperiais registraram uma tentativa de assalto no setor conhecido como 'O Beco'.*\n\n"
-                f"O suspeito, identificado como **{self.ladrão.display_name}** (ID: {self.ladrão.id}), tentou subtrair valores em moeda imperial de **{self.vitima.display_name}**, "
-                f"porém foi neutralizado pela guarda de segurança antes de consumar o crime.\n\n"
-                f"O indivíduo foi conduzido ao Departamento Policial para averiguações. Antecedentes em análise.\n\n"
-                f"*Esta matéria foi gerada automaticamente pelo sistema de segurança do Império.*"
+                f"**{'ASSALTO CONSUMADO' if sucesso else 'TENTATIVA DE ASSALTO'} NO BECO**\n\n"
+                f"**Envolvidos:** {self.ladrão.mention} e {self.vitima.mention}\n"
+                f"**Resultado:** {resultado}\n\n"
+                "*Registro integrado automaticamente ao banco criminal do RPG.*"
             ),
             color=COR_PRETO
         )
@@ -138,6 +154,61 @@ class ConfirmarFurtoView(discord.ui.View):
 class Crime:
     def __init__(self, bot):
         self.bot = bot
+        self._jornal_iniciado = False
+        self._ultimo_total: dict[int, int] = {}
+
+    def cog_load(self):
+        if not self._jornal_iniciado:
+            self._jornal_iniciado = True
+            self.bot.loop.create_task(self._loop_jornal_policial())
+
+    def _embed_jornal_policial(self, guild) -> discord.Embed:
+        dados = _load(INFRACOES_FILE)
+        ocorrencias = []
+        for uid, registros in dados.items():
+            for registro in registros:
+                ocorrencias.append((registro.get("data_hora", ""), uid, registro))
+        ocorrencias.sort(key=lambda item: item[0], reverse=True)
+        embed = discord.Embed(
+            title="🚓 Jornal Policial — Tenshi",
+            description=f"*Edição integrada de {datetime.now(UTC).strftime('%d/%m/%Y às %H:%M UTC')}*\n{SEP}\n"
+                        "Ocorrências reais do RPG aparecem junto aos informes narrativos da redação.",
+            color=COR_PRETO,
+        )
+        for _, uid, registro in ocorrencias[:6]:
+            membro = guild.get_member(int(uid)) if guild and str(uid).isdigit() else None
+            nome = membro.display_name if membro else f"ID {uid}"
+            tipo = str(registro.get("tipo", "ocorrência")).replace("_", " ").title()
+            embed.add_field(
+                name=f"📋 {tipo} • {nome}"[:256],
+                value=f"{registro.get('descricao', 'Sem detalhes')[:700]}\n`BO: {registro.get('id', '—')}`",
+                inline=False,
+            )
+        for indice, noticia in enumerate(random.sample(NOTICIAS_POLICIAIS_FICTICIAS, 2), 1):
+            embed.add_field(name=f"🕵️ Informe investigativo {indice}", value=noticia, inline=False)
+        if not ocorrencias:
+            embed.add_field(name="✅ Balanço oficial", value="Nenhuma ocorrência real foi registrada no período.", inline=False)
+        embed.set_footer(text="Fatos do RPG + narrativa fictícia identificada • Jornal Policial Tenshi")
+        return embed
+
+    async def handle_jornal_policial(self, message, args):
+        await message.channel.send(embed=self._embed_jornal_policial(message.guild))
+
+    async def _loop_jornal_policial(self):
+        await self.bot.wait_until_ready()
+        await asyncio.sleep(60)
+        while not self.bot.is_closed():
+            dados = _load(INFRACOES_FILE)
+            total = sum(len(registros) for registros in dados.values())
+            for guild in self.bot.guilds:
+                canal = self._get_canal_por_nome(guild, "jornal-policial")
+                if canal and self._ultimo_total.get(guild.id) != total:
+                    self._ultimo_total[guild.id] = total
+                    try:
+                        await canal.send(embed=self._embed_jornal_policial(guild))
+                    except discord.HTTPException:
+                        pass
+            await asyncio.sleep(4 * 3600)
 
     # 10. ASSALTAR NO BECO
     async def handle_assaltar(self, message, args):

@@ -80,6 +80,13 @@ def _default_user() -> dict:
         "ficha_aprovada": False,
         # Localização
         "local_atual": "cidadela",
+        "viagem_mundo": None,
+        "ultima_viagem_mundo": None,
+        "local_antes_viagem": None,
+        "interacao_ativa": None,
+        "ultima_interacao": None,
+        "historico_apostas": [],
+        "concursos_aprovados": [],
         # RPG
         "nivel": 1,
         "nivel_manual": None,
@@ -153,6 +160,8 @@ def _template_usuario() -> dict:
             "lideranca": 100, "magia": 100, "defesa": 100, "velocidade": 100,
         },
         "poderes": [], "ficha_aprovada": False, "local_atual": "cidadela",
+        "viagem_mundo": None, "ultima_viagem_mundo": None, "local_antes_viagem": None,
+        "interacao_ativa": None, "ultima_interacao": None, "historico_apostas": [], "concursos_aprovados": [],
         "nivel": 1, "nivel_manual": None, "xp": 0, "poder": 100, "inventario": [],
         "faccao": None, "faccao_nome_custom": None, "faccao_pontos": 0, "status_bonus": {}, "missoes_completas": 0,
         "prestigio": "Bronze", "prestigio_chave": "bronze", "prestigio_atribuido_por": None,

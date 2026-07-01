@@ -81,11 +81,13 @@ from cogs.governanca_ia import GovernancaIA
 from cogs.infractions import Infractions
 from cogs.infraestrutura_critica import InfraestruturaCritica
 from cogs.inteligencia import Inteligencia
+from cogs.interacoes_locais import InteracoesLocais
 from cogs.juridico import Juridico
 from cogs.loremaster import LoreMaster
 from cogs.matrimonio import Matrimonio
 from cogs.mistico import Mistico
 from cogs.moderacao import Moderacao
+from cogs.mundo import Mundo
 from cogs.npcs import NPCs
 from cogs.parentesco import Parentesco, aplicar_membro_inicial, garantir_parentesco_patriarca
 from cogs.perfil_config import PerfilConfig
@@ -124,6 +126,8 @@ financeiro  = Financeiro(bot)
 familia     = Familia(bot)
 parentesco  = Parentesco(bot)
 automacao   = AutomacaoServidor(bot)
+mundo       = Mundo(bot)
+locais      = InteracoesLocais(bot)
 perfil_cfg  = PerfilConfig(bot)
 especies    = Especies(bot)
 poderes_cog = Poderes(bot)
@@ -303,6 +307,7 @@ async def on_ready():
         eventos.cog_load()
         vizinhanca.cog_load()
         cotidiano.cog_load()
+        crime_cog.cog_load()
         temporadas.cog_load()
         intel.cog_load()
         estado.cog_load()
@@ -490,6 +495,15 @@ async def on_message(message):
 
     elif cmd in ("viajar", "travel", "mover", "ir"):
         await especies.handle_viajar(message)
+
+    elif cmd in ("mundo", "viajar-mundo", "viajando-pelo-mundo", "atlas-mundial"):
+        await mundo.handle_mundo(message, args)
+
+    elif cmd in ("terminar-viagem", "encerrar-viagem", "voltar-de-viagem"):
+        await mundo.handle_terminar_viagem(message, args)
+
+    elif cmd in ("viagem-atual", "onde-estou-mundo", "destino-atual"):
+        await mundo.handle_viagem_atual(message, args)
 
     elif cmd in ("local", "localizacao", "localização", "onde-estou", "mapa"):
         await especies.handle_meu_local(message)
@@ -904,6 +918,24 @@ async def on_message(message):
 
     elif cmd in ("mercado-negro-beco", "beco-mercado"):
         await crime_cog.handle_mercado_beco(message)
+
+    elif cmd in ("jornal-policial", "noticias-policiais", "boletim-policial"):
+        await crime_cog.handle_jornal_policial(message, args)
+
+    elif cmd in ("interagir-local", "interacao-local", "interação-local"):
+        await locais.handle_interagir_local(message, args)
+
+    elif cmd in ("cassino", "jogos-cassino", "apostar"):
+        await locais.handle_cassino(message, args)
+
+    elif cmd in ("zoologico", "zoológico", "visitar-zoologico"):
+        await locais.handle_zoologico(message, args)
+
+    elif cmd in ("terminar-interacao", "terminar-interação", "encerrar-interacao"):
+        await locais.handle_terminar_interacao(message, args)
+
+    elif cmd in ("concurso-publico", "concurso-público", "concurso-policial", "concurso-juridico"):
+        await locais.handle_concurso(message, args)
 
     # ── COTIDIANO ─────────────────────────────────────────────────────────────
     elif cmd in ("jornal-cotidiano", "jornal-dia", "cronica-dia", "crônica-dia"):

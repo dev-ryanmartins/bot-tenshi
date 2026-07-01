@@ -97,7 +97,7 @@ class EditorStatusAutomacaoTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(valores["🏢 Empresa"], "Tenshi Corp")
 
     def test_automacao_tem_canais_tematicos_e_nome_estetico(self):
-        self.assertGreaterEqual(len(CANAIS_SISTEMA), 8)
+        self.assertGreaterEqual(len(CANAIS_SISTEMA), 11)
         self.assertEqual(_nome_canal("┇9e", "🎓", "Tenshi Academy"), "┇9e・🎓・tenshi-academy")
 
 

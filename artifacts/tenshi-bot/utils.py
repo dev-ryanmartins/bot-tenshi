@@ -534,6 +534,7 @@ AJUDA_TEXTO = f"""
 
 **🎭 Identidade & Perfil**
 `status` `ficha` `criar-ficha` `pegada [tema]` `inventario` `conquistas` `especies` `viajar [local]` `local`
+`mundo` *(atlas por continente/país/cidade)* `viagem-atual` `terminar-viagem`
 
 **✨ Poderes de RP**
 `poderes` `meus-poderes`
@@ -569,11 +570,12 @@ AJUDA_TEXTO = f"""
 `devolver-casa` `moradores` `relaxar` `fofoca` `trancar-casa` `destrancar-casa`
 *A portaria oferece 50 casas; canais privados são criados automaticamente após compra ou aluguel.*
 `sincronizar-condominio` *(admin; gera/vincula os 50 canais mantendo a estética existente)*
-`organizar-canais` *(admin; cria canais temáticos de RPG, mercado, Academia, família e suporte)*
+`organizar-canais` *(admin; cria canais temáticos, jornais e atlas mundial)*
 
 **🚗 Garagem, Esportes & Pets**
 `garagem` `vender-veiculo` `abastecer [v]` `basquete @user` `futebol @user`
 `pet-shop` `meu-pet` `vender-pet` `pool-party` *(admin)*
+`zoologico` *(24 habitats com tópicos)* `interagir-local` `terminar-interacao`
 
 **💑 Social & Cotidiano**
 `pedido @user` `pedido-real @user` `cerimonia @parceiro`
@@ -583,16 +585,19 @@ AJUDA_TEXTO = f"""
 `lavanderia` `sintetizar [item]` `cartaz [filme]`
 `psicologo [texto]` `beber [bebida]` `jornal-cotidiano` `correio` `estacoes`
 `entrevista [cargo]` `socorrer @user` `vdd`
+`cassino` *(10 jogos de aposta em tópicos privados)*
 
 **🕵️ Crime & Inteligência**
 `assaltar @user` `mercado-negro-beco` `subornar-porteiro @user`
 `grampear-call` `iniciar-festa [local]` `registrar-perola [msg]` `chat [pedido]`
+`jornal-policial` *(ocorrências reais do RPG + informes fictícios)*
 
 **⚖️ Jurídico & Clero**
 `ficha-criminal @user` `warn @user` `perdoar-aviso @user` `mandado @user`
 `pagar-fianca` `imunidade-diplomatica` `padre [rito]` `sindicancia @user`
 `consultar-lei [tema]` `parecer-ia [caso]` `plano-admin [objetivo]`
 `laudo-medico` `desintoxicacao` `doacao-sangue` `diagnostico-ia`
+`concurso-publico` *(provas para cargos jurídicos e policiais)*
 
 **🌍 Geopolítica & Estado**
 `dominar [canal]` `territorio` `rebeliao` `visto` `cidadania` `exilio @user`

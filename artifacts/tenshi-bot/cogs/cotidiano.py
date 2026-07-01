@@ -9,7 +9,7 @@ Módulo Cotidiano — Funcionalidades 12-16
 import discord
 import random
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from database import get_user, save_user
 from utils import SEP, RODAPE_IMPERIAL
 
@@ -72,6 +72,17 @@ NARRATIVAS_TREM = [
     "A chuva batia nos vidros enquanto o trem rasgava a escuridão. {nome} aproveitou o trajeto para reler anotações antigas sobre {destino} — sua história, seus perigos, suas oportunidades. Quando o trem frenou, havia algo diferente no olhar: determinação calibrada.",
 ]
 
+NOTICIAS_COTIDIANO_FICTICIAS = [
+    ("🏛️ Cidade", "A praça central recebeu novos comerciantes e artistas para a feira cultural de Tenshi."),
+    ("🎓 Academia", "Professores da Tenshi Academy preparam uma semana de aulas abertas e desafios acadêmicos."),
+    ("💰 Economia", "Mercadores relatam aumento na procura por equipamentos de viagem e itens de treinamento."),
+    ("🏠 Moradia", "A administração do condomínio anunciou melhorias nos jardins e áreas de convivência."),
+    ("🎭 Cultura", "Uma companhia itinerante ensaia uma nova peça inspirada nas antigas crônicas do Império."),
+    ("⚔️ Esportes", "As arenas registraram novos competidores treinando para a próxima temporada de duelos."),
+    ("🌦️ Clima", "Viajantes recomendam atenção às mudanças rápidas de clima nas rotas externas da cidadela."),
+    ("🍽️ Gastronomia", "Tavernas locais apresentam cardápios especiais inspirados em diferentes regiões do mundo."),
+]
+
 # ─── CONSULTA PSICOLÓGICA (sem IA real — respostas filosóficas pré-definidas) ──
 RESPOSTAS_PSICOLOGO = [
     "A dor que você descreve não é fraqueza — é o sinal de que algo importou. O Estoicismo nos ensina: *controle o que é seu, liberte o que não é.* O fardo que carrega tem nome. Nomeá-lo é o primeiro passo para depô-lo.",
@@ -98,24 +109,30 @@ class CotidianoCog:
             self.bot.loop.create_task(self._loop_cronica_diaria())
 
     # 12. CRÔNICA DO COTIDIANO
-    async def handle_cronica_diaria(self, message):
+    def _build_jornal_cotidiano(self) -> discord.Embed:
         embed = discord.Embed(
-            title="Jornal do Dia-a-Dia — Tenshi",
-            description=f"*Edição de {datetime.utcnow().strftime('%d/%m/%Y')}*\n{SEP}",
-            color=COR_IMPERIAL
+            title="🗞️ Jornal Dia a Dia — Tenshi",
+            description=f"*Edição de {datetime.now(UTC).strftime('%d/%m/%Y às %H:%M UTC')}*\n{SEP}\n"
+                        "Acontecimentos do servidor e notas narrativas da vida cotidiana.",
+            color=COR_IMPERIAL,
         )
         if self._mensagens_gerais:
-            amostra = random.sample(self._mensagens_gerais, min(3, len(self._mensagens_gerais)))
-            cronica = (
-                f"*Nossa equipe de jornalistas monitorou os canais públicos de Tenshi e preparou o seguinte resumo do cotidiano:*\n\n"
-                + "\n\n".join(f"— *\"{m['texto'][:120]}...\"* — reportado em {m['canal']}" for m in amostra)
-                + f"\n\n*O Império segue seu ritmo. Novos acontecimentos amanhã.*"
-            )
+            amostra = random.sample(self._mensagens_gerais, min(5, len(self._mensagens_gerais)))
+            for indice, item in enumerate(amostra, 1):
+                embed.add_field(
+                    name=f"📰 Acontecimento do servidor {indice}",
+                    value=f"*“{item['texto'][:500]}”*\n— registrado em **#{item['canal']}**",
+                    inline=False,
+                )
         else:
-            cronica = "*Os jornalistas circularam pelas praças e canais do Império. O dia foi tranquilo — ou, ao menos, os fatos relevantes permanecem confidenciais.*"
-        embed.description += f"\n\n{cronica}"
-        embed.set_footer(text="Jornal do Cotidiano  •  Império Tenshi")
-        await message.channel.send(embed=embed)
+            embed.add_field(name="🌤️ Movimento do dia", value="A rotina pública esteve tranquila no período observado.", inline=False)
+        for titulo, texto in random.sample(NOTICIAS_COTIDIANO_FICTICIAS, 3):
+            embed.add_field(name=f"{titulo} • Crônica RPG", value=texto, inline=False)
+        embed.set_footer(text="Acontecimentos públicos + crônicas fictícias identificadas • Tenshi")
+        return embed
+
+    async def handle_cronica_diaria(self, message):
+        await message.channel.send(embed=self._build_jornal_cotidiano())
 
     def registrar_mensagem_geral(self, canal: str, texto: str):
         self._mensagens_gerais.append({"canal": canal, "texto": texto})
@@ -248,21 +265,13 @@ class CotidianoCog:
         while not self.bot.is_closed():
             agora = datetime.utcnow()
             dia   = agora.date()
-            if agora.hour == 20 and dia != ultimo_dia and self._mensagens_gerais:
+            if agora.hour == 20 and dia != ultimo_dia:
                 ultimo_dia = dia
                 for guild in self.bot.guilds:
                     for ch in guild.text_channels:
                         if "jornal-dia-a-dia" in ch.name.lower():
-                            amostra = random.sample(self._mensagens_gerais, min(3, len(self._mensagens_gerais)))
-                            cronica = "\n\n".join(f"— *\"{m['texto'][:100]}...\"* em {m['canal']}" for m in amostra)
-                            embed = discord.Embed(
-                                title=f"Jornal do Cotidiano — {dia.strftime('%d/%m/%Y')}",
-                                description=f"*Resumo editorial do dia:*\n{SEP}\n\n{cronica}",
-                                color=COR_IMPERIAL
-                            )
-                            embed.set_footer(text="Redação do Império Tenshi")
                             try:
-                                await ch.send(embed=embed)
+                                await ch.send(embed=self._build_jornal_cotidiano())
                             except Exception:
                                 pass
                             break
