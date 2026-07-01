@@ -758,6 +758,12 @@ async def on_message(message):
     elif cmd in ("pedido-real", "pedido_rei", "pedido-rei", "noivado-real"):
         await matrimonio.handle_pedido_real(message, args)
 
+    elif cmd in ("cerimonia", "cerimônia", "configurar-casamento", "agendar-casamento"):
+        await matrimonio.handle_configurar_cerimonia(message, args)
+
+    elif cmd in ("iniciar-cerimonia", "iniciar-cerimônia", "celebrar-casamento"):
+        await matrimonio.handle_iniciar_cerimonia(message, args)
+
     elif cmd in ("rito-real", "casamento-real", "matrimonio-real", "matrimônio-real"):
         await matrimonio.handle_rito_real(message, args)
 

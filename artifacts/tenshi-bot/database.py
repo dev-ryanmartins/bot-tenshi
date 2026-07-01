@@ -9,6 +9,7 @@ EMPRESAS_FILE  = "data/empresas.json"
 FAMILIAS_FILE  = "data/familias.json"
 BANCO_FILE     = "data/banco.json"
 CASAMENTOS_FILE = "data/casamentos.json"
+CERIMONIAS_FILE = "data/cerimonias.json"
 INFRACOES_FILE  = "data/infracoes.json"
 INTERNADOS_FILE = "data/internados.json"
 
@@ -609,6 +610,12 @@ def get_casamentos() -> dict:
 
 def save_casamentos(data: dict):
     _save(CASAMENTOS_FILE, data)
+
+def get_cerimonias() -> dict:
+    return _load(CERIMONIAS_FILE)
+
+def save_cerimonias(data: dict):
+    _save(CERIMONIAS_FILE, data)
 
 
 # ─────────────────────────────────────────────

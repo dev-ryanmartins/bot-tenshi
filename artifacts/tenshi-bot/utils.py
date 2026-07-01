@@ -518,7 +518,8 @@ AJUDA_TEXTO = f"""
 `pet-shop` `meu-pet` `vender-pet` `pool-party` *(admin)*
 
 **💑 Social & Cotidiano**
-`pedido @user` `pedido-real @user` `rito-real @rei @rainha` `registro-casamento @user` `divorcio`
+`pedido @user` `pedido-real @user` `cerimonia @parceiro`
+`iniciar-cerimonia @noivo1 @noivo2` *(padre escolhido)* `rito-real @rei @rainha` `registro-casamento @user` `divorcio`
 `lavanderia` `sintetizar [item]` `cartaz [filme]`
 `psicologo [texto]` `beber [bebida]` `jornal-cotidiano` `correio` `estacoes`
 `entrevista [cargo]` `socorrer @user` `vdd`
