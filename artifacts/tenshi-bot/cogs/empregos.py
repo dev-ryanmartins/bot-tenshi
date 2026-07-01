@@ -484,12 +484,12 @@ EMPREGOS_LEGAIS.extend([
     },
     {
         "id": "mestre_cerimonial",
-        "nome": "Mestre Cerimonial", "emoji": "🕯️", "area": "Cerimonial",
+        "nome": "Ritualista de Tenshi", "emoji": "🔮", "area": "Cerimonial",
         "narrativa": "*Ensaiando votos, juramentos, coroacoes e ritos solenes com precisao impecavel...*",
         "moedas": (110, 220), "xp": (32, 70), "poder": (0, 5),
         "requer_diploma": "mestres_cerimoniais",
         "nivel_minimo": 7,
-        "descricao_cargo": "Organiza casamentos e coroacoes; a celebracao religiosa permanece exclusiva do padre.",
+        "descricao_cargo": "Organiza casamentos, coroacoes e o Ritual de Tenshi; a celebracao pertence a Tenshi IA.",
     },
     {
         "id": "regente_treinamento",
@@ -598,7 +598,7 @@ EMPREGOS_LEGAIS.extend([
     {"id": "arquivista_imperial", "nome": "Arquivista Imperial", "emoji": "🗄️", "area": "Arquivo", "narrativa": "*Catalogando documentos de uma linhagem para preservar sua memória e autenticidade...*", "moedas": (75, 145), "xp": (36, 68), "poder": (0, 3), "requer_diploma": "familia_imperial", "nivel_minimo": 5, "descricao_cargo": "Arquivo, memória e genealogia da Casa."},
     {"id": "administrador_coroa", "nome": "Administrador da Coroa", "emoji": "👑", "area": "Casa Imperial", "narrativa": "*Coordenando agenda, patrimônio e registros internos da Família Imperial...*", "moedas": (105, 200), "xp": (28, 55), "poder": (1, 5), "requer_diploma": "familia_imperial", "nivel_minimo": 8, "descricao_cargo": "Administração institucional da Coroa."},
     {"id": "organizador_coroacoes", "nome": "Organizador de Coroações", "emoji": "💠", "area": "Cerimonial", "narrativa": "*Conferindo símbolos, precedência e juramentos para uma coroação impecável...*", "moedas": (90, 175), "xp": (34, 65), "poder": (0, 4), "requer_diploma": "mestres_cerimoniais", "nivel_minimo": 6, "descricao_cargo": "Planejamento de coroações e solenidades."},
-    {"id": "oficial_matrimonial", "nome": "Oficial Matrimonial", "emoji": "💍", "area": "Cerimonial", "narrativa": "*Verificando registros, testemunhas e agenda antes de entregar o rito ao padre celebrante...*", "moedas": (75, 150), "xp": (35, 68), "poder": (0, 3), "requer_diploma": "mestres_cerimoniais", "nivel_minimo": 5, "descricao_cargo": "Organização documental de casamentos; não substitui o padre."},
+    {"id": "oficial_matrimonial", "nome": "Ritualista Matrimonial", "emoji": "🔮", "area": "Cerimonial", "narrativa": "*Verificando registros, testemunhas e agenda antes de abrir o Ritual de Tenshi para a celebração da IA...*", "moedas": (75, 150), "xp": (35, 68), "poder": (0, 3), "requer_diploma": "mestres_cerimoniais", "nivel_minimo": 5, "descricao_cargo": "Conduz o Ritual de Tenshi enquanto a própria IA celebra o casamento."},
     {"id": "assessor_herdeiro", "nome": "Assessor de Herdeiro", "emoji": "📜", "area": "Sucessão", "narrativa": "*Preparando estudos, agenda e relatórios para a formação de um herdeiro da Coroa...*", "moedas": (110, 205), "xp": (35, 66), "poder": (1, 5), "requer_diploma": "herdeiros_coroa", "nivel_minimo": 10, "descricao_cargo": "Assessoria à formação e agenda dos herdeiros."},
     {"id": "guardiao_sucessao", "nome": "Guardião da Sucessão", "emoji": "🔱", "area": "Sucessão", "narrativa": "*Protegendo documentos e protocolos que garantem a continuidade legítima da Coroa...*", "moedas": (125, 230), "xp": (32, 62), "poder": (3, 9), "requer_diploma": "herdeiros_coroa", "nivel_minimo": 12, "descricao_cargo": "Proteção dos protocolos sucessórios do RP."},
 ])

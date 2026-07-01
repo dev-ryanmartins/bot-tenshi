@@ -64,8 +64,8 @@ class PadreOpcoeView(discord.ui.View):
     @discord.ui.button(label="Casamento", style=discord.ButtonStyle.success)
     async def casamento(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(
-            "O casamento agora parte de um pedido aceito e agendado. Na data marcada, o padre escolhido usa "
-            "`Tenshi, iniciar-cerimonia @noivo1 @noivo2`.",
+            "A própria Tenshi IA celebra o casamento. Na data marcada, o Ritualista escolhido usa "
+            "`Tenshi, iniciar-cerimonia @noivo1 @noivo2` para abrir o Ritual de Tenshi.",
             ephemeral=True,
         )
 

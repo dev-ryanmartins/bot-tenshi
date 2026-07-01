@@ -12,7 +12,7 @@ from database import (
     save_cerimonias,
     save_user,
 )
-from confirmacoes import registrar_confirmacao, remover_confirmacao, texto_confirmacao
+from ia_router import ia_rapida
 from lei_imperial import RITO_REAL_PASSOS
 from utils import IMPERADOR_ID, RODAPE_IMPERIAL, SEP
 
@@ -22,15 +22,18 @@ COR_SUCESSO = 0x1A5C2E
 COR_PERIGO = 0x7B1F1F
 COR_NEUTRO = 0x3D3D3D
 FUSO_CERIMONIA = ZoneInfo("America/Sao_Paulo")
+CELEBRANTE_IA = "Tenshi IA"
 PAPEIS_CORTE = (
     "padrinho_honra",
     "segundo_padrinho",
+    "terceiro_padrinho",
     "dama_honra",
     "segunda_madrinha",
 )
 ROTULOS_CORTE = {
     "padrinho_honra": "Padrinho de honra",
     "segundo_padrinho": "Segundo padrinho",
+    "terceiro_padrinho": "Terceiro padrinho",
     "dama_honra": "Dama de honra",
     "segunda_madrinha": "Segunda madrinha",
 }
@@ -55,12 +58,6 @@ def _sem_acentos(texto: str) -> str:
     return "".join(c for c in normalizado if not unicodedata.combining(c))
 
 
-def _eh_padre(member: discord.Member) -> bool:
-    """Um celebrante precisa possuir um cargo clerical; ser admin não basta."""
-    termos = ("padre", "sacerdote", "sacerdotisa", "bispo", "cardeal", "pontifice", "paroc")
-    return any(any(termo in _sem_acentos(role.name) for termo in termos) for role in getattr(member, "roles", []))
-
-
 def _tem_autoridade_real(member: discord.Member) -> bool:
     if member.id == IMPERADOR_ID:
         return True
@@ -70,7 +67,7 @@ def _tem_autoridade_real(member: discord.Member) -> bool:
     except Exception:
         pass
     termos = ("rei", "rainha", "co-soberano", "co soberano")
-    return any(any(t in _sem_acentos(role.name) for t in termos) for role in getattr(member, "roles", []))
+    return any(any(termo in _sem_acentos(role.name) for termo in termos) for role in getattr(member, "roles", []))
 
 
 def _ja_casado(member: discord.Member) -> bool:
@@ -101,9 +98,10 @@ def _buscar_cerimonia(user_id: int, parceiro_id: int | None = None, somente_aber
 
 
 def _parse_agendamento(data_texto: str, hora_texto: str) -> datetime:
-    texto = f"{data_texto.strip()} {hora_texto.strip()}"
     try:
-        agendamento = datetime.strptime(texto, "%d/%m/%Y %H:%M").replace(tzinfo=FUSO_CERIMONIA)
+        agendamento = datetime.strptime(
+            f"{data_texto.strip()} {hora_texto.strip()}", "%d/%m/%Y %H:%M"
+        ).replace(tzinfo=FUSO_CERIMONIA)
     except ValueError as exc:
         raise ValueError("Use data no formato DD/MM/AAAA e hora no formato HH:MM.") from exc
     if agendamento <= datetime.now(FUSO_CERIMONIA):
@@ -112,20 +110,40 @@ def _parse_agendamento(data_texto: str, hora_texto: str) -> datetime:
 
 
 def _corte_completa(registro: dict) -> bool:
-    return bool(registro.get("padre") and all(registro.get(papel) for papel in PAPEIS_CORTE))
+    return all(registro.get(papel) for papel in PAPEIS_CORTE)
+
+
+def _configuracao_completa(registro: dict) -> bool:
+    return _corte_completa(registro) and bool(registro.get("ritualista"))
 
 
 def _ids_reservados(registro: dict, ignorar: str | None = None) -> set[int]:
-    campos = ("noivo1", "noivo2", "padre", *PAPEIS_CORTE)
-    return {int(registro[c]) for c in campos if c != ignorar and registro.get(c)}
+    campos = ("noivo1", "noivo2", "ritualista", *PAPEIS_CORTE)
+    return {int(registro[campo]) for campo in campos if campo != ignorar and registro.get(campo)}
 
 
 def _formatar_corte(registro: dict) -> str:
-    linhas = [f"**Padre celebrante:** <@{registro['padre']}>" if registro.get("padre") else "**Padre celebrante:** não escolhido"]
+    linhas = [f"**Celebrante:** 🤖 {CELEBRANTE_IA}"]
+    ritualista = registro.get("ritualista")
+    linhas.append(f"**Ritualista:** <@{ritualista}>" if ritualista else "**Ritualista:** não escolhido")
     for papel in PAPEIS_CORTE:
         valor = registro.get(papel)
         linhas.append(f"**{ROTULOS_CORTE[papel]}:** <@{valor}>" if valor else f"**{ROTULOS_CORTE[papel]}:** não escolhido")
     return "\n".join(linhas)
+
+
+def _novo_registro(autor: discord.Member, alvo: discord.Member, real: bool) -> dict:
+    return {
+        "noivo1": str(autor.id),
+        "noivo2": str(alvo.id),
+        "tipo": "real" if real else "comum",
+        "status": "configurando_corte",
+        "pedido_aceito_em": _agora().isoformat(),
+        "celebrante": "tenshi_ia",
+        "ritualista": None,
+        **{papel: None for papel in PAPEIS_CORTE},
+        "agendado_para": None,
+    }
 
 
 def _registrar_uniao(n1: discord.Member, n2: discord.Member, registro: dict) -> None:
@@ -134,12 +152,9 @@ def _registrar_uniao(n1: discord.Member, n2: discord.Member, registro: dict) -> 
         "noivo1": str(n1.id),
         "noivo2": str(n2.id),
         "tipo": registro.get("tipo", "comum"),
-        "celebrante": registro.get("padre"),
-        "padre": registro.get("padre"),
-        "padrinho_honra": registro.get("padrinho_honra"),
-        "segundo_padrinho": registro.get("segundo_padrinho"),
-        "dama_honra": registro.get("dama_honra"),
-        "segunda_madrinha": registro.get("segunda_madrinha"),
+        "celebrante": "tenshi_ia",
+        "ritualista": registro.get("ritualista"),
+        **{papel: registro.get(papel) for papel in PAPEIS_CORTE},
         "agendado_para": registro.get("agendado_para"),
         "data": _agora().isoformat(),
     }
@@ -160,27 +175,65 @@ def _registrar_uniao(n1: discord.Member, n2: discord.Member, registro: dict) -> 
     save_user(n2.id, u2)
 
 
-async def _confirmar_pedido_por_comando(message, autor: discord.Member, alvo: discord.Member, real: bool) -> None:
-    if _ja_casado(autor) or _ja_casado(alvo):
-        await message.channel.send(embed=_embed("Pedido indisponível", "Um dos envolvidos já possui união registrada.", COR_PERIGO))
-        return
-    if _buscar_cerimonia(autor.id)[1] or _buscar_cerimonia(alvo.id)[1]:
-        await message.channel.send(embed=_embed("Preparação existente", "Um dos envolvidos já possui outra cerimônia em preparação.", COR_NEUTRO))
-        return
-    chave = _cid(autor.id, alvo.id)
-    registro = {
-        "noivo1": str(autor.id),
-        "noivo2": str(alvo.id),
-        "tipo": "real" if real else "comum",
-        "status": "configurando_corte",
-        "pedido_aceito_em": _agora().isoformat(),
-        "padre": None,
-        **{papel: None for papel in PAPEIS_CORTE},
-        "agendado_para": None,
-    }
-    _salvar_cerimonia(chave, registro)
-    view = ConfiguracaoCerimoniaView(chave, autor, alvo)
-    await message.channel.send(embed=view.embed_atual(), view=view)
+async def _gerar_cerimonia_ia(n1: discord.Member, n2: discord.Member, registro: dict) -> str:
+    sistema = (
+        "Você é Tenshi, inteligência cerimonial do Império. Celebre um casamento de RPG em PT-BR, "
+        "com solenidade, afeto e no máximo 220 palavras. Faça uma abertura, reconheça o Ritualista e a "
+        "corte de honra, apresente votos breves e termine pedindo que os noivos escolham Sim, aceito ou Não aceito. "
+        "Não invente fatos íntimos e não declare a união concluída antes dos dois aceites."
+    )
+    usuario = (
+        f"Noivos: {n1.display_name} e {n2.display_name}. Tipo: {registro.get('tipo', 'comum')}. "
+        f"Ritualista ID: {registro.get('ritualista')}. Celebre agora como a própria Tenshi IA."
+    )
+    try:
+        texto = await ia_rapida(sistema, usuario, max_tokens=420)
+        if texto:
+            return texto[:3500]
+    except Exception:
+        pass
+    return (
+        f"Perante o Império de Tenshi, reunimos **{n1.display_name}** e **{n2.display_name}**. "
+        "O Ritualista abre o círculo simbólico enquanto a corte de honra testemunha esta escolha.\n\n"
+        "Eu, Tenshi, conduzo esta celebração e recordo que nenhuma união existe sem vontade livre. "
+        "Que respeito, lealdade e cuidado acompanhem o caminho que desejam construir.\n\n"
+        "Noivos, confirmem agora: vocês aceitam esta união?"
+    )
+
+
+class PedidoCasamentoView(discord.ui.View):
+    def __init__(self, autor: discord.Member, alvo: discord.Member, real: bool = False):
+        super().__init__(timeout=900)
+        self.autor = autor
+        self.alvo = alvo
+        self.real = real
+
+    @discord.ui.button(label="Sim, aceito", emoji="💍", style=discord.ButtonStyle.success)
+    async def aceitar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.alvo.id:
+            await interaction.response.send_message("Somente a pessoa pedida pode responder.", ephemeral=True)
+            return
+        if _ja_casado(self.autor) or _ja_casado(self.alvo):
+            await interaction.response.send_message("Um dos envolvidos já possui união registrada.", ephemeral=True)
+            return
+        if _buscar_cerimonia(self.autor.id)[1] or _buscar_cerimonia(self.alvo.id)[1]:
+            await interaction.response.send_message("Um dos envolvidos já possui outra cerimônia em preparação.", ephemeral=True)
+            return
+        chave = _cid(self.autor.id, self.alvo.id)
+        _salvar_cerimonia(chave, _novo_registro(self.autor, self.alvo, self.real))
+        view = ConfiguracaoCerimoniaView(chave, self.autor, self.alvo)
+        await interaction.response.edit_message(embed=view.embed_atual(), view=view)
+
+    @discord.ui.button(label="Não aceito", emoji="✖️", style=discord.ButtonStyle.danger)
+    async def recusar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.alvo.id:
+            await interaction.response.send_message("Somente a pessoa pedida pode responder.", ephemeral=True)
+            return
+        self.clear_items()
+        await interaction.response.edit_message(
+            embed=_embed("Pedido recusado", f"{self.alvo.mention} não aceitou o pedido de casamento.", COR_NEUTRO),
+            view=self,
+        )
 
 
 class ConfiguracaoCerimoniaView(discord.ui.View):
@@ -196,8 +249,8 @@ class ConfiguracaoCerimoniaView(discord.ui.View):
             "Corte de honra da cerimônia",
             (
                 f"O pedido entre {self.n1.mention} e {self.n2.mention} foi aceito. O casamento ainda **não foi realizado**.\n\n"
-                "Escolham abaixo um padre e quatro pessoas diferentes para a corte de honra. "
-                "Quando a seleção estiver completa, o agendamento será liberado.\n\n"
+                f"A celebração será conduzida pela própria **{CELEBRANTE_IA}**. Escolham três padrinhos e duas madrinhas, "
+                "todos diferentes. Depois será aberta a escolha do Ritualista.\n\n"
                 f"{_formatar_corte(registro)}"
             ),
         )
@@ -213,41 +266,82 @@ class ConfiguracaoCerimoniaView(discord.ui.View):
         if not registro:
             await interaction.response.send_message("A preparação desta cerimônia não foi encontrada.", ephemeral=True)
             return
-        if campo == "padre" and not _eh_padre(member):
-            await interaction.response.send_message("O celebrante precisa possuir um cargo de Padre ou equivalente clerical.", ephemeral=True)
-            return
         if member.bot or member.id in _ids_reservados(registro, ignorar=campo):
-            await interaction.response.send_message("Cada função deve ser ocupada por uma pessoa diferente e nenhum noivo pode integrar a corte.", ephemeral=True)
+            await interaction.response.send_message(
+                "Cada função deve ser ocupada por uma pessoa diferente e nenhum noivo pode integrar a corte.",
+                ephemeral=True,
+            )
             return
         registro[campo] = str(member.id)
         _salvar_cerimonia(self.chave, registro)
         if _corte_completa(registro):
-            registro["status"] = "aguardando_agendamento"
+            registro["status"] = "escolhendo_ritualista"
             _salvar_cerimonia(self.chave, registro)
-            view = AgendamentoCerimoniaView(self.chave, self.n1, self.n2)
+            view = RitualistaCerimoniaView(self.chave, self.n1, self.n2)
             await interaction.response.edit_message(embed=view.embed_atual(), view=view)
             return
         await interaction.response.edit_message(embed=self.embed_atual(), view=self)
 
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha o padre celebrante", min_values=1, max_values=1, row=0)
-    async def padre(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
-        await self._selecionar(interaction, "padre", select.values[0])
-
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha o padrinho de honra", min_values=1, max_values=1, row=1)
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha o padrinho de honra", row=0)
     async def padrinho_honra(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
         await self._selecionar(interaction, "padrinho_honra", select.values[0])
 
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha o segundo padrinho", min_values=1, max_values=1, row=2)
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha o segundo padrinho", row=1)
     async def segundo_padrinho(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
         await self._selecionar(interaction, "segundo_padrinho", select.values[0])
 
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a dama de honra", min_values=1, max_values=1, row=3)
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha o terceiro padrinho", row=2)
+    async def terceiro_padrinho(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
+        await self._selecionar(interaction, "terceiro_padrinho", select.values[0])
+
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a dama de honra", row=3)
     async def dama_honra(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
         await self._selecionar(interaction, "dama_honra", select.values[0])
 
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a segunda madrinha", min_values=1, max_values=1, row=4)
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a segunda madrinha", row=4)
     async def segunda_madrinha(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
         await self._selecionar(interaction, "segunda_madrinha", select.values[0])
+
+
+class RitualistaCerimoniaView(discord.ui.View):
+    def __init__(self, chave: str, n1: discord.Member, n2: discord.Member):
+        super().__init__(timeout=1800)
+        self.chave = chave
+        self.n1 = n1
+        self.n2 = n2
+
+    def embed_atual(self) -> discord.Embed:
+        registro = _carregar_cerimonia(self.chave) or {}
+        return _embed(
+            "Escolha do Ritualista",
+            (
+                f"A corte de honra está completa. Agora escolham quem abrirá e conduzirá o **Ritual de Tenshi**.\n\n"
+                f"O Ritualista organiza o círculo e avança as etapas; a celebração e a narrativa pertencem à **{CELEBRANTE_IA}**.\n\n"
+                f"{_formatar_corte(registro)}"
+            ),
+        )
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id not in (self.n1.id, self.n2.id):
+            await interaction.response.send_message("Somente o casal pode escolher o Ritualista.", ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha o Ritualista de Tenshi", row=0)
+    async def ritualista(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
+        registro = _carregar_cerimonia(self.chave)
+        member = select.values[0]
+        if not registro:
+            await interaction.response.send_message("A preparação desta cerimônia não foi encontrada.", ephemeral=True)
+            return
+        if member.bot or member.id in _ids_reservados(registro, ignorar="ritualista"):
+            await interaction.response.send_message("O Ritualista deve ser uma pessoa diferente dos noivos e da corte.", ephemeral=True)
+            return
+        registro["ritualista"] = str(member.id)
+        registro["status"] = "aguardando_agendamento"
+        _salvar_cerimonia(self.chave, registro)
+        view = AgendamentoCerimoniaView(self.chave, self.n1, self.n2)
+        await interaction.response.edit_message(embed=view.embed_atual(), view=view)
 
 
 class AgendamentoModal(discord.ui.Modal, title="Agendar cerimônia"):
@@ -267,8 +361,8 @@ class AgendamentoModal(discord.ui.Modal, title="Agendar cerimônia"):
             await interaction.response.send_message(str(exc), ephemeral=True)
             return
         registro = _carregar_cerimonia(self.chave)
-        if not registro or not _corte_completa(registro):
-            await interaction.response.send_message("Conclua a escolha do padre e da corte de honra primeiro.", ephemeral=True)
+        if not registro or not _configuracao_completa(registro):
+            await interaction.response.send_message("Conclua a corte de honra e escolha o Ritualista primeiro.", ephemeral=True)
             return
         registro["agendado_para"] = agendamento.isoformat()
         registro["status"] = "agendada"
@@ -280,7 +374,8 @@ class AgendamentoModal(discord.ui.Modal, title="Agendar cerimônia"):
                 (
                     f"A cerimônia de {self.n1.mention} e {self.n2.mention} foi marcada para <t:{timestamp}:F> (<t:{timestamp}:R>).\n\n"
                     f"{_formatar_corte(registro)}\n\n"
-                    f"Na data marcada, <@{registro['padre']}> deve usar `Tenshi, iniciar-cerimonia {self.n1.mention} {self.n2.mention}`."
+                    f"Na data marcada, <@{registro['ritualista']}> deve usar "
+                    f"`Tenshi, iniciar-cerimonia {self.n1.mention} {self.n2.mention}`."
                 ),
                 COR_SUCESSO,
             ),
@@ -299,7 +394,7 @@ class AgendamentoCerimoniaView(discord.ui.View):
         registro = _carregar_cerimonia(self.chave) or {}
         return _embed(
             "Definir data da cerimônia",
-            f"A corte de honra está completa. Agora o casal pode decidir a data e o horário.\n\n{_formatar_corte(registro)}",
+            f"A corte e o Ritualista estão definidos. Agora decidam data e horário.\n\n{_formatar_corte(registro)}",
         )
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -313,60 +408,65 @@ class AgendamentoCerimoniaView(discord.ui.View):
         await interaction.response.send_modal(AgendamentoModal(self.chave, self.n1, self.n2))
 
 
-async def _iniciar_votos_por_comando(message, chave: str, n1: discord.Member, n2: discord.Member, registro: dict) -> None:
-    aceites: set[int] = set()
+class VotosMatrimonioView(discord.ui.View):
+    def __init__(self, chave: str, n1: discord.Member, n2: discord.Member, registro: dict):
+        super().__init__(timeout=1200)
+        self.chave = chave
+        self.n1 = n1
+        self.n2 = n2
+        self.registro = registro
+        self.aceites: set[int] = set()
 
-    async def confirmar_voto(resposta):
-        atual = _carregar_cerimonia(chave)
-        if not atual or atual.get("status") != "em_cerimonia":
-            await resposta.channel.send(embed=_embed("Cerimônia encerrada", "Estes votos não estão mais ativos.", COR_NEUTRO))
+    @discord.ui.button(label="Sim, aceito", emoji="💍", style=discord.ButtonStyle.success)
+    async def aceitar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id not in (self.n1.id, self.n2.id):
+            await interaction.response.send_message("Somente os noivos podem responder aos votos.", ephemeral=True)
             return
-        aceites.add(resposta.author.id)
-        if len(aceites) < 2:
-            await resposta.channel.send(embed=_embed("Voto registrado", f"<@{resposta.author.id}> confirmou. Falta o voto do outro noivo.", COR_DOURADO))
+        self.aceites.add(interaction.user.id)
+        if len(self.aceites) < 2:
+            await interaction.response.send_message("Seu aceite foi registrado. Falta o voto do outro noivo.", ephemeral=True)
             return
-        _registrar_uniao(n1, n2, atual)
-        atual["status"] = "concluida"
-        atual["concluida_em"] = _agora().isoformat()
-        _salvar_cerimonia(chave, atual)
-        await resposta.channel.send(embed=_embed(
-            "Certidão Imperial de União",
-            (
-                f"**{n1.display_name}** e **{n2.display_name}** estão oficialmente unidos.\n\n"
-                f"{_formatar_corte(atual)}\n\n**Data:** {_agora().strftime('%d/%m/%Y')}"
+        self.clear_items()
+        _registrar_uniao(self.n1, self.n2, self.registro)
+        self.registro["status"] = "concluida"
+        self.registro["concluida_em"] = _agora().isoformat()
+        _salvar_cerimonia(self.chave, self.registro)
+        await interaction.response.edit_message(
+            embed=_embed(
+                "Certidão Imperial de União — Tenshi IA",
+                (
+                    f"A própria **{CELEBRANTE_IA}** reconhece a livre união de "
+                    f"**{self.n1.display_name}** e **{self.n2.display_name}**.\n\n"
+                    f"{_formatar_corte(self.registro)}\n\n**Data:** {_agora().strftime('%d/%m/%Y')}"
+                ),
+                COR_SUCESSO,
             ),
-            COR_SUCESSO,
-        ))
+            view=self,
+        )
 
-    async def cancelar_voto(resposta):
-        atual = _carregar_cerimonia(chave) or registro
-        atual["status"] = "cancelada"
-        _salvar_cerimonia(chave, atual)
-        outro_id = n2.id if resposta.author.id == n1.id else n1.id
-        remover_confirmacao(outro_id)
-        await resposta.channel.send(embed=_embed("Cerimônia cancelada", f"<@{resposta.author.id}> recusou os votos.", COR_NEUTRO))
-
-    acao = f"confirmar os votos de casamento entre {n1.display_name} e {n2.display_name}"
-    registrar_confirmacao(n1.id, acao, confirmar_voto, cancelar_voto, minutos=15)
-    registrar_confirmacao(n2.id, acao, confirmar_voto, cancelar_voto, minutos=15)
-    await message.channel.send(embed=_embed(
-        "Cerimônia de Casamento",
-        (
-            f"O padre {message.author.mention} conduz a união de {n1.mention} e {n2.mention}.\n\n"
-            f"{_formatar_corte(registro)}\n\n{SEP}\n"
-            f"Cada noivo deve responder separadamente.\n\n{texto_confirmacao(acao)}"
-        ),
-    ))
+    @discord.ui.button(label="Não aceito", emoji="✖️", style=discord.ButtonStyle.danger)
+    async def recusar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id not in (self.n1.id, self.n2.id):
+            await interaction.response.send_message("Somente os noivos podem responder aos votos.", ephemeral=True)
+            return
+        self.registro["status"] = "cancelada"
+        _salvar_cerimonia(self.chave, self.registro)
+        self.clear_items()
+        await interaction.response.edit_message(
+            embed=_embed("Cerimônia encerrada", f"{interaction.user.mention} não aceitou a união.", COR_NEUTRO),
+            view=self,
+        )
 
 
 class RitoRealView(discord.ui.View):
-    def __init__(self, chave: str, rei: discord.Member, rainha: discord.Member, padre: discord.Member, registro: dict):
+    def __init__(self, chave: str, rei: discord.Member, rainha: discord.Member, ritualista: discord.Member, registro: dict, introducao: str):
         super().__init__(timeout=1800)
         self.chave = chave
         self.rei = rei
         self.rainha = rainha
-        self.padre = padre
+        self.ritualista = ritualista
         self.registro = registro
+        self.introducao = introducao
         self.indice = 0
         self.intencoes: set[int] = set()
         self.juramentos: set[int] = set()
@@ -375,21 +475,23 @@ class RitoRealView(discord.ui.View):
         passo = RITO_REAL_PASSOS[self.indice]
         obrigacao = ""
         if self.indice == 4:
-            obrigacao = "\n\n**Confirmação exigida:** ambos devem declarar livre vontade."
+            obrigacao = "\n\n**Confirmação exigida:** ambos devem clicar em Sim, aceito."
         elif self.indice == 6:
             obrigacao = f"\n\n**Juramento exigido:** {self.rei.mention}."
         elif self.indice == 7:
             obrigacao = f"\n\n**Juramento exigido:** {self.rainha.mention}."
+        introducao = f"{self.introducao}\n\n{SEP}\n" if self.indice == 0 else ""
         return _embed(
-            f"Rito Solene — {passo['titulo']}",
+            f"Rito Solene de Tenshi — {passo['titulo']}",
             (
-                f"**Casal:** {self.rei.mention} e {self.rainha.mention}\n"
-                f"**Padre celebrante:** {self.padre.mention}\n\n"
-                f"{passo['texto']}{obrigacao}\n\n{SEP}\nEtapa {self.indice + 1}/{len(RITO_REAL_PASSOS)}"
+                f"**Celebrante:** 🤖 {CELEBRANTE_IA}\n"
+                f"**Ritualista:** {self.ritualista.mention}\n"
+                f"**Casal:** {self.rei.mention} e {self.rainha.mention}\n\n"
+                f"{introducao}{passo['texto']}{obrigacao}\n\n{SEP}\nEtapa {self.indice + 1}/{len(RITO_REAL_PASSOS)}"
             ),
         )
 
-    @discord.ui.button(label="Confirmar voto", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Sim, aceito", emoji="💍", style=discord.ButtonStyle.success)
     async def confirmar(self, interaction: discord.Interaction, button: discord.ui.Button):
         uid = interaction.user.id
         if self.indice == 4 and uid in (self.rei.id, self.rainha.id):
@@ -404,12 +506,12 @@ class RitoRealView(discord.ui.View):
             self.juramentos.add(uid)
             await interaction.response.send_message("Juramento registrado.", ephemeral=True)
             return
-        await interaction.response.send_message("Esta etapa não exige seu voto agora.", ephemeral=True)
+        await interaction.response.send_message("Esta etapa não exige seu aceite agora.", ephemeral=True)
 
-    @discord.ui.button(label="Avançar rito", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Avançar Ritual de Tenshi", emoji="🔮", style=discord.ButtonStyle.primary)
     async def avancar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.padre.id or not _eh_padre(interaction.user):
-            await interaction.response.send_message("Somente o padre escolhido pode avançar o rito.", ephemeral=True)
+        if interaction.user.id != self.ritualista.id:
+            await interaction.response.send_message("Somente o Ritualista escolhido pode avançar o ritual.", ephemeral=True)
             return
         if self.indice == 4 and self.intencoes != {self.rei.id, self.rainha.id}:
             await interaction.response.send_message("A declaração dos dois noivos ainda não foi concluída.", ephemeral=True)
@@ -431,22 +533,30 @@ class RitoRealView(discord.ui.View):
         _salvar_cerimonia(self.chave, self.registro)
         await interaction.response.edit_message(
             embed=_embed(
-                "Proclamação da União Real",
-                f"**{self.rei.display_name}** e **{self.rainha.display_name}** foram unidos por {self.padre.mention}.\n\n{_formatar_corte(self.registro)}",
+                "Proclamação da União Real — Tenshi IA",
+                (
+                    f"A **{CELEBRANTE_IA}** proclama a união de **{self.rei.display_name}** e "
+                    f"**{self.rainha.display_name}**, com o Ritual de Tenshi conduzido por {self.ritualista.mention}.\n\n"
+                    f"{_formatar_corte(self.registro)}"
+                ),
                 COR_SUCESSO,
             ),
             view=self,
         )
 
-    @discord.ui.button(label="Cancelar", style=discord.ButtonStyle.danger)
-    async def cancelar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.padre.id or not _eh_padre(interaction.user):
-            await interaction.response.send_message("Somente o padre escolhido pode cancelar o rito.", ephemeral=True)
+    @discord.ui.button(label="Não aceito", emoji="✖️", style=discord.ButtonStyle.danger)
+    async def recusar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        permitidos = {self.rei.id, self.rainha.id, self.ritualista.id}
+        if interaction.user.id not in permitidos:
+            await interaction.response.send_message("Você não participa deste rito.", ephemeral=True)
             return
         self.registro["status"] = "cancelada"
         _salvar_cerimonia(self.chave, self.registro)
         self.clear_items()
-        await interaction.response.edit_message(embed=_embed("Rito cancelado", "A cerimônia foi encerrada sem registro.", COR_NEUTRO), view=self)
+        await interaction.response.edit_message(
+            embed=_embed("Rito encerrado", f"{interaction.user.mention} encerrou o ritual sem união.", COR_NEUTRO),
+            view=self,
+        )
 
 
 class Matrimonio:
@@ -468,33 +578,19 @@ class Matrimonio:
         if _buscar_cerimonia(message.author.id)[1] or _buscar_cerimonia(alvo.id)[1]:
             await message.channel.send(embed=_embed("Preparação existente", "Um dos envolvidos já possui outra cerimônia em preparação.", COR_NEUTRO))
             return
-        chave = _cid(message.author.id, alvo.id)
-        existente = _carregar_cerimonia(chave)
-        if existente and existente.get("status") not in {"cancelada", "concluida"}:
-            await message.channel.send(embed=_embed("Pedido existente", "Este casal já possui uma cerimônia em preparação.", COR_NEUTRO))
-            return
         texto = " ".join(a for a in args if not a.startswith("<@")).strip()
         extra = f"\n\n**Palavras do pedido:**\n*{texto[:900]}*" if texto else ""
         tipo = "real" if real else "comum"
-        acao = f"aceitar o pedido de casamento {tipo} de {message.author.display_name}"
-
-        async def confirmar(resposta):
-            await _confirmar_pedido_por_comando(resposta, message.author, alvo, real)
-
-        async def cancelar(resposta):
-            await resposta.channel.send(embed=_embed("Pedido recusado", f"{alvo.mention} recusou o pedido de casamento.", COR_NEUTRO))
-
-        registrar_confirmacao(alvo.id, acao, confirmar, cancelar)
         await message.channel.send(
             embed=_embed(
                 "Pedido Real de Casamento" if real else "Pedido de Casamento",
                 (
                     f"{message.author.mention} pede {alvo.mention} em casamento.\n\n"
-                    f"Este é apenas o **pedido {tipo}**: aceitar inicia a preparação, não realiza a união.\n\n"
-                    f"{texto_confirmacao(acao)}"
+                    f"Este é apenas o **pedido {tipo}**: aceitar inicia a preparação, não realiza a união."
                     f"{extra}"
                 ),
             ),
+            view=PedidoCasamentoView(message.author, alvo, real=real),
         )
 
     async def handle_pedido_comum(self, message, args):
@@ -519,14 +615,17 @@ class Matrimonio:
             return
         if registro.get("status") == "agendada":
             agendamento = datetime.fromisoformat(registro["agendado_para"])
-            timestamp = int(agendamento.timestamp())
-            await message.channel.send(embed=_embed("Cerimônia agendada", f"Data: <t:{timestamp}:F>\n\n{_formatar_corte(registro)}", COR_SUCESSO))
+            await message.channel.send(embed=_embed(
+                "Cerimônia agendada", f"Data: <t:{int(agendamento.timestamp())}:F>\n\n{_formatar_corte(registro)}", COR_SUCESSO
+            ))
             return
         if registro.get("status") == "em_cerimonia":
-            await message.channel.send(embed=_embed("Cerimônia em andamento", "O padre já iniciou os votos deste casamento.", COR_NEUTRO))
+            await message.channel.send(embed=_embed("Cerimônia em andamento", "A Tenshi IA já iniciou esta celebração.", COR_NEUTRO))
             return
-        if _corte_completa(registro):
+        if _configuracao_completa(registro):
             view = AgendamentoCerimoniaView(chave, n1, n2)
+        elif _corte_completa(registro):
+            view = RitualistaCerimoniaView(chave, n1, n2)
         else:
             view = ConfiguracaoCerimoniaView(chave, n1, n2)
         await message.channel.send(embed=view.embed_atual(), view=view)
@@ -539,26 +638,33 @@ class Matrimonio:
         chave = _cid(n1.id, n2.id)
         registro = _carregar_cerimonia(chave)
         if not registro or registro.get("status") not in {"agendada", "em_cerimonia"}:
-            await message.channel.send(embed=_embed("Cerimônia indisponível", "O casal não possui cerimônia completamente configurada e agendada.", COR_NEUTRO))
+            await message.channel.send(embed=_embed("Cerimônia indisponível", "O casal não possui cerimônia configurada e agendada.", COR_NEUTRO))
             return
         if exigir_real and registro.get("tipo") != "real":
             await message.channel.send(embed=_embed("Rito incorreto", "Este pedido não é um casamento real.", COR_PERIGO))
             return
-        if message.author.id != int(registro["padre"]) or not _eh_padre(message.author):
-            await message.channel.send(embed=_embed("Celebrante inválido", "Somente o padre escolhido pelo casal pode iniciar a cerimônia.", COR_PERIGO))
+        if message.author.id != int(registro["ritualista"]):
+            await message.channel.send(embed=_embed("Ritualista necessário", "Somente o Ritualista escolhido pode iniciar o Ritual de Tenshi.", COR_PERIGO))
             return
         agendamento = datetime.fromisoformat(registro["agendado_para"])
         if _agora() < agendamento.astimezone(UTC):
-            timestamp = int(agendamento.timestamp())
-            await message.channel.send(embed=_embed("Ainda não é o horário", f"A cerimônia está marcada para <t:{timestamp}:F>.", COR_NEUTRO))
+            await message.channel.send(embed=_embed("Ainda não é o horário", f"A cerimônia está marcada para <t:{int(agendamento.timestamp())}:F>.", COR_NEUTRO))
             return
         registro["status"] = "em_cerimonia"
         _salvar_cerimonia(chave, registro)
+        texto_ia = await _gerar_cerimonia_ia(n1, n2, registro)
         if registro.get("tipo") == "real":
-            view = RitoRealView(chave, n1, n2, message.author, registro)
+            view = RitoRealView(chave, n1, n2, message.author, registro, texto_ia)
             await message.channel.send(embed=view.embed_atual(), view=view)
             return
-        await _iniciar_votos_por_comando(message, chave, n1, n2, registro)
+        view = VotosMatrimonioView(chave, n1, n2, registro)
+        await message.channel.send(
+            embed=_embed(
+                "Celebração de Casamento — Tenshi IA",
+                f"{texto_ia}\n\n{SEP}\n{_formatar_corte(registro)}",
+            ),
+            view=view,
+        )
 
     async def handle_rito_real(self, message, args):
         await self.handle_iniciar_cerimonia(message, args, exigir_real=True)
@@ -571,17 +677,14 @@ class Matrimonio:
             await message.channel.send(embed=_embed("Sem registro", f"{alvo.mention} não possui casamento registrado.", COR_NEUTRO))
             return
         registro = get_casamentos().get(_cid(alvo.id, int(conjuge_id)), {})
-        corte = _formatar_corte(registro) if registro.get("padre") else "**Padre celebrante:** registro antigo"
-        await message.channel.send(
-            embed=_embed(
-                "Registro Matrimonial Imperial",
-                (
-                    f"**Membro:** {alvo.mention}\n"
-                    f"**Cônjuge:** <@{conjuge_id}>\n"
-                    f"**Tipo:** {registro.get('tipo', 'comum').title()}\n"
-                    f"**Data:** {registro.get('data', 'sem data')}\n"
-                    f"{corte}\n"
-                    f"**Co-soberania:** {'Sim' if user.get('co_soberano') else 'Não'}"
-                ),
-            )
-        )
+        await message.channel.send(embed=_embed(
+            "Registro Matrimonial Imperial",
+            (
+                f"**Membro:** {alvo.mention}\n"
+                f"**Cônjuge:** <@{conjuge_id}>\n"
+                f"**Tipo:** {registro.get('tipo', 'comum').title()}\n"
+                f"**Data:** {registro.get('data', 'sem data')}\n"
+                f"{_formatar_corte(registro)}\n"
+                f"**Co-soberania:** {'Sim' if user.get('co_soberano') else 'Não'}"
+            ),
+        ))
