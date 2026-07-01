@@ -4,14 +4,14 @@ Bot Discord do Imperio Tenshi com site Python integrado, memoria documental em P
 
 ## Deploy na Railway como Worker
 
-Este repositorio ja esta pronto para manter o bot online como Worker na Railway:
+Este repositorio ja esta pronto para manter o bot online na Railway e servir o site Python integrado no mesmo processo:
 
 - `railway.json` define o start command `python main.py`.
 - `Procfile` define o processo `worker: python main.py`.
 - `Dockerfile` força build Python 3.11 e evita conflito com o workspace Node.
 - `requirements.txt` na raiz lista as dependencias Python usadas pelo bot.
 - O token do Discord deve ficar apenas em variavel de ambiente.
-- O Worker nao precisa de dominio publico nem healthcheck HTTP para manter o bot online.
+- O site usa automaticamente a porta `PORT` da Railway e responde em `/health`.
 
 ### 1. Criar o servico
 
@@ -38,9 +38,26 @@ Tambem deixei o arquivo `railway.env.example` com os nomes exatos das variaveis 
 
 Nao coloque token ou chave direto no codigo e nao envie `.env` para o GitHub. As chaves reais devem ficar apenas em **Railway -> Variables**.
 
-Para Worker, nao configure `PORT`, `SITE_PORT` ou `SITE_HOST`. Se depois voce quiser abrir o painel web publicamente, crie um Web Service separado ou gere dominio publico e adicione `TENSHI_SITE_URL`.
+Nao configure `PORT`, `SITE_PORT` ou `SITE_HOST` na Railway. A propria Railway fornece `PORT`, e o codigo usa `0.0.0.0` automaticamente dentro dela.
 
-### 3. Start command
+### 3. Ativar o site na Railway
+
+Para abrir o site no navegador:
+
+1. Clique no servico do bot na Railway.
+2. Abra **Settings**.
+3. Va em **Networking -> Public Networking**.
+4. Clique em **Generate Domain**.
+5. Copie a URL gerada, por exemplo `https://seu-app.up.railway.app`.
+6. Volte em **Variables** e adicione:
+
+```env
+TENSHI_SITE_URL=https://seu-app.up.railway.app
+```
+
+Depois clique em **Redeploy**. O bot e o site sobem juntos pelo mesmo comando `python main.py`.
+
+### 4. Start command
 
 O start command ja esta salvo em `railway.json`:
 
@@ -56,7 +73,7 @@ worker: python main.py
 
 Se o painel da Railway pedir manualmente, use exatamente esse comando.
 
-### 4. Erro comum: `DISCORD_TOKEN nao encontrado`
+### 5. Erro comum: `DISCORD_TOKEN nao encontrado`
 
 Se os logs mostrarem:
 
