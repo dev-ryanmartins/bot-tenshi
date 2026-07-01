@@ -36,9 +36,20 @@ _carregar_env_local()
 def _utcnow():
     return datetime.now(UTC).replace(tzinfo=None)
 
-from utils import PREFIXO, embed_imperial, AJUDA_TEXTO, IMPERADOR_ID, SEP, RODAPE_IMPERIAL
+from utils import (
+    PREFIXO,
+    embed_imperial,
+    AJUDA_TEXTO,
+    IMPERADOR_ID,
+    SEP,
+    RODAPE_IMPERIAL,
+    install_discord_safety_patch,
+    safe_send_embed,
+)
 from database import get_user, save_user
 from site_server import start_site_server_thread
+
+install_discord_safety_patch()
 
 from cogs.rpg           import RPG
 from cogs.economia      import Economia
@@ -857,7 +868,7 @@ async def on_message(message):
             color=0x2B0A3D
         )
         embed.set_footer(text=RODAPE_IMPERIAL)
-        await message.channel.send(embed=embed)
+        await safe_send_embed(message.channel, embed)
 
     elif cmd in ("ping", "latencia"):
         lat = round(bot.latency * 1000)
