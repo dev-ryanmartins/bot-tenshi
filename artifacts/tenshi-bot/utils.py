@@ -76,7 +76,15 @@ def barra_progresso(atual: int, maximo: int, tamanho: int = 12) -> str:
     return "█" * preenchido + "░" * (tamanho - preenchido)
 
 
-SITE_URL = os.environ.get("TENSHI_SITE_URL", "http://localhost:8081")
+def _site_url_padrao() -> str:
+    public_domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+    if public_domain:
+        return f"https://{public_domain}"
+    port = os.environ.get("PORT") or os.environ.get("SITE_PORT") or "8081"
+    return f"http://localhost:{port}"
+
+
+SITE_URL = os.environ.get("TENSHI_SITE_URL") or _site_url_padrao()
 
 AJUDA_TEXTO = f"""
 {SEP}

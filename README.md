@@ -2,6 +2,55 @@
 
 Bot Discord do Imperio Tenshi com site Python integrado, memoria documental em PDFs, IA via OpenRouter, comandos administrativos, academia, matrimonios, empregos e painel web.
 
+## Deploy na Railway
+
+Este repositorio ja esta pronto para Railway:
+
+- `railway.json` define o start command `python main.py`.
+- `Dockerfile` força build Python 3.11 e evita conflito com o workspace Node.
+- `requirements.txt` na raiz aponta para as dependencias Python do bot.
+- O site usa automaticamente a variavel `PORT` da Railway.
+- O healthcheck fica em `/health`.
+
+### 1. Criar o servico
+
+1. Abra a Railway.
+2. Crie um novo projeto.
+3. Escolha **Deploy from GitHub repo**.
+4. Selecione `dev-ryanmartins/bot-tenshi`.
+5. Gere um dominio em **Settings -> Networking -> Public Networking -> Generate Domain**.
+
+### 2. Variaveis obrigatorias na Railway
+
+Coloque estas variaveis em **Variables**:
+
+```env
+DISCORD_TOKEN=seu_token_do_discord
+OPENROUTER_API_KEY=sua_chave_openrouter
+ADMIN_USERNAME=Alloy
+ADMIN_PASSWORD=uma_senha_forte
+ADMIN_SECRET=um_segredo_forte
+ENABLE_SITE=1
+```
+
+Depois que a Railway gerar o dominio, voce pode adicionar:
+
+```env
+TENSHI_SITE_URL=https://SEU-DOMINIO.up.railway.app
+```
+
+Nao configure `PORT`, `SITE_PORT` ou `SITE_HOST` na Railway. A propria Railway fornece `PORT`, e o codigo ja usa `0.0.0.0` automaticamente dentro dela.
+
+### 3. Start command
+
+O start command ja esta salvo em `railway.json`:
+
+```bash
+python main.py
+```
+
+Se o painel da Railway pedir manualmente, use exatamente esse comando.
+
 ## Rodar em VPS Linux com PM2
 
 ### 1. Instale Python, Git e PM2

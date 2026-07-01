@@ -178,6 +178,23 @@ def _env_bool(name: str, default: bool = True) -> bool:
     return raw.strip().lower() not in {"0", "false", "nao", "não", "no", "off"}
 
 
+def _is_railway() -> bool:
+    return any(
+        os.environ.get(name)
+        for name in ("RAILWAY_SERVICE_ID", "RAILWAY_PROJECT_ID", "RAILWAY_ENVIRONMENT_ID")
+    )
+
+
+def _site_host() -> str:
+    if _is_railway():
+        return "0.0.0.0"
+    return os.environ.get("SITE_HOST", "0.0.0.0")
+
+
+def _site_port() -> int:
+    return int(os.environ.get("PORT") or os.environ.get("SITE_PORT") or "8081")
+
+
 def _read_json(path: Path, fallback: Any) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -220,7 +237,7 @@ def _data_overview() -> dict[str, Any]:
         "usuarios": len(users) if isinstance(users, dict) else 0,
         "casas": len(casas) if isinstance(casas, dict) else 0,
         "acoes": len(acoes) if isinstance(acoes, dict) else 0,
-        "site_port": int(os.environ.get("SITE_PORT") or os.environ.get("PORT") or "8081"),
+        "site_port": _site_port(),
         "openrouter": bool(os.environ.get("OPENROUTER_API_KEY")),
         "bot_online": status["online"],
     }
@@ -933,8 +950,8 @@ async def start_site_server(bot=None) -> web.AppRunner | None:
         print("[SITE] Desativado por ENABLE_SITE=0.")
         return None
 
-    host = os.environ.get("SITE_HOST", "0.0.0.0")
-    port = int(os.environ.get("SITE_PORT") or os.environ.get("PORT") or "8081")
+    host = _site_host()
+    port = _site_port()
 
     runner = web.AppRunner(create_app(bot))
     await runner.setup()
