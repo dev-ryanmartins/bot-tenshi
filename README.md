@@ -22,11 +22,11 @@ tenshi info @usuario
 
 Use `tenshi ajuda` no Discord para consultar o catálogo completo. Notas e avisos são persistidos em `data/tenshi.db` com `aiosqlite`.
 
-O Mercado Imperial possui itens comuns e avançados com requisitos de progressão. A portaria administra 50 casas únicas e cria automaticamente canais privados `casa-N` conforme forem adquiridos. Administradores podem usar `tenshi set-status @usuario` para abrir o painel limitado de 22 atributos e conceder prestígios de Bronze a Irídio.
+O Mercado Imperial possui itens comuns e avançados com requisitos de progressão. A portaria administra 50 casas únicas e cria automaticamente canais privados `casa-N` conforme forem adquiridos. Administradores podem usar `tenshi set-status` para editar o próprio personagem ou `tenshi set-status @usuario` para editar outro membro pelo painel de atributos e prestígios.
 
-A Tenshi Academy também possui corpo docente: `tenshi professor @usuario` cadastra professores, assistentes, coordenação ou direção e permite escolher as disciplinas no próprio painel. `tenshi ministrar-aula [materia] [tema]` gera a aula assistida por IA e abre presença para os alunos. O fundador (ID `619302798751694849`) é normalizado na inicialização como Imperador, Diretor, Professor Imperial e prestígio Irídio, com acesso integral e atributos no limite máximo.
+A Tenshi Academy também possui corpo docente: `tenshi professor @usuario` cadastra professores, assistentes, coordenação ou direção e permite escolher as disciplinas no próprio painel. `tenshi ministrar-aula [materia] [tema]` gera a aula assistida por IA e abre presença para os alunos. O fundador (ID `619302798751694849`) mantém acesso integral como Imperador, Diretor e Professor Imperial, mas seus atributos continuam livremente editáveis e não são sobrescritos na inicialização.
 
-O comando administrativo `tenshi sincronizar-condominio` gera ou vincula os 50 canais residenciais preservando o prefixo visual dos canais já existentes. A censura multilíngue camufla palavrões e xingamentos, com revelação individual e privada pelo botão; defina `TENSHI_CENSOR_AI=0` para desativar apenas a revisão complementar por IA.
+O comando administrativo `tenshi sincronizar-condominio` gera ou vincula os 50 canais residenciais preservando o prefixo visual dos canais já existentes.
 
 Novos participantes recebem automaticamente o cargo estético `Membro`. Administradores usam `tenshi parentesco` para selecionar a pessoa e definir `Filho`, `Filha`, `Irmão`, `Irmã`, `Familiar` ou um vínculo personalizado. Casamentos aplicam `Familiar` e uma dissolução restaura o vínculo anterior.
 
