@@ -10,7 +10,7 @@ import asyncio
 import random
 from datetime import datetime, timedelta
 from database import get_user, save_user, get_casamentos, save_casamentos
-from cogs.parentesco import aplicar_parentesco
+from cogs.parentesco import aplicar_parentesco, resolver_parentescos_casamento
 from utils import SEP, RODAPE_IMPERIAL, IMPERADOR_ID
 
 COR_IMPERIAL = 0x2C3E50
@@ -86,9 +86,10 @@ class VotosView(discord.ui.View):
         for user in (u1, u2):
             user["parentesco_antes_casamento"] = user.get("parentesco") or "Membro"
             user["parentesco_emoji_antes_casamento"] = user.get("parentesco_emoji") or "👤"
-            user["parentesco"] = "Familiar"
-            user["parentesco_emoji"] = "👨‍👩‍👧"
             user["parentesco_origem"] = "casamento"
+        vinculo1, vinculo2 = resolver_parentescos_casamento(u1, u2)
+        u1["parentesco"], u1["parentesco_emoji"] = vinculo1
+        u2["parentesco"], u2["parentesco_emoji"] = vinculo2
         # Cônjuge do Imperador recebe acesso executivo
         if self.noivo1.id == IMPERADOR_ID or self.noivo2.id == IMPERADOR_ID:
             conjuge_id = self.noivo2.id if self.noivo1.id == IMPERADOR_ID else self.noivo1.id
@@ -97,9 +98,9 @@ class VotosView(discord.ui.View):
             save_user(conjuge_id, conj_user)
         save_user(self.noivo1.id, u1)
         save_user(self.noivo2.id, u2)
-        for membro in (self.noivo1, self.noivo2):
+        for membro, vinculo in ((self.noivo1, vinculo1), (self.noivo2, vinculo2)):
             try:
-                await aplicar_parentesco(membro, "Familiar", "👨‍👩‍👧", origem="casamento")
+                await aplicar_parentesco(membro, *vinculo, origem="casamento")
             except (discord.Forbidden, discord.HTTPException):
                 pass
         embed = discord.Embed(

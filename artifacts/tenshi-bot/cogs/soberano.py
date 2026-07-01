@@ -22,7 +22,6 @@ from cogs.parentesco import aplicar_cargo_exclusivo, garantir_cargo_grupo
 # ─── ESTADO GLOBAL SOBERANO ───────────────────────────────────────────────────
 _economia_congelada    = False
 _bypass_cooldown_ids:  set = set()
-_termos_censurados:    list = []
 _sys_prompt_override:  str | None = None
 _memoria_ia:           list = []   # histórico de contexto da IA
 
@@ -78,17 +77,11 @@ def _administrador(member) -> bool:
 
 
 def aplicar_perfil_supremo_imperador() -> dict:
-    """Mantém o perfil do fundador no teto do sistema em toda inicialização."""
+    """Garante as permissões do fundador sem sobrescrever atributos editáveis."""
     user = get_user(IMPERADOR_ID)
-    atributos = user.setdefault("atributos", {})
-    for atributo in ATRIBUTOS_FICHA:
-        atributos[atributo] = STATUS_LIMITES[atributo][1]
-    for atributo in ("poder", "xp", "nivel", "moedas", "conta_banco"):
-        user[atributo] = STATUS_LIMITES[atributo][1]
-    user["fadiga"] = 0
-    user["prestigio"] = "Irídio"
-    user["prestigio_chave"] = "iridio"
-    user["titulo"] = "Imperador Supremo de Tenshi"
+    user.setdefault("prestigio", "Irídio")
+    user.setdefault("prestigio_chave", "iridio")
+    user.setdefault("titulo", "Imperador Supremo de Tenshi")
     user["acesso_total"] = True
     user["imortal"] = True
     user["fundador"] = True
@@ -109,7 +102,12 @@ async def garantir_cargos_supremos(member: discord.Member) -> None:
         cargo = await garantir_cargo_grupo(member.guild, nome, emoji, "autoridade_imperial")
         if cargo not in member.roles:
             await member.add_roles(cargo, reason="Autoridade absoluta do Fundador de Tenshi")
-    await aplicar_cargo_exclusivo(member, "Irídio", "🌌", "prestigio")
+    user = get_user(member.id)
+    chave = user.get("prestigio_chave", "iridio")
+    if chave not in PRESTIGIOS:
+        chave = "iridio"
+    nome, emoji, _ = PRESTIGIOS[chave]
+    await aplicar_cargo_exclusivo(member, nome, emoji, "prestigio")
 
 
 class StatusValorModal(discord.ui.Modal, title="Definir status do personagem"):
@@ -133,8 +131,6 @@ class StatusValorModal(discord.ui.Modal, title="Definir status do personagem"):
             await interaction.response.send_message("Informe um número inteiro válido.", ephemeral=True)
             return
         minimo, maximo, emoji = STATUS_LIMITES[self.atributo]
-        if self.alvo.id == IMPERADOR_ID:
-            valor = minimo if self.atributo == "fadiga" else maximo
         if not minimo <= valor <= maximo:
             await interaction.response.send_message(
                 f"O valor de **{self.atributo}** deve ficar entre **{minimo}** e **{maximo}**.",
@@ -201,7 +197,7 @@ class PrestigioSelect(discord.ui.Select):
         if interaction.user.id != self.admin_id or not _administrador(interaction.user):
             await interaction.response.send_message("Este painel pertence a outro administrador.", ephemeral=True)
             return
-        chave = "iridio" if self.alvo.id == IMPERADOR_ID else self.values[0]
+        chave = self.values[0]
         nome, emoji, cor = PRESTIGIOS[chave]
         await interaction.response.defer(ephemeral=True)
         user = get_user(self.alvo.id)
@@ -344,10 +340,7 @@ class Soberano:
                 "Acesso Restrito", "Somente administradores do servidor podem alterar status."
             ))
             return
-        if not message.mentions:
-            await message.channel.send(embed=embed_doc("Uso", "`Tenshi, set-status @usuario`", COR_ADMIN))
-            return
-        alvo = message.mentions[0]
+        alvo = message.mentions[0] if message.mentions else message.author
         user = get_user(alvo.id)
         resumo = "\n".join(
             f"{emoji} **{atributo.replace('_', ' ').title()}:** "
@@ -357,7 +350,8 @@ class Soberano:
         embed = embed_admin_doc(
             "Painel de Status do Personagem",
             f"• **Alvo:** {alvo.mention}\n• **Prestígio:** {user.get('prestigio', 'Bronze')}\n\n{resumo}\n\n"
-            "Selecione abaixo o atributo. Em seguida, informe o novo valor dentro do limite exibido."
+            "Selecione abaixo o atributo e depois digite o valor desejado dentro do limite exibido. "
+            "Sem menção, o painel edita o seu próprio personagem."
         )
         await message.channel.send(embed=embed, view=StatusPainelView(alvo, message.author.id))
 
@@ -619,17 +613,6 @@ class Soberano:
         await canal_nicho.send(embed=e)
         await message.channel.send(embed=embed_sucesso("Crônica Enviada", f"Canal-alvo: {canal_nicho.mention}"))
 
-    async def cmd_censurar_termo(self, message, args):
-        if not self._verificar(message, "censurar-termo"): return
-        if not args: await message.author.send("> ⚠️ Forneça o termo."); return
-        termo = " ".join(args).lower()
-        if termo not in _termos_censurados:
-            _termos_censurados.append(termo)
-        await message.channel.send(embed=embed_soberano_decreto(
-            "Termo Censurado Adicionado",
-            f"• **Termo:** `{termo}`\n• Adicionado à lista de palavras-chave subversivas monitoradas."
-        ))
-
     # ─── F) ENGENHARIA E MANUTENÇÃO ───────────────────────────────────────────
 
     async def cmd_desligar(self, message, args):
@@ -807,6 +790,3 @@ class Soberano:
 
     def get_sys_prompt_override(self) -> str | None:
         return _sys_prompt_override
-
-    def get_termos_censurados(self) -> list:
-        return _termos_censurados

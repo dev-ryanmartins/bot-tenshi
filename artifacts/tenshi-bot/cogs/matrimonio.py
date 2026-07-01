@@ -14,7 +14,7 @@ from database import (
 )
 from ia_router import ia_rapida
 from lei_imperial import RITO_REAL_PASSOS
-from cogs.parentesco import aplicar_parentesco
+from cogs.parentesco import aplicar_parentesco, resolver_parentescos_casamento
 from utils import IMPERADOR_ID, RODAPE_IMPERIAL, SEP
 
 COR_DOURADO = 0x9E7815
@@ -177,10 +177,9 @@ def _registrar_uniao(n1: discord.Member, n2: discord.Member, registro: dict) -> 
     u2["parentesco_antes_casamento"] = u2.get("parentesco") or "Membro"
     u1["parentesco_emoji_antes_casamento"] = u1.get("parentesco_emoji") or "👤"
     u2["parentesco_emoji_antes_casamento"] = u2.get("parentesco_emoji") or "👤"
-    u1["parentesco"] = "Familiar"
-    u2["parentesco"] = "Familiar"
-    u1["parentesco_emoji"] = "👨‍👩‍👧"
-    u2["parentesco_emoji"] = "👨‍👩‍👧"
+    vinculo1, vinculo2 = resolver_parentescos_casamento(u1, u2)
+    u1["parentesco"], u1["parentesco_emoji"] = vinculo1
+    u2["parentesco"], u2["parentesco_emoji"] = vinculo2
     u1["parentesco_origem"] = "casamento"
     u2["parentesco_origem"] = "casamento"
     if n1.id == IMPERADOR_ID or n2.id == IMPERADOR_ID:
@@ -190,16 +189,16 @@ def _registrar_uniao(n1: discord.Member, n2: discord.Member, registro: dict) -> 
         save_user(conjuge_id, conjuge)
     save_user(n1.id, u1)
     save_user(n2.id, u2)
-    for membro in (n1, n2):
+    for membro, vinculo in ((n1, vinculo1), (n2, vinculo2)):
         if getattr(membro, "guild", None):
-            asyncio.get_running_loop().create_task(_aplicar_cargo_familiar(membro))
+            asyncio.get_running_loop().create_task(_aplicar_cargo_casamento(membro, *vinculo))
 
 
-async def _aplicar_cargo_familiar(member: discord.Member) -> None:
+async def _aplicar_cargo_casamento(member: discord.Member, nome: str, emoji: str) -> None:
     try:
-        await aplicar_parentesco(member, "Familiar", "👨‍👩‍👧", origem="casamento")
+        await aplicar_parentesco(member, nome, emoji, origem="casamento")
     except (discord.Forbidden, discord.HTTPException) as exc:
-        print(f"[AVISO] Não foi possível aplicar cargo Familiar a {member}: {exc}")
+        print(f"[AVISO] Não foi possível aplicar cargo de casamento a {member}: {exc}")
 
 
 def _preparar_restauracao_parentesco(user: dict) -> tuple[str, str] | None:

@@ -14,12 +14,39 @@ from utils import IMPERADOR_ID, RODAPE_IMPERIAL
 DATA_FILE = "data/cargos_parentesco.json"
 VINCULOS = {
     "membro": ("Membro", "👤"),
+    "patriarca": ("Patriarca da Família", "👑"),
     "filho": ("Filho", "👦"),
     "filha": ("Filha", "👧"),
     "irmao": ("Irmão", "👨"),
     "irma": ("Irmã", "👩"),
+    "cunhado": ("Cunhad@", "🤝"),
+    "sobrinho": ("Sobrinho", "👦"),
+    "sobrinha": ("Sobrinha", "👧"),
+    "neto": ("Neto", "🧒"),
+    "neta": ("Neta", "🧒"),
+    "tio": ("Tio", "👨‍🦳"),
+    "tia": ("Tia", "👩‍🦳"),
+    "primo": ("Primo", "🧑"),
+    "prima": ("Prima", "👩"),
+    "afilhado": ("Afilhado", "🌟"),
+    "afilhada": ("Afilhada", "✨"),
+    "genro_nora": ("Genro/Nora", "💍"),
+    "consorte": ("Consorte do Patriarca", "💠"),
     "familiar": ("Familiar", "👨‍👩‍👧"),
 }
+
+VINCULOS_AFINIDADE = {
+    "Patriarca da Família": ("Consorte do Patriarca", "💠"),
+    "Irmão": ("Cunhad@", "🤝"),
+    "Irmã": ("Cunhad@", "🤝"),
+    "Filho": ("Genro/Nora", "💍"),
+    "Filha": ("Genro/Nora", "💍"),
+    "Tio": ("Ti@ por Afinidade", "🤝"),
+    "Tia": ("Ti@ por Afinidade", "🤝"),
+    "Sobrinho": ("Cônjuge de Sobrinh@", "💍"),
+    "Sobrinha": ("Cônjuge de Sobrinh@", "💍"),
+}
+VINCULOS_GENERICOS = {"Membro", "Familiar", *[nome for nome, _ in VINCULOS_AFINIDADE.values()]}
 PREFIXO_CARGO = "” ͎ᵎ  ⊰"
 
 
@@ -182,6 +209,9 @@ async def aplicar_parentesco(
     atribuido_por: int | None = None,
     origem: str = "manual",
 ) -> discord.Role:
+    if member.id == IMPERADOR_ID:
+        nome, emoji = VINCULOS["patriarca"]
+        origem = "fundador"
     data, registro = _registro_guild(member.guild.id)
     cargo = await garantir_cargo_estetico(member.guild, nome, emoji)
     ids_parentesco = {int(role_id) for role_id in registro["roles"].values() if str(role_id).isdigit()}
@@ -205,11 +235,41 @@ async def aplicar_parentesco(
 async def aplicar_membro_inicial(member: discord.Member) -> discord.Role | None:
     if member.bot:
         return None
+    if member.id == IMPERADOR_ID:
+        nome, emoji = VINCULOS["patriarca"]
+        return await aplicar_parentesco(member, nome, emoji, IMPERADOR_ID, "fundador")
     user = get_user(member.id)
     vinculo = user.get("parentesco") or "Membro"
     emoji = user.get("parentesco_emoji") or ("👤" if vinculo == "Membro" else "👪")
     origem = user.get("parentesco_origem") or "entrada"
     return await aplicar_parentesco(member, vinculo, emoji, origem=origem)
+
+
+async def garantir_parentesco_patriarca(member: discord.Member) -> discord.Role | None:
+    """Mantém o fundador como único Patriarca da Família em cada servidor."""
+    if member.id != IMPERADOR_ID:
+        return None
+    nome, emoji = VINCULOS["patriarca"]
+    return await aplicar_parentesco(member, nome, emoji, IMPERADOR_ID, "fundador")
+
+
+def resolver_parentescos_casamento(user1: dict, user2: dict) -> tuple[tuple[str, str], tuple[str, str]]:
+    """Preserva parentesco de sangue e deriva o vínculo do cônjuge por afinidade."""
+    rel1 = user1.get("parentesco") or "Membro"
+    rel2 = user2.get("parentesco") or "Membro"
+    atual1 = (rel1, user1.get("parentesco_emoji") or "👤")
+    atual2 = (rel2, user2.get("parentesco_emoji") or "👤")
+    familia = VINCULOS["familiar"]
+
+    sangue1 = rel1 not in VINCULOS_GENERICOS
+    sangue2 = rel2 not in VINCULOS_GENERICOS
+    if sangue1 and not sangue2:
+        return atual1, VINCULOS_AFINIDADE.get(rel1, familia)
+    if sangue2 and not sangue1:
+        return VINCULOS_AFINIDADE.get(rel2, familia), atual2
+    if sangue1 and sangue2:
+        return atual1, atual2
+    return familia, familia
 
 
 def _admin(member: discord.Member) -> bool:
@@ -266,6 +326,9 @@ class ParentescoSelect(discord.ui.Select):
         escolha = self.values[0]
         if escolha == "personalizado":
             await interaction.response.send_modal(ParentescoPersonalizadoModal(self.alvo, self.admin_id))
+            return
+        if escolha == "patriarca" and self.alvo.id != IMPERADOR_ID:
+            await interaction.response.send_message("O cargo de Patriarca da Família é exclusivo do fundador.", ephemeral=True)
             return
         nome, emoji = VINCULOS[escolha]
         await interaction.response.defer(ephemeral=True)

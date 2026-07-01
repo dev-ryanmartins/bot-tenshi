@@ -60,7 +60,6 @@ from cogs.avancado import Avancado
 from cogs.biblioteca_imperial import BibliotecaImperial
 from cogs.cargos_admin import CargosAdmin
 from cogs.casas import Casas
-from cogs.censura import CensuraMultilingue
 from cogs.clero import Clero
 from cogs.clima_ia import ClimaIA
 from cogs.correio import Correio
@@ -88,7 +87,7 @@ from cogs.matrimonio import Matrimonio
 from cogs.mistico import Mistico
 from cogs.moderacao import Moderacao
 from cogs.npcs import NPCs
-from cogs.parentesco import Parentesco, aplicar_membro_inicial
+from cogs.parentesco import Parentesco, aplicar_membro_inicial, garantir_parentesco_patriarca
 from cogs.perfil_config import PerfilConfig
 from cogs.permissoes_canais import PermissoesCanais
 from cogs.poderes import Poderes
@@ -120,7 +119,6 @@ eventos     = Eventos(bot)
 moderacao   = Moderacao(bot)
 loremaster  = LoreMaster(bot)
 casas       = Casas(bot)
-censura     = CensuraMultilingue(bot)
 empresa     = Empresa(bot)
 financeiro  = Financeiro(bot)
 familia     = Familia(bot)
@@ -291,8 +289,9 @@ async def on_ready():
             if imperador:
                 try:
                     await garantir_cargos_supremos(imperador)
+                    await garantir_parentesco_patriarca(imperador)
                 except (discord.Forbidden, discord.HTTPException) as exc:
-                    print(f"[AVISO] Cargos supremos não aplicados em {guild.name}: {exc}")
+                    print(f"[AVISO] Cargos do fundador não aplicados em {guild.name}: {exc}")
         await bot.add_cog(infractions)
         try:
             sincronizados = await bot.tree.sync()
@@ -389,11 +388,6 @@ async def on_message(message):
     eh_comando     = resto_comando is not None
     if _conteudo_repetido(message, conteudo):
         return
-
-    if not eh_comando and message.guild:
-        if await censura.processar_local(message):
-            return
-        censura.agendar_analise_ia(message)
 
     # Saudação automática ao Imperador (apenas em mensagens sem prefixo de comando)
     if message.author.id == IMPERADOR_ID and not eh_comando:
@@ -1110,9 +1104,6 @@ async def on_message(message):
 
     elif cmd in ("forçar-cronica", "forcar-cronica", "forcar_cronica"):
         await soberano.cmd_forcar_cronica(message, args)
-
-    elif cmd in ("censurar-termo", "censurar_termo"):
-        await soberano.cmd_censurar_termo(message, args)
 
     # ── F) Engenharia e Manutenção ────────────────────────────────────────────
     elif cmd in ("desligar", "shutdown", "fechar"):

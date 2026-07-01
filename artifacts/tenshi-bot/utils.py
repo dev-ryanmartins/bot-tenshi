@@ -616,8 +616,8 @@ AJUDA_TEXTO = f"""
 
 **👨‍👩‍👧 Família, Máfia & Facções**
 `familia criar/entrar/info/membros/missao/depositar` `entrar [facção]` `ranking`
-`parentesco [@user]` *(admin; Filho, Filha, Irmão, Irmã, Familiar ou personalizado)*
-*Novos participantes recebem Membro; casamentos aplicam Familiar automaticamente.*
+`parentesco [@user]` *(admin; lista de filhos, irmãos, cunhad@, sobrinhos, netos e outros)*
+*O fundador é Patriarca; novos membros recebem Membro e casamentos derivam vínculos por afinidade.*
 
 **🛡️ Moderação Imperial** *(Admin)*
 `decreto [msg]` `promover @user [cargo]` `criar-cargo [emoji] [nome]` `criar-secoes-cargos`
@@ -630,11 +630,9 @@ AJUDA_TEXTO = f"""
 `tesouro [v]` `veto [ação]` `ban` `kick` `mute [min]` `unmute @user` `unban [ID]`
 `clear [n]` `slowmode [seg]` `warn @user` `aviso @user [motivo]` `nota @user [texto]`
 `notas @user` `info @user` `historico @user`
-*Censura multilíngue: palavrões são camuflados e cada leitor decide se deseja revelar o original.*
-
 **👑 Prerrogativas Soberanas** *(Imperador)*
 `emitir-moeda` `confiscar-fortuna` `congelar-banco` `perdoar-divida` `isencao-fiscal`
-`set-status @user` *(admin; atributos e prestígio Bronze–Irídio)* `apagar-ficha` `conceder-item` `imortalidade`
+`set-status [@user]` *(admin; sem menção edita você)* `apagar-ficha` `conceder-item` `imortalidade`
 `estado-de-sitio` `dissolver-mafia` `anistia-geral` `exilio-supremo`
 `atualizar-diretriz` `apagar-memoria-ia` `forcar-cronica` `censo-imperial`
 `reset-era` `irradiar [msg]` `congelar-economia` `exportar-banco` `desligar`
@@ -650,7 +648,7 @@ AJUDA_TEXTO = f"""
 
 **👑 Administração Avançada** *(Imperador/Admin)*
 `estatizar-casa` `silenciar-geral` `perdao-judicial` `revogar-diploma` `cassar-conjuge`
-`interceptar-correio` `forçar-cronica` `censurar-termo` `forçar-pagamento` `bypass-cooldown`
+`interceptar-correio` `forçar-cronica` `forçar-pagamento` `bypass-cooldown`
 `interditar-escola` `aprovação-forçada` `estatizar-cofre-clube` `zerar-historico-academico`
 `auditoria-geral-banco` `expurgar-fichas-inativas` `reset-parcial-economia` `decreto-climatico`
 {SEP}

@@ -165,21 +165,6 @@ async def _build_perfil_embed(bot, member: discord.Member | discord.User) -> dis
     pvp = f"⚔️ {user.get('vitorias_duelo',0)}V / 💀 {user.get('derrotas_duelo',0)}D"
     embed.add_field(name="🏟️ PvP", value=pvp, inline=True)
 
-    atributos = user.get("atributos", {})
-    destaques = (
-        ("Inteligência", atributos.get("inteligencia", 0)),
-        ("Liderança", atributos.get("lideranca", 0)),
-        ("Honra", atributos.get("honra", 0)),
-        ("Magia", atributos.get("magia", 0)),
-        ("Defesa", atributos.get("defesa", 0)),
-        ("Sorte", atributos.get("sorte", 0)),
-    )
-    embed.add_field(
-        name="📜 Atributos de Destaque",
-        value=" • ".join(f"**{nome}:** {valor}" for nome, valor in destaques),
-        inline=False,
-    )
-
     embed.set_thumbnail(url=member.display_avatar.url)
     if eh_imp:
         embed.set_footer(text="⚜️ Alloy Tenshi — O Imperador Eterno  •  " + RODAPE_IMPERIAL)
