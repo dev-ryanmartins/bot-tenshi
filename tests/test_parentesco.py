@@ -11,7 +11,13 @@ BOT_DIR = Path(__file__).resolve().parents[1] / "artifacts" / "tenshi-bot"
 sys.path.insert(0, str(BOT_DIR))
 
 from cogs import parentesco  # noqa: E402
-from cogs.parentesco import ParentescoView, aplicar_parentesco, nome_cargo_estetico  # noqa: E402
+from cogs.parentesco import (  # noqa: E402
+    ParentescoView,
+    aplicar_parentesco,
+    nome_cargo_estetico,
+    resolver_parentescos_casamento,
+)
+from utils import IMPERADOR_ID  # noqa: E402
 
 
 class FakeRole:
@@ -47,8 +53,8 @@ class FakeGuild:
 
 
 class FakeMember:
-    def __init__(self, guild):
-        self.id = 123
+    def __init__(self, guild, member_id=123):
+        self.id = member_id
         self.guild = guild
         self.roles = []
         self.bot = False
@@ -69,7 +75,32 @@ class ParentescoTest(unittest.IsolatedAsyncioTestCase):
     async def test_painel_tem_vinculos_e_personalizado(self):
         view = ParentescoView(FakeMember(FakeGuild()), 1)
         valores = {option.value for option in view.children[0].options}
-        self.assertTrue({"membro", "filho", "filha", "irmao", "irma", "familiar", "personalizado"}.issubset(valores))
+        self.assertTrue({
+            "membro", "patriarca", "filho", "filha", "irmao", "irma", "cunhado",
+            "sobrinho", "sobrinha", "neto", "neta", "tio", "tia", "primo", "prima",
+            "afilhado", "afilhada", "genro_nora", "consorte", "familiar", "personalizado",
+        }.issubset(valores))
+        self.assertLessEqual(len(view.children[0].options), 25)
+
+    def test_casamento_com_irmao_gera_cunhado_neutro(self):
+        irmao = {"parentesco": "Irmão", "parentesco_emoji": "👨"}
+        conjuge = {"parentesco": "Membro", "parentesco_emoji": "👤"}
+        vinculo_irmao, vinculo_conjuge = resolver_parentescos_casamento(irmao, conjuge)
+        self.assertEqual(vinculo_irmao, ("Irmão", "👨"))
+        self.assertEqual(vinculo_conjuge, ("Cunhad@", "🤝"))
+
+    async def test_imperador_permanece_patriarca(self):
+        guild = FakeGuild()
+        member = FakeMember(guild, IMPERADOR_ID)
+        usuarios = {member.id: {}}
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with (
+                patch.object(parentesco, "DATA_FILE", str(Path(temp_dir) / "roles.json")),
+                patch.object(parentesco, "get_user", side_effect=lambda uid: usuarios.setdefault(uid, {})),
+                patch.object(parentesco, "save_user", side_effect=lambda uid, data: usuarios.__setitem__(uid, data)),
+            ):
+                await aplicar_parentesco(member, "Membro", "👤", 1)
+        self.assertEqual(usuarios[member.id]["parentesco"], "Patriarca da Família")
 
     async def test_aplicar_parentesco_substitui_apenas_cargo_mapeado(self):
         guild = FakeGuild()

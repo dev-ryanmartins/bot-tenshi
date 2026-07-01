@@ -26,6 +26,8 @@ O Mercado Imperial possui itens comuns e avançados com requisitos de progressã
 
 A Tenshi Academy também possui corpo docente: `tenshi professor @usuario` cadastra professores, assistentes, coordenação ou direção e permite escolher as disciplinas no próprio painel. `tenshi ministrar-aula [materia] [tema]` gera a aula assistida por IA e abre presença para os alunos. O fundador (ID `619302798751694849`) mantém acesso integral como Imperador, Diretor e Professor Imperial, mas seus atributos continuam livremente editáveis e não são sobrescritos na inicialização.
 
+O painel `tenshi parentesco [@usuario]` cria e aplica cargos familiares mantendo a estética do servidor. O fundador é o Patriarca da Família; a lista inclui filhos, irmãos, `Cunhad@`, sobrinhos, netos, tios, primos, afilhados e vínculos personalizados. Ao casar com alguém já registrado como irmão ou irmã, o novo cônjuge recebe automaticamente o vínculo neutro `Cunhad@`.
+
 O comando administrativo `tenshi sincronizar-condominio` gera ou vincula os 50 canais residenciais preservando o prefixo visual dos canais já existentes.
 
 Novos participantes recebem automaticamente o cargo estético `Membro`. Administradores usam `tenshi parentesco` para selecionar a pessoa e definir `Filho`, `Filha`, `Irmão`, `Irmã`, `Familiar` ou um vínculo personalizado. Casamentos aplicam `Familiar` e uma dissolução restaura o vínculo anterior.

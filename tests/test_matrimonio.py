@@ -95,6 +95,21 @@ class MatrimonioHelpersTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(usuarios[1]["parentesco"], "Familiar")
         self.assertEqual(usuarios[2]["parentesco_origem"], "casamento")
 
+    def test_registro_de_casamento_deriva_cunhado(self):
+        usuarios = {
+            1: {"parentesco": "Irmã", "parentesco_emoji": "👩"},
+            2: {"parentesco": "Membro", "parentesco_emoji": "👤"},
+        }
+        with (
+            patch.object(matrimonio, "get_casamentos", return_value={}),
+            patch.object(matrimonio, "save_casamentos"),
+            patch.object(matrimonio, "get_user", side_effect=lambda uid: usuarios[uid]),
+            patch.object(matrimonio, "save_user"),
+        ):
+            matrimonio._registrar_uniao(FakeMember(1), FakeMember(2), {})
+        self.assertEqual(usuarios[1]["parentesco"], "Irmã")
+        self.assertEqual(usuarios[2]["parentesco"], "Cunhad@")
+
     async def test_fluxo_visual_tem_seis_testemunhas_ritualista_e_botoes_de_aceite(self):
         n1, n2 = FakeMember(1), FakeMember(2)
         pedido = PedidoCasamentoView(n1, n2)

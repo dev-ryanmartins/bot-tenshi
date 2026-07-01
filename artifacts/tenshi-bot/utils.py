@@ -616,8 +616,8 @@ AJUDA_TEXTO = f"""
 
 **👨‍👩‍👧 Família, Máfia & Facções**
 `familia criar/entrar/info/membros/missao/depositar` `entrar [facção]` `ranking`
-`parentesco [@user]` *(admin; Filho, Filha, Irmão, Irmã, Familiar ou personalizado)*
-*Novos participantes recebem Membro; casamentos aplicam Familiar automaticamente.*
+`parentesco [@user]` *(admin; lista de filhos, irmãos, cunhad@, sobrinhos, netos e outros)*
+*O fundador é Patriarca; novos membros recebem Membro e casamentos derivam vínculos por afinidade.*
 
 **🛡️ Moderação Imperial** *(Admin)*
 `decreto [msg]` `promover @user [cargo]` `criar-cargo [emoji] [nome]` `criar-secoes-cargos`

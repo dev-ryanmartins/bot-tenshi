@@ -87,7 +87,7 @@ from cogs.matrimonio import Matrimonio
 from cogs.mistico import Mistico
 from cogs.moderacao import Moderacao
 from cogs.npcs import NPCs
-from cogs.parentesco import Parentesco, aplicar_membro_inicial
+from cogs.parentesco import Parentesco, aplicar_membro_inicial, garantir_parentesco_patriarca
 from cogs.perfil_config import PerfilConfig
 from cogs.permissoes_canais import PermissoesCanais
 from cogs.poderes import Poderes
@@ -289,8 +289,9 @@ async def on_ready():
             if imperador:
                 try:
                     await garantir_cargos_supremos(imperador)
+                    await garantir_parentesco_patriarca(imperador)
                 except (discord.Forbidden, discord.HTTPException) as exc:
-                    print(f"[AVISO] Cargos supremos não aplicados em {guild.name}: {exc}")
+                    print(f"[AVISO] Cargos do fundador não aplicados em {guild.name}: {exc}")
         await bot.add_cog(infractions)
         try:
             sincronizados = await bot.tree.sync()
