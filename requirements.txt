@@ -1,1 +1,2 @@
--r artifacts/tenshi-bot/requirements.txt
+discord.py==2.3.2
+aiohttp==3.9.5

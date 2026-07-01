@@ -2,15 +2,16 @@
 
 Bot Discord do Imperio Tenshi com site Python integrado, memoria documental em PDFs, IA via OpenRouter, comandos administrativos, academia, matrimonios, empregos e painel web.
 
-## Deploy na Railway
+## Deploy na Railway como Worker
 
-Este repositorio ja esta pronto para Railway:
+Este repositorio ja esta pronto para manter o bot online como Worker na Railway:
 
 - `railway.json` define o start command `python main.py`.
+- `Procfile` define o processo `worker: python main.py`.
 - `Dockerfile` força build Python 3.11 e evita conflito com o workspace Node.
-- `requirements.txt` na raiz aponta para as dependencias Python do bot.
-- O site usa automaticamente a variavel `PORT` da Railway.
-- O healthcheck fica em `/health`.
+- `requirements.txt` na raiz lista as dependencias Python usadas pelo bot.
+- O token do Discord deve ficar apenas em variavel de ambiente.
+- O Worker nao precisa de dominio publico nem healthcheck HTTP para manter o bot online.
 
 ### 1. Criar o servico
 
@@ -18,7 +19,7 @@ Este repositorio ja esta pronto para Railway:
 2. Crie um novo projeto.
 3. Escolha **Deploy from GitHub repo**.
 4. Selecione `dev-ryanmartins/bot-tenshi`.
-5. Gere um dominio em **Settings -> Networking -> Public Networking -> Generate Domain**.
+5. Configure o servico como **Worker**.
 
 ### 2. Variaveis obrigatorias na Railway
 
@@ -33,13 +34,9 @@ ADMIN_SECRET=um_segredo_forte
 ENABLE_SITE=1
 ```
 
-Depois que a Railway gerar o dominio, voce pode adicionar:
+Nao coloque o token direto no codigo e nao envie `.env` para o GitHub.
 
-```env
-TENSHI_SITE_URL=https://SEU-DOMINIO.up.railway.app
-```
-
-Nao configure `PORT`, `SITE_PORT` ou `SITE_HOST` na Railway. A propria Railway fornece `PORT`, e o codigo ja usa `0.0.0.0` automaticamente dentro dela.
+Para Worker, nao configure `PORT`, `SITE_PORT` ou `SITE_HOST`. Se depois voce quiser abrir o painel web publicamente, crie um Web Service separado ou gere dominio publico e adicione `TENSHI_SITE_URL`.
 
 ### 3. Start command
 
@@ -47,6 +44,12 @@ O start command ja esta salvo em `railway.json`:
 
 ```bash
 python main.py
+```
+
+O `Procfile` tambem esta configurado:
+
+```Procfile
+worker: python main.py
 ```
 
 Se o painel da Railway pedir manualmente, use exatamente esse comando.

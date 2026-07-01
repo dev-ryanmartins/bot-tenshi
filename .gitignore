@@ -6,6 +6,7 @@ tmp
 out-tsc
 *.tsbuildinfo
 __pycache__/
+*.pyc
 *.py[cod]
 .venv/
 venv/
@@ -16,7 +17,7 @@ venv/
 node_modules
 
 # IDEs and editors
-/.idea
+.idea/
 .project
 .classpath
 .c9/
@@ -25,11 +26,7 @@ node_modules
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 
 # misc
 .env
