@@ -32,6 +32,14 @@ O comando `tenshi ajuda` abre uma central interativa com todas as categorias de 
 
 O comando administrativo `tenshi set-status [@usuario]` funciona como editor completo: permite renomear identidade e campos visuais, definir/limpar textos, definir/somar/subtrair/zerar números, gerenciar inventário, habilidades, poderes e conquistas, além de trocar prestígio e parentesco com cargos sincronizados. `tenshi organizar-canais` cria uma categoria com canais temáticos para comandos, fichas, mercado, Academia, família, aventuras, eventos e suporte, sem duplicar o que já existe.
 
+Os canais de notícias são funcionais: `tenshi jornal-policial` reúne ocorrências salvas no RPG e informes fictícios identificados, enquanto `tenshi jornal-cotidiano` publica vários acontecimentos públicos e crônicas do dia. Crimes como assaltos geram plantões automáticos no canal policial.
+
+`tenshi mundo` abre o atlas mundial por continente e páginas de países. A cidade é pesquisada pelo usuário para contornar o limite de 25 opções dos menus do Discord; o bot cria um tópico com pontos turísticos, regiões para hospedagem, gastronomia, transporte, segurança e roteiro. `tenshi viagem-atual` consulta a jornada e `tenshi terminar-viagem` encerra e arquiva o tópico. A lista de países é atualizada por fonte mundial e mantida em cache, com catálogo de emergência quando a rede está indisponível.
+
+`tenshi interagir-local` reconhece o canal atual e abre atividades próprias para cafeteria, sorveteria, laboratório, empresa, pet-shop, lojinha, casamento, cinema, banco, praça, lavanderia, parque, psicólogo, departamento policial, bar, beco e zoológico. Cada sessão usa tópico, pode ser encerrada com `tenshi terminar-interacao`, gera resumo privado para a equipe e remove o tópico ao final.
+
+`tenshi cassino` oferece dez jogos com apostas debitadas da carteira, probabilidades favoráveis à casa, histórico financeiro e narração por IA nas derrotas. `tenshi zoologico` possui 24 habitats. `tenshi concurso-publico` aplica prova de cinco questões para dez carreiras policiais e jurídicas; nota 4/5 concede automaticamente um cargo seguindo a estética do servidor.
+
 O comando administrativo `tenshi sincronizar-condominio` gera ou vincula os 50 canais residenciais preservando o prefixo visual dos canais já existentes.
 
 Novos participantes recebem automaticamente o cargo estético `Membro`. Administradores usam `tenshi parentesco` para selecionar a pessoa e definir `Filho`, `Filha`, `Irmão`, `Irmã`, `Familiar` ou um vínculo personalizado. Casamentos aplicam `Familiar` e uma dissolução restaura o vínculo anterior.
