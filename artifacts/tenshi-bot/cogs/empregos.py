@@ -12,6 +12,42 @@ from ia_router import ia_rapida, ia_analitica
 from academia_curriculo import materias_academicas, tem_diploma as tem_diploma_curriculo
 
 COOLDOWN_TRABALHO = 45 * 60  # 45 minutos
+PREFIXO_CARGO_PROFISSAO = "Profissão • "
+
+REGRAS_TRABALHO = (
+    "Cada turno possui 45 minutos de recuperação.",
+    "Empregos de alta patente exigem o diploma e o nível indicados.",
+    "Concluir um turno legal define a profissão ativa no perfil e sincroniza o cargo no servidor.",
+    "Ao trocar de profissão, o cargo profissional anterior é removido.",
+    "Serviços ilegais podem causar interceptação, multa e não geram cargo público.",
+    "Diplomas e cargos não substituem permissões administrativas do servidor.",
+)
+
+
+async def _sincronizar_profissao(guild, member, emprego: dict, user: dict) -> str:
+    """Atualiza perfil e cargo Discord da profissão legal exercida."""
+    nome_cargo = f"{PREFIXO_CARGO_PROFISSAO}{emprego['nome']}"[:100]
+    user["emprego_id"] = emprego["id"]
+    user["emprego_nome"] = emprego["nome"]
+    user["cargo_trabalho"] = nome_cargo
+    user.setdefault("ficha", {})["profissao"] = emprego["nome"]
+
+    if guild is None or member is None:
+        return "Profissão salva no perfil; cargo do servidor indisponível."
+    try:
+        role = discord.utils.get(guild.roles, name=nome_cargo)
+        if role is None:
+            role = await guild.create_role(name=nome_cargo, color=discord.Color.dark_teal(), reason="Profissão do sistema Tenshi")
+        if role not in member.roles:
+            await member.add_roles(role, reason="Profissão assumida no sistema Tenshi")
+        antigos = [role_antigo for role_antigo in member.roles if role_antigo.name.startswith(PREFIXO_CARGO_PROFISSAO) and role_antigo.name != nome_cargo]
+        if antigos:
+            await member.remove_roles(*antigos, reason="Troca de profissão no sistema Tenshi")
+        return f"Cargo `{nome_cargo}` sincronizado e exibido no perfil."
+    except discord.Forbidden:
+        return f"Profissão salva no perfil; não consegui atribuir `{nome_cargo}` por falta de permissão/hierarquia."
+    except discord.HTTPException as exc:
+        return f"Profissão salva no perfil; falha ao sincronizar cargo: {str(exc)[:80]}"
 
 # ─── MATÉRIAS E SEUS DADOS DE ESTUDO ─────────────────────────────────────────
 MATERIAS_INFO = {
@@ -453,7 +489,7 @@ EMPREGOS_LEGAIS.extend([
         "moedas": (110, 220), "xp": (32, 70), "poder": (0, 5),
         "requer_diploma": "mestres_cerimoniais",
         "nivel_minimo": 7,
-        "descricao_cargo": "Conduz casamentos, coroacoes e cerimonias imperiais de RP.",
+        "descricao_cargo": "Organiza casamentos e coroacoes; a celebracao religiosa permanece exclusiva do padre.",
     },
     {
         "id": "regente_treinamento",
@@ -465,6 +501,108 @@ EMPREGOS_LEGAIS.extend([
         "descricao_cargo": "Programa obrigatorio dos herdeiros e lideranca de Estado.",
     },
 ])
+
+EMPREGOS_LEGAIS.extend([
+    {
+        "id": "jornalista_imperial", "nome": "Jornalista Imperial", "emoji": "📰", "area": "Comunicação",
+        "narrativa": "*Apurando fatos, ouvindo cidadãos e publicando o boletim oficial sem sacrificar a verdade...*",
+        "moedas": (55, 115), "xp": (25, 48), "poder": (0, 3), "requer_diploma": "jornalismo_comunicacao", "nivel_minimo": 3,
+        "descricao_cargo": "Reportagem, entrevistas e cobertura dos acontecimentos do Império.",
+    },
+    {
+        "id": "editor_gazeta", "nome": "Editor da Gazeta", "emoji": "✒️", "area": "Comunicação",
+        "narrativa": "*Revisando manchetes, verificando fontes e fechando a próxima edição da Gazeta de Tenshi...*",
+        "moedas": (75, 145), "xp": (28, 52), "poder": (0, 3), "requer_diploma": "jornalismo_comunicacao", "nivel_minimo": 6,
+        "descricao_cargo": "Coordenação editorial e verificação de informações públicas.",
+    },
+    {
+        "id": "economista_imperial", "nome": "Economista Imperial", "emoji": "📈", "area": "Economia",
+        "narrativa": "*Analisando inflação, arrecadação e atividade comercial para orientar as decisões da Coroa...*",
+        "moedas": (90, 175), "xp": (24, 46), "poder": (0, 4), "requer_diploma": "economia_financas", "nivel_minimo": 5,
+        "descricao_cargo": "Análise econômica, orçamento e políticas monetárias de RP.",
+    },
+    {
+        "id": "tesoureiro_real", "nome": "Tesoureiro Real", "emoji": "🪙", "area": "Finanças",
+        "narrativa": "*Conferindo cofres, pagamentos e reservas com precisão digna da confiança do Trono...*",
+        "moedas": (105, 195), "xp": (22, 44), "poder": (0, 4), "requer_diploma": "economia_financas", "nivel_minimo": 8,
+        "descricao_cargo": "Gestão do tesouro, orçamento e prestação de contas.",
+    },
+    {
+        "id": "urbanista_imperial", "nome": "Urbanista Imperial", "emoji": "🏙️", "area": "Gestão Pública",
+        "narrativa": "*Planejando bairros, serviços e rotas para que a capital cresça sem perder sua ordem...*",
+        "moedas": (80, 160), "xp": (28, 55), "poder": (0, 4), "requer_diploma": "gestao_publica", "nivel_minimo": 5,
+        "descricao_cargo": "Planejamento urbano e coordenação de serviços públicos.",
+    },
+    {
+        "id": "ouvidor_imperial", "nome": "Ouvidor Imperial", "emoji": "📬", "area": "Gestão Pública",
+        "narrativa": "*Recebendo demandas dos cidadãos e transformando reclamações dispersas em providências verificáveis...*",
+        "moedas": (60, 125), "xp": (30, 58), "poder": (0, 3), "requer_diploma": "gestao_publica", "nivel_minimo": 3,
+        "descricao_cargo": "Ouvidoria, transparência e acompanhamento de serviços.",
+    },
+    {
+        "id": "psicologo_imperial", "nome": "Psicólogo Imperial", "emoji": "🧠", "area": "Saúde Mental",
+        "narrativa": "*Escutando conflitos e oferecendo orientação narrativa com ética, sigilo e atenção...*",
+        "moedas": (75, 150), "xp": (32, 62), "poder": (0, 3), "requer_diploma": "psicologia_estrategica", "nivel_minimo": 5,
+        "descricao_cargo": "Acolhimento e psicologia aplicada ao RP; não substitui cuidado real.",
+    },
+    {
+        "id": "mediador_comunitario", "nome": "Mediador Comunitário", "emoji": "🫱🏻‍🫲🏽", "area": "Mediação",
+        "narrativa": "*Conduzindo uma conversa difícil até que as partes encontrem limites e compromissos possíveis...*",
+        "moedas": (55, 115), "xp": (34, 64), "poder": (0, 3), "requer_diploma": "psicologia_estrategica", "nivel_minimo": 3,
+        "descricao_cargo": "Mediação de conflitos comunitários e institucionais.",
+    },
+    {
+        "id": "agronomo_imperial", "nome": "Agrônomo Imperial", "emoji": "🌱", "area": "Agricultura",
+        "narrativa": "*Avaliando solo, irrigação e colheitas para proteger o abastecimento das províncias...*",
+        "moedas": (65, 135), "xp": (28, 54), "poder": (0, 4), "requer_diploma": "ecologia_agricultura", "nivel_minimo": 4,
+        "descricao_cargo": "Produção agrícola, manejo sustentável e segurança alimentar.",
+    },
+    {
+        "id": "fiscal_ambiental", "nome": "Fiscal Ambiental", "emoji": "🌳", "area": "Meio Ambiente",
+        "narrativa": "*Inspecionando rios, bosques e operações comerciais para impedir danos ao território imperial...*",
+        "moedas": (70, 145), "xp": (30, 58), "poder": (1, 5), "requer_diploma": "ecologia_agricultura", "nivel_minimo": 5,
+        "descricao_cargo": "Proteção ambiental, fiscalização e recuperação de áreas.",
+    },
+    {
+        "id": "chef_real", "nome": "Chef Real", "emoji": "👨‍🍳", "area": "Gastronomia",
+        "narrativa": "*Coordenando a cozinha do palácio para um banquete que precisa impressionar aliados e rivais...*",
+        "moedas": (70, 145), "xp": (24, 48), "poder": (0, 3), "requer_diploma": "gastronomia_hospitalidade", "nivel_minimo": 4,
+        "descricao_cargo": "Gastronomia profissional, segurança alimentar e banquetes.",
+    },
+    {
+        "id": "gestor_hospedagem", "nome": "Gestor de Hospedagem", "emoji": "🏨", "area": "Hospitalidade",
+        "narrativa": "*Organizando aposentos, recepção e protocolo para visitantes de todo o Império...*",
+        "moedas": (65, 135), "xp": (26, 50), "poder": (0, 3), "requer_diploma": "gastronomia_hospitalidade", "nivel_minimo": 4,
+        "descricao_cargo": "Gestão de hospedagem, eventos e experiência de visitantes.",
+    },
+])
+
+
+EMPREGOS_LEGAIS.extend([
+    {"id": "conselheiro_coroa", "nome": "Conselheiro da Coroa", "emoji": "🏛️", "area": "Governo", "narrativa": "*Analisando uma decisão de Estado e apresentando alternativas prudentes ao Conselho...*", "moedas": (120, 220), "xp": (32, 62), "poder": (1, 6), "requer_diploma": "governo_imperial", "nivel_minimo": 9, "descricao_cargo": "Assessoria estratégica à Coroa."},
+    {"id": "consultor_legal", "nome": "Consultor Legal", "emoji": "📚", "area": "Direito", "narrativa": "*Revisando contratos e pareceres para evitar conflitos com o Código Imperial...*", "moedas": (85, 165), "xp": (25, 48), "poder": (0, 3), "requer_diploma": "direito_imperial", "nivel_minimo": 5, "descricao_cargo": "Consultoria jurídica e contratos."},
+    {"id": "gestor_patrimonial", "nome": "Gestor Patrimonial", "emoji": "🏦", "area": "Finanças", "narrativa": "*Reorganizando ativos e reservas para proteger o patrimônio de uma Casa Imperial...*", "moedas": (100, 190), "xp": (24, 46), "poder": (0, 4), "requer_diploma": "tenshi_enterprise", "nivel_minimo": 7, "descricao_cargo": "Gestão de patrimônio e risco."},
+    {"id": "analista_dados", "nome": "Analista de Dados", "emoji": "📊", "area": "Tecnologia", "narrativa": "*Transformando registros dispersos em indicadores claros para a administração imperial...*", "moedas": (85, 170), "xp": (30, 60), "poder": (0, 4), "requer_diploma": "tecnologia_ia", "nivel_minimo": 5, "descricao_cargo": "Dados, métricas e inteligência analítica."},
+    {"id": "dev_imperial", "nome": "Desenvolvedor Imperial", "emoji": "💻", "area": "Tecnologia", "narrativa": "*Construindo uma automação para reduzir a burocracia dos registros da Casa...*", "moedas": (90, 180), "xp": (32, 64), "poder": (0, 4), "requer_diploma": "tecnologia_ia", "nivel_minimo": 5, "descricao_cargo": "Desenvolvimento de sistemas narrativos."},
+    {"id": "analista_osint", "nome": "Analista OSINT", "emoji": "🔎", "area": "Segurança Digital", "narrativa": "*Cruzando fontes públicas do Império para verificar uma informação sensível...*", "moedas": (85, 165), "xp": (30, 58), "poder": (0, 4), "requer_diploma": "seguranca_digital", "nivel_minimo": 6, "descricao_cargo": "Pesquisa em fontes abertas dentro do RP."},
+    {"id": "protector_executivo", "nome": "Protetor Executivo", "emoji": "🛡️", "area": "Segurança", "narrativa": "*Planejando a escolta de uma autoridade por uma rota de risco controlado...*", "moedas": (95, 180), "xp": (28, 54), "poder": (4, 10), "requer_diploma": "militar_imperial", "nivel_minimo": 7, "descricao_cargo": "Escolta e proteção de autoridades no RP."},
+    {"id": "instrutor_militar", "nome": "Instrutor Militar", "emoji": "🎖️", "area": "Defesa", "narrativa": "*Conduzindo treinamento de disciplina, estratégia e sobrevivência para novos recrutas...*", "moedas": (85, 160), "xp": (35, 68), "poder": (3, 8), "requer_diploma": "militar_imperial", "nivel_minimo": 7, "descricao_cargo": "Formação e treinamento da Guarda."},
+    {"id": "contrainteligencia", "nome": "Agente de Contrainteligência", "emoji": "🕶️", "area": "Inteligência", "narrativa": "*Identificando inconsistências em relatórios antes que uma falsa pista alcance o Conselho...*", "moedas": (100, 190), "xp": (32, 62), "poder": (1, 5), "requer_diploma": "inteligencia_imperial", "nivel_minimo": 7, "descricao_cargo": "Proteção de informações e análise de ameaças no RP."},
+    {"id": "investigador_estrategico", "nome": "Investigador Estratégico", "emoji": "🧭", "area": "Inteligência", "narrativa": "*Organizando depoimentos, registros e cronologias para esclarecer uma crise imperial...*", "moedas": (90, 175), "xp": (34, 65), "poder": (0, 5), "requer_diploma": "inteligencia_imperial", "nivel_minimo": 6, "descricao_cargo": "Investigação narrativa e análise estratégica."},
+    {"id": "mediador_imperial", "nome": "Mediador Imperial", "emoji": "🕊️", "area": "Diplomacia", "narrativa": "*Reconstruindo o diálogo entre duas facções antes que a tensão vire conflito...*", "moedas": (85, 165), "xp": (36, 68), "poder": (0, 4), "requer_diploma": "diplomacia", "nivel_minimo": 5, "descricao_cargo": "Mediação diplomática e de facções."},
+    {"id": "negociador_internacional", "nome": "Negociador Internacional", "emoji": "🌐", "area": "Diplomacia", "narrativa": "*Ajustando cláusulas de um tratado para preservar os interesses da Casa Tenshi...*", "moedas": (105, 195), "xp": (30, 58), "poder": (0, 5), "requer_diploma": "diplomacia", "nivel_minimo": 8, "descricao_cargo": "Tratados e negociação internacional de RP."},
+    {"id": "tradutor_imperial", "nome": "Tradutor Imperial", "emoji": "🗣️", "area": "Línguas", "narrativa": "*Traduzindo uma correspondência diplomática sem perder tom, intenção ou protocolo...*", "moedas": (70, 140), "xp": (32, 60), "poder": (0, 3), "requer_diploma": "linguas_imperiais", "nivel_minimo": 4, "descricao_cargo": "Tradução narrativa e documental."},
+    {"id": "professor_linguas", "nome": "Professor de Línguas", "emoji": "🔤", "area": "Educação", "narrativa": "*Preparando uma aula de idioma e etiqueta linguística para diplomatas iniciantes...*", "moedas": (70, 135), "xp": (38, 72), "poder": (0, 3), "requer_diploma": "linguas_imperiais", "nivel_minimo": 6, "descricao_cargo": "Ensino de línguas no RP."},
+    {"id": "curador_artes", "nome": "Curador de Artes", "emoji": "🖼️", "area": "Cultura", "narrativa": "*Selecionando obras e construindo a narrativa de uma exposição da Galeria Imperial...*", "moedas": (70, 145), "xp": (32, 62), "poder": (0, 3), "requer_diploma": "artes_etiqueta", "nivel_minimo": 5, "descricao_cargo": "Curadoria de exposições e eventos culturais."},
+    {"id": "orador_cerimonial", "nome": "Orador Cerimonial", "emoji": "🎙️", "area": "Cerimonial", "narrativa": "*Apresentando uma solenidade com clareza, ritmo e respeito ao protocolo...*", "moedas": (65, 130), "xp": (34, 66), "poder": (0, 3), "requer_diploma": "artes_etiqueta", "nivel_minimo": 4, "descricao_cargo": "Oratória e apresentação de eventos."},
+    {"id": "arquivista_imperial", "nome": "Arquivista Imperial", "emoji": "🗄️", "area": "Arquivo", "narrativa": "*Catalogando documentos de uma linhagem para preservar sua memória e autenticidade...*", "moedas": (75, 145), "xp": (36, 68), "poder": (0, 3), "requer_diploma": "familia_imperial", "nivel_minimo": 5, "descricao_cargo": "Arquivo, memória e genealogia da Casa."},
+    {"id": "administrador_coroa", "nome": "Administrador da Coroa", "emoji": "👑", "area": "Casa Imperial", "narrativa": "*Coordenando agenda, patrimônio e registros internos da Família Imperial...*", "moedas": (105, 200), "xp": (28, 55), "poder": (1, 5), "requer_diploma": "familia_imperial", "nivel_minimo": 8, "descricao_cargo": "Administração institucional da Coroa."},
+    {"id": "organizador_coroacoes", "nome": "Organizador de Coroações", "emoji": "💠", "area": "Cerimonial", "narrativa": "*Conferindo símbolos, precedência e juramentos para uma coroação impecável...*", "moedas": (90, 175), "xp": (34, 65), "poder": (0, 4), "requer_diploma": "mestres_cerimoniais", "nivel_minimo": 6, "descricao_cargo": "Planejamento de coroações e solenidades."},
+    {"id": "oficial_matrimonial", "nome": "Oficial Matrimonial", "emoji": "💍", "area": "Cerimonial", "narrativa": "*Verificando registros, testemunhas e agenda antes de entregar o rito ao padre celebrante...*", "moedas": (75, 150), "xp": (35, 68), "poder": (0, 3), "requer_diploma": "mestres_cerimoniais", "nivel_minimo": 5, "descricao_cargo": "Organização documental de casamentos; não substitui o padre."},
+    {"id": "assessor_herdeiro", "nome": "Assessor de Herdeiro", "emoji": "📜", "area": "Sucessão", "narrativa": "*Preparando estudos, agenda e relatórios para a formação de um herdeiro da Coroa...*", "moedas": (110, 205), "xp": (35, 66), "poder": (1, 5), "requer_diploma": "herdeiros_coroa", "nivel_minimo": 10, "descricao_cargo": "Assessoria à formação e agenda dos herdeiros."},
+    {"id": "guardiao_sucessao", "nome": "Guardião da Sucessão", "emoji": "🔱", "area": "Sucessão", "narrativa": "*Protegendo documentos e protocolos que garantem a continuidade legítima da Coroa...*", "moedas": (125, 230), "xp": (32, 62), "poder": (3, 9), "requer_diploma": "herdeiros_coroa", "nivel_minimo": 12, "descricao_cargo": "Proteção dos protocolos sucessórios do RP."},
+])
+
 
 EMPREGOS_ILEGAIS = [
     {"id": "contrabandista",  "nome": "Contrabandista",            "emoji": "📦", "area": "Comércio Ilegal",  "narrativa": "*Transportando cargas proibidas pelas rotas secretas abaixo das muralhas de Tenshi...*",      "moedas": (80,  180), "xp": (15, 30), "poder": (2, 7),  "risco": 0.25, "requer_diploma": None, "nivel_minimo": 1},
@@ -502,7 +640,42 @@ class SelectEmpregoView(discord.ui.View):
             ),
             reverse=True,
         )
-        self.add_item(EmpregoSelect(user_id, lista[:25], tipo, user_data))
+        self.lista = lista
+        self.pagina = 0
+        self.por_pagina = 25
+        self._montar_pagina()
+
+    @property
+    def total_paginas(self) -> int:
+        return max(1, (len(self.lista) + self.por_pagina - 1) // self.por_pagina)
+
+    def _montar_pagina(self):
+        self.clear_items()
+        inicio = self.pagina * self.por_pagina
+        self.add_item(EmpregoSelect(self.user_id, self.lista[inicio:inicio + self.por_pagina], self.tipo, self.user_data))
+        if self.total_paginas > 1:
+            anterior = discord.ui.Button(label="Anterior", emoji="◀️", style=discord.ButtonStyle.secondary, disabled=self.pagina == 0)
+            proxima = discord.ui.Button(label="Próxima", emoji="▶️", style=discord.ButtonStyle.primary, disabled=self.pagina >= self.total_paginas - 1)
+            indicador = discord.ui.Button(label=f"Página {self.pagina + 1}/{self.total_paginas}", style=discord.ButtonStyle.secondary, disabled=True)
+            anterior.callback = self._anterior
+            proxima.callback = self._proxima
+            self.add_item(anterior)
+            self.add_item(indicador)
+            self.add_item(proxima)
+
+    async def _mudar(self, interaction: discord.Interaction, deslocamento: int):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("Este menu não é seu.", ephemeral=True)
+            return
+        self.pagina = max(0, min(self.total_paginas - 1, self.pagina + deslocamento))
+        self._montar_pagina()
+        await interaction.response.edit_message(view=self)
+
+    async def _anterior(self, interaction: discord.Interaction):
+        await self._mudar(interaction, -1)
+
+    async def _proxima(self, interaction: discord.Interaction):
+        await self._mudar(interaction, 1)
 
 
 class EmpregoSelect(discord.ui.Select):
@@ -610,6 +783,9 @@ class EmpregoSelect(discord.ui.Select):
         user["ultimo_trabalho"] = agora.isoformat()
         nivel, _ = calcular_nivel(user["xp"])
         user["nivel"] = nivel
+        cargo_msg = None
+        if self.tipo == "legal":
+            cargo_msg = await _sincronizar_profissao(interaction.guild, interaction.user, emprego, user)
         save_user(interaction.user.id, user)
 
         cor = 0x006400 if self.tipo == "legal" else 0x1C1C1C
@@ -626,6 +802,8 @@ class EmpregoSelect(discord.ui.Select):
         if requer:
             m = MATERIAS_INFO.get(requer, {})
             embed.add_field(name="🎓 Cargo", value=m.get("nome","?"),     inline=True)
+        if cargo_msg:
+            embed.add_field(name="💼 Profissão ativa", value=cargo_msg, inline=False)
         if self.tipo == "ilegal":
             embed.add_field(name="⚠️ Aviso",
                             value="*Trabalho ilegal — sujeito a interceptação*", inline=False)
@@ -674,6 +852,22 @@ class Empregos:
             name="🖤 Serviços Ilegais",
             value="`Tenshi, emprego ilegal` — Trabalho nas sombras (nível 3+ / Máfia)",
             inline=False
+        )
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    async def handle_regras(self, message):
+        linhas = "\n".join(f"**{indice}.** {regra}" for indice, regra in enumerate(REGRAS_TRABALHO, 1))
+        embed = discord.Embed(
+            title="📜 Regras de Trabalho do Império",
+            description=(
+                f"{linhas}\n\n{SEP}\n"
+                "**Comandos úteis**\n"
+                "`Tenshi, carreiras` — catálogo e requisitos\n"
+                "`Tenshi, emprego legal [id]` — exercer profissão\n"
+                "`Tenshi, perfil` — conferir a profissão ativa"
+            ),
+            color=0x2C3E50,
         )
         embed.set_footer(text=RODAPE_IMPERIAL)
         await message.channel.send(embed=embed)
@@ -797,6 +991,9 @@ class Empregos:
         user["ultimo_trabalho"] = agora.isoformat()
         nivel, _ = calcular_nivel(user["xp"])
         user["nivel"] = nivel
+        cargo_msg = None
+        if tipo == "legal":
+            cargo_msg = await _sincronizar_profissao(message.guild, message.author, emprego, user)
         save_user(message.author.id, user)
 
         embed = discord.Embed(
@@ -812,6 +1009,8 @@ class Empregos:
         if requer:
             m = MATERIAS_INFO.get(requer, {})
             embed.add_field(name="Diploma usado", value=m.get("nome", requer), inline=True)
+        if cargo_msg:
+            embed.add_field(name="Profissão ativa", value=cargo_msg, inline=False)
         embed.set_footer(text=f"Proximo trabalho em 45 minutos  •  {RODAPE_IMPERIAL}")
         await message.channel.send(embed=embed)
 

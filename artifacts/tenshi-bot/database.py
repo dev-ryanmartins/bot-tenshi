@@ -85,6 +85,9 @@ def _default_user() -> dict:
         "ultimo_tarot": None,
         "ultimo_duelo": None,
         "ultimo_trabalho": None,
+        "emprego_id": None,
+        "emprego_nome": None,
+        "cargo_trabalho": None,
         # PvP
         "vitorias_duelo": 0,
         "derrotas_duelo": 0,
@@ -118,6 +121,7 @@ def _template_usuario() -> dict:
         "faccao": None, "faccao_pontos": 0, "status_bonus": {}, "missoes_completas": 0,
         "ultimo_treino": None, "ultima_missao": None, "ultimo_tarot": None,
         "ultimo_duelo": None, "ultimo_trabalho": None,
+        "emprego_id": None, "emprego_nome": None, "cargo_trabalho": None,
         "vitorias_duelo": 0, "derrotas_duelo": 0,
         "moedas": 100, "conta_banco": 0, "emprestimos": [], "historico_financeiro": [],
         "casa_id": None, "casa_condominio": None, "fadiga": 0,

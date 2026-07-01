@@ -47,6 +47,7 @@ from utils import (
     safe_send_embed,
 )
 from database import get_user, save_user
+from confirmacoes import processar_resposta
 from site_server import start_site_server_thread
 
 install_discord_safety_patch()
@@ -407,6 +408,14 @@ async def on_message(message):
     cmd  = partes[0].lower()
     args = partes[1:]
 
+    if cmd in ("confirmar", "confirmo", "sim"):
+        await processar_resposta(message, confirmar=True)
+        return
+
+    if cmd in ("cancelar", "cancelo", "nao", "não"):
+        await processar_resposta(message, confirmar=False)
+        return
+
     # Guard 2 — cooldown 2s por usuário por comando
     if _em_cooldown(message.author.id, cmd):
         return
@@ -473,6 +482,12 @@ async def on_message(message):
             await empregos.handle_trabalhos(message)
         else:
             await empregos.handle_emprego(message, args)
+
+    elif cmd in ("carreiras", "cargos-trabalho", "profissoes-disponiveis"):
+        await empregos.handle_carreiras(message)
+
+    elif cmd in ("regras-trabalho", "regras-emprego", "normas-trabalho"):
+        await empregos.handle_regras(message)
 
     elif cmd in ("profissao", "profissão", "classe"):
         await rpg.handle_profissao(message, args)

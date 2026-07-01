@@ -341,9 +341,9 @@ CURRICULO_ACADEMIA: dict[str, dict] = {
             "organizacao de ritos",
         ],
         "permissoes_rpg": [
-            "conduzir casamentos e coroacoes de RP",
+            "organizar casamentos e coroacoes de RP sob celebracao do padre",
             "preparar juramentos e ritos solenes",
-            "atuar como mestre de cerimonias",
+            "atuar como mestre de cerimonias sem substituir a autoridade religiosa",
         ],
         "empregos": ["mestre_cerimonial", "organizador_coroacoes", "oficial_matrimonial"],
         "prompt": (
@@ -373,6 +373,114 @@ CURRICULO_ACADEMIA: dict[str, dict] = {
         "prompt": (
             "Voce e Tutor dos Herdeiros da Coroa. Ensine lideranca, historia da dinastia, direito constitucional, "
             "administracao da coroa, diplomacia, economia, tecnologia, oratoria, religioes, artes e gestao de crises."
+        ),
+    },
+    "jornalismo_comunicacao": {
+        "nome": "Jornalismo e Comunicação Imperial",
+        "emoji": "📰",
+        "faculdade": "Faculdade de Comunicação",
+        "cargo_destino": "Jornalista Imperial",
+        "tempo_estudo_h": 14,
+        "competencias": ["apuração", "entrevista", "redação", "checagem de fatos", "comunicação pública"],
+        "permissoes_rpg": [
+            "produzir reportagens e boletins de RP",
+            "entrevistar autoridades e cidadãos",
+            "atuar na Gazeta Imperial",
+        ],
+        "empregos": ["jornalista_imperial", "editor_gazeta"],
+        "prompt": (
+            "Você é Professor de Jornalismo Imperial. Ensine apuração, entrevista, redação, ética, "
+            "checagem de fatos e comunicação pública. Diferencie notícia, opinião e propaganda."
+        ),
+    },
+    "economia_financas": {
+        "nome": "Economia e Finanças Imperiais",
+        "emoji": "📈",
+        "faculdade": "Faculdade Tenshi Enterprise",
+        "cargo_destino": "Economista Imperial",
+        "tempo_estudo_h": 18,
+        "competencias": ["macroeconomia", "orçamento", "política monetária", "tributação", "gestão do tesouro"],
+        "permissoes_rpg": [
+            "analisar inflação e atividade econômica no RP",
+            "preparar orçamento e prestação de contas",
+            "atuar no Tesouro e no Banco Imperial",
+        ],
+        "empregos": ["economista_imperial", "tesoureiro_real"],
+        "prompt": (
+            "Você é Professor de Economia Imperial. Ensine orçamento, inflação, moeda, impostos, "
+            "tesouro e análise econômica aplicada ao universo de Tenshi."
+        ),
+    },
+    "gestao_publica": {
+        "nome": "Gestão Pública e Urbanismo",
+        "emoji": "🏙️",
+        "faculdade": "Faculdade Imperial de Governo",
+        "cargo_destino": "Gestor Público Imperial",
+        "tempo_estudo_h": 16,
+        "competencias": ["serviços públicos", "urbanismo", "planejamento", "ouvidoria", "transparência"],
+        "permissoes_rpg": [
+            "planejar serviços e espaços públicos",
+            "organizar consultas e ouvidorias",
+            "acompanhar projetos urbanos de RP",
+        ],
+        "empregos": ["urbanista_imperial", "ouvidor_imperial"],
+        "prompt": (
+            "Você é Professor de Gestão Pública. Ensine planejamento urbano, serviços públicos, indicadores, "
+            "ouvidoria, transparência e avaliação de políticas do Império."
+        ),
+    },
+    "psicologia_estrategica": {
+        "nome": "Psicologia e Mediação Estratégica",
+        "emoji": "🧠",
+        "faculdade": "Faculdades Complementares",
+        "cargo_destino": "Psicólogo Imperial",
+        "tempo_estudo_h": 18,
+        "competencias": ["escuta ativa", "mediação", "psicologia social", "ética", "gestão de conflitos"],
+        "permissoes_rpg": [
+            "mediar conflitos narrativos",
+            "oferecer acolhimento estritamente dentro do RP",
+            "atuar como conselheiro institucional",
+        ],
+        "empregos": ["psicologo_imperial", "mediador_comunitario"],
+        "prompt": (
+            "Você é Professor de Psicologia e Mediação no contexto de RPG. Ensine escuta, ética, limites e "
+            "resolução de conflitos sem diagnosticar pessoas reais nem substituir profissionais."
+        ),
+    },
+    "ecologia_agricultura": {
+        "nome": "Ecologia e Agricultura Imperial",
+        "emoji": "🌱",
+        "faculdade": "Faculdade de Ciências Naturais",
+        "cargo_destino": "Agrônomo Imperial",
+        "tempo_estudo_h": 16,
+        "competencias": ["agronomia", "ecologia", "recursos hídricos", "manejo", "segurança alimentar"],
+        "permissoes_rpg": [
+            "planejar colheitas e abastecimento",
+            "fiscalizar impactos ambientais no RP",
+            "propor recuperação de áreas naturais",
+        ],
+        "empregos": ["agronomo_imperial", "fiscal_ambiental"],
+        "prompt": (
+            "Você é Professor de Ecologia e Agricultura Imperial. Ensine solo, água, produção, biodiversidade, "
+            "manejo sustentável e segurança alimentar no universo de Tenshi."
+        ),
+    },
+    "gastronomia_hospitalidade": {
+        "nome": "Gastronomia e Hospitalidade",
+        "emoji": "🍽️",
+        "faculdade": "Faculdade de Artes e Ofícios",
+        "cargo_destino": "Mestre de Hospitalidade",
+        "tempo_estudo_h": 12,
+        "competencias": ["gastronomia", "segurança alimentar", "eventos", "hospedagem", "protocolo de recepção"],
+        "permissoes_rpg": [
+            "organizar banquetes e recepções",
+            "administrar hospedagem de visitantes",
+            "atuar em cozinhas e eventos imperiais",
+        ],
+        "empregos": ["chef_real", "gestor_hospedagem"],
+        "prompt": (
+            "Você é Professor de Gastronomia e Hospitalidade. Ensine planejamento de cardápios, segurança "
+            "alimentar, recepção, hospedagem, eventos e protocolo de serviço."
         ),
     },
 }
