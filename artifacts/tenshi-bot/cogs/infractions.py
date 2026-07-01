@@ -6,21 +6,141 @@ Comandos:
 """
 
 from datetime import UTC, datetime
+from types import SimpleNamespace
 
 import discord
+from discord import app_commands
+from discord.ext import commands
 from database import get_user
 from database_infractions import (
+    database,
     get_infractions_summary,
     get_user_infractions,
+    register_infraction,
 )
-from utils import RODAPE_IMPERIAL, SEP, embed_imperial
+from utils import IMPERADOR_ID, RODAPE_IMPERIAL, SEP, embed_imperial
 
 
-class Infractions:
+class _InteractionChannel:
+    def __init__(self, interaction: discord.Interaction):
+        self.interaction = interaction
+
+    async def send(self, *args, **kwargs):
+        if self.interaction.response.is_done():
+            return await self.interaction.followup.send(*args, **kwargs)
+        return await self.interaction.response.send_message(*args, **kwargs)
+
+
+class Infractions(commands.Cog):
     """Gerencia infrações, avisos e histórico disciplinar de usuários."""
 
     def __init__(self, bot):
         self.bot = bot
+
+    @staticmethod
+    def _pode_moderar(member: discord.Member) -> bool:
+        if member.id == IMPERADOR_ID:
+            return True
+        perms = getattr(member, "guild_permissions", None)
+        return bool(perms and (perms.manage_messages or perms.moderate_members))
+
+    async def handle_nota(self, message: discord.Message, args: list):
+        """Salva uma nota interna de moderação vinculada a um usuário."""
+        if not self._pode_moderar(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Sem permissão", "Este comando é restrito à moderação.", 0x8B0000))
+            return
+        if not message.mentions or len(args) < 2:
+            await message.channel.send(embed=embed_imperial("📋 Uso", "`tenshi nota @usuario [texto]`", 0x8B4513))
+            return
+        alvo = message.mentions[0]
+        texto = " ".join(arg for arg in args if not arg.startswith("<@" )).strip()
+        if not texto:
+            await message.channel.send(embed=embed_imperial("📋 Texto obrigatório", "Informe o conteúdo da nota.", 0x8B4513))
+            return
+        note_id = await database.add_note(alvo.id, texto[:1500], message.author.id)
+        await message.channel.send(embed=embed_imperial(
+            "✅ Nota registrada",
+            f"Nota `#{note_id}` salva para {alvo.mention}.\n**Texto:** {texto[:1000]}",
+            0x1A5C2E,
+        ))
+
+    async def handle_aviso(self, message: discord.Message, args: list):
+        """Registra um aviso disciplinar no histórico SQLite."""
+        if not self._pode_moderar(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Sem permissão", "Este comando é restrito à moderação.", 0x8B0000))
+            return
+        if not message.mentions:
+            await message.channel.send(embed=embed_imperial("⚠️ Uso", "`tenshi aviso @usuario [motivo]`", 0x8B4513))
+            return
+        alvo = message.mentions[0]
+        motivo = " ".join(arg for arg in args if not arg.startswith("<@")).strip() or "Sem motivo especificado"
+        infraction_id = await register_infraction(alvo.id, "aviso", motivo[:1500], message.author.id)
+        await message.channel.send(embed=embed_imperial(
+            "⚠️ Aviso registrado",
+            f"Aviso `#{infraction_id}` aplicado a {alvo.mention}.\n**Motivo:** {motivo[:1000]}",
+            0xD97706,
+        ))
+
+    async def handle_historico(self, message: discord.Message, args: list):
+        """Exibe notas internas e todas as infrações, inclusive inativas."""
+        alvo = message.mentions[0] if message.mentions else message.author
+        notes = await database.get_notes(alvo.id)
+        infractions = await get_user_infractions(alvo.id, active_only=False)
+        registros = [
+            (item["created_at"], "📝 Nota", item["texto"], item.get("moderator_id"), True)
+            for item in notes
+        ] + [
+            (
+                item["created_at"], self._format_infraction_type(item["infraction_type"]),
+                item.get("reason") or "Sem motivo especificado", item.get("moderator_id"),
+                bool(item.get("is_active")),
+            )
+            for item in infractions
+        ]
+        registros.sort(key=lambda item: item[0], reverse=True)
+        embed = discord.Embed(
+            title=f"📚 Histórico — {alvo.display_name}",
+            description=f"Notas e ocorrências registradas para {alvo.mention}.",
+            color=0x8B4513,
+        )
+        if not registros:
+            embed.description = f"{alvo.mention} não possui notas ou avisos registrados."
+        for index, (data, tipo, texto, moderador, ativo) in enumerate(registros[:20], 1):
+            status = "ativo" if ativo else "encerrado"
+            embed.add_field(
+                name=f"{index}. {tipo} • {self._format_date(data)}",
+                value=f"{texto[:700]}\n**Responsável:** <@{moderador}> • **Status:** {status}",
+                inline=False,
+            )
+        if len(registros) > 20:
+            embed.set_footer(text=f"Exibindo 20 de {len(registros)} registros • {RODAPE_IMPERIAL}")
+        else:
+            embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    def _mensagem_interacao(self, interaction: discord.Interaction, usuario: discord.Member):
+        return SimpleNamespace(
+            author=interaction.user,
+            channel=_InteractionChannel(interaction),
+            guild=interaction.guild,
+            mentions=[usuario],
+        )
+
+    @app_commands.command(name="nota", description="Registra uma nota interna de moderação.")
+    async def slash_nota(self, interaction: discord.Interaction, usuario: discord.Member, texto: str):
+        await self.handle_nota(self._mensagem_interacao(interaction, usuario), [usuario.mention, texto])
+
+    @app_commands.command(name="aviso", description="Registra um aviso disciplinar.")
+    async def slash_aviso(self, interaction: discord.Interaction, usuario: discord.Member, motivo: str):
+        await self.handle_aviso(self._mensagem_interacao(interaction, usuario), [usuario.mention, motivo])
+
+    @app_commands.command(name="historico", description="Exibe notas e avisos de um usuário.")
+    async def slash_historico(self, interaction: discord.Interaction, usuario: discord.Member):
+        await self.handle_historico(self._mensagem_interacao(interaction, usuario), [usuario.mention])
+
+    @app_commands.command(name="info", description="Exibe entrada no servidor e histórico disciplinar.")
+    async def slash_info(self, interaction: discord.Interaction, usuario: discord.Member):
+        await self.handle_info(self._mensagem_interacao(interaction, usuario), [usuario.mention])
 
     def _format_infraction_type(self, infraction_type: str) -> str:
         """Formata o tipo de infração para exibição."""
@@ -270,8 +390,9 @@ class Infractions:
         tempo_conta = f"{anos} ano(s), {meses} mês(es) e {dias} dia(s)"
         criado_em_str = criado_em.strftime("%d/%m/%Y às %H:%M")
 
-        # Recuperar resumo de infrações
+        # Recuperar resumo de infrações. O total inclui registros já encerrados.
         summary = await get_infractions_summary(target_user.id)
+        todas_infracoes = await get_user_infractions(target_user.id, active_only=False)
         avisos_total = summary["avisos"]
         mutes_total = summary["mutes"]
         bans_total = summary["bans"]
@@ -296,13 +417,24 @@ class Infractions:
             inline=False,
         )
 
+        joined_at = getattr(target_user, "joined_at", None)
+        embed.add_field(
+            name="🏛️ Entrada no Servidor",
+            value=(
+                joined_at.strftime("%d/%m/%Y às %H:%M")
+                if joined_at else "Data indisponível (usuário fora do servidor)."
+            ),
+            inline=False,
+        )
+
         embed.add_field(
             name="⚖️ Histórico Disciplinar",
             value=(
                 f"**Avisos Ativos:** {avisos_total}\n"
                 f"**Silências Ativos:** {mutes_total}\n"
                 f"**Banimentos Ativos:** {bans_total}\n"
-                f"**Total de Infrações:** {summary['total']}"
+                f"**Avisos registrados (total):** {sum(1 for i in todas_infracoes if i['infraction_type'] in {'aviso', 'warn', 'warn_manual'})}\n"
+                f"**Total de infrações ativas:** {summary['total']}"
             ),
             inline=False,
         )

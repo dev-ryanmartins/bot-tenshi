@@ -9,12 +9,88 @@ from typing import List, Optional
 
 import aiosqlite
 
-DB_PATH = "data/tenshi.db"
+DB_PATH = os.environ.get("TENSHI_DB_PATH", "data/tenshi.db")
+
+
+class Database:
+    """Camada assíncrona simples para notas e avisos de moderação."""
+
+    def __init__(self, path: str = DB_PATH):
+        self.path = path
+
+    async def initialize(self) -> None:
+        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+        async with aiosqlite.connect(self.path) as db:
+            await db.executescript("""
+                CREATE TABLE IF NOT EXISTS notas (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    texto TEXT NOT NULL,
+                    moderator_id INTEGER,
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS avisos (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    texto TEXT NOT NULL,
+                    moderator_id INTEGER,
+                    created_at TEXT NOT NULL,
+                    is_active INTEGER NOT NULL DEFAULT 1
+                );
+                CREATE INDEX IF NOT EXISTS idx_notas_user_id ON notas(user_id);
+                CREATE INDEX IF NOT EXISTS idx_avisos_user_id ON avisos(user_id);
+            """)
+            await db.commit()
+
+    async def add_note(self, user_id: int, texto: str, moderator_id: int | None = None) -> int:
+        await self.initialize()
+        created_at = datetime.now(UTC).replace(tzinfo=None).isoformat()
+        async with aiosqlite.connect(self.path) as db:
+            cursor = await db.execute(
+                "INSERT INTO notas (user_id, texto, moderator_id, created_at) VALUES (?, ?, ?, ?)",
+                (user_id, texto, moderator_id, created_at),
+            )
+            await db.commit()
+            return int(cursor.lastrowid)
+
+    async def get_notes(self, user_id: int) -> List[dict]:
+        await self.initialize()
+        async with aiosqlite.connect(self.path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM notas WHERE user_id = ? ORDER BY created_at DESC", (user_id,)
+            )
+            return [dict(row) for row in await cursor.fetchall()]
+
+    async def add_warning(self, user_id: int, texto: str, moderator_id: int | None = None) -> int:
+        await self.initialize()
+        created_at = datetime.now(UTC).replace(tzinfo=None).isoformat()
+        async with aiosqlite.connect(self.path) as db:
+            cursor = await db.execute(
+                "INSERT INTO avisos (user_id, texto, moderator_id, created_at) VALUES (?, ?, ?, ?)",
+                (user_id, texto, moderator_id, created_at),
+            )
+            await db.commit()
+            return int(cursor.lastrowid)
+
+    async def get_warnings(self, user_id: int, active_only: bool = True) -> List[dict]:
+        await self.initialize()
+        query = "SELECT * FROM avisos WHERE user_id = ?"
+        if active_only:
+            query += " AND is_active = 1"
+        query += " ORDER BY created_at DESC"
+        async with aiosqlite.connect(self.path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(query, (user_id,))
+            return [dict(row) for row in await cursor.fetchall()]
+
+
+database = Database()
 
 
 async def _init_db():
     """Inicializa o banco de dados com as tabelas necessárias."""
-    os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
+    await database.initialize()
     
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("""
@@ -43,8 +119,7 @@ async def _init_db():
 
 async def _ensure_db():
     """Garante que o banco existe antes de usar."""
-    if not os.path.exists(DB_PATH):
-        await _init_db()
+    await _init_db()
 
 
 async def register_infraction(
@@ -80,7 +155,11 @@ async def register_infraction(
             (user_id, infraction_type, reason, moderator_id, created_at, expires_at)
         )
         await db.commit()
-        return cursor.lastrowid
+        infraction_id = int(cursor.lastrowid)
+
+    if infraction_type in {"aviso", "warn", "warn_manual"}:
+        await database.add_warning(user_id, reason or "Sem motivo especificado", moderator_id)
+    return infraction_id
 
 
 async def get_user_infractions(user_id: int, active_only: bool = True) -> List[dict]:

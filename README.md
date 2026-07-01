@@ -2,6 +2,26 @@
 
 Bot Discord do Imperio Tenshi com site Python integrado, memoria documental em PDFs, IA via OpenRouter, comandos administrativos, academia, matrimonios, empregos e painel web.
 
+## Comandos
+
+O bot aceita os dois formatos de prefixo abaixo:
+
+```text
+tenshi ajuda
+Tenshi, ajuda
+```
+
+Os comandos de moderação `nota`, `aviso`, `historico` e `info` também estão disponíveis como comandos de barra. Exemplos:
+
+```text
+tenshi nota @usuario observação interna
+tenshi aviso @usuario motivo do aviso
+tenshi historico @usuario
+tenshi info @usuario
+```
+
+Use `tenshi ajuda` no Discord para consultar o catálogo completo. Notas e avisos são persistidos em `data/tenshi.db` com `aiosqlite`.
+
 ## Deploy na Railway como Worker
 
 Este repositorio ja esta pronto para manter o bot online na Railway e servir o site Python integrado no mesmo processo:
@@ -56,6 +76,8 @@ TENSHI_SITE_URL=https://seu-app.up.railway.app
 ```
 
 Depois clique em **Redeploy**. O bot e o site sobem juntos pelo mesmo comando `python main.py`.
+
+Para manter notas e avisos entre redeploys, monte um **Volume** da Railway em `/data` e defina `TENSHI_DB_PATH=/data/tenshi.db`. Sem volume, o bot continua funcionando, mas o SQLite acompanha o ciclo de vida do container.
 
 ### 4. Start command
 

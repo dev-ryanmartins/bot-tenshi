@@ -114,9 +114,8 @@ def _parse_agendamento(data_texto: str, hora_texto: str) -> datetime:
 
 
 def _corte_completa(registro: dict) -> bool:
-    # Permite cerimônia com pelo menos alguns papéis preenchidos (não exige todos)
-    papeis_preenchidos = sum(1 for papel in PAPEIS_CORTE if registro.get(papel))
-    return papeis_preenchidos >= 3  # Mínimo de 3 pessoas na corte
+    # A corte completa possui três padrinhos e três madrinhas.
+    return all(registro.get(papel) for papel in PAPEIS_CORTE)
 
 
 def _configuracao_completa(registro: dict) -> bool:
@@ -255,8 +254,8 @@ class ConfiguracaoCerimoniaView(discord.ui.View):
             "Corte de honra da cerimônia",
             (
                 f"O pedido entre {self.n1.mention} e {self.n2.mention} foi aceito. O casamento ainda **não foi realizado**.\n\n"
-            f"A celebração será conduzida pela própria **{CELEBRANTE_IA}**. Escolham a corte de honra (opcional): três padrinhos e até três madrinhas, "
-            "todos diferentes. Pule os que não desejarem. Depois será aberta a escolha do Ritualista.\n\n"
+            f"A celebração será conduzida pela própria **{CELEBRANTE_IA}**. Primeiro escolham os três padrinhos. "
+            "Todos devem ser pessoas diferentes dos noivos. Na próxima etapa serão escolhidas as três madrinhas.\n\n"
                 f"{_formatar_corte(registro)}"
             ),
         )
@@ -294,35 +293,83 @@ class ConfiguracaoCerimoniaView(discord.ui.View):
     async def terceiro_padrinho(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
         await self._selecionar(interaction, "terceiro_padrinho", select.values[0])
 
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a dama de honra", row=3)
-    async def dama_honra(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
-        await self._selecionar(interaction, "dama_honra", select.values[0])
-
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a segunda madrinha", row=4)
-    async def segunda_madrinha(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
-        await self._selecionar(interaction, "segunda_madrinha", select.values[0])
-
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a terceira madrinha (opcional)", row=5)
-    async def terceira_madrinha(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
-        await self._selecionar(interaction, "terceira_madrinha", select.values[0])
-
-    @discord.ui.button(label="Continuar com corte atual", style=discord.ButtonStyle.secondary, row=6)
+    @discord.ui.button(label="Continuar para as madrinhas", style=discord.ButtonStyle.secondary, row=3)
     async def continuar_corte(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id not in (self.n1.id, self.n2.id):
             await interaction.response.send_message("Somente o casal pode continuar.", ephemeral=True)
             return
         registro = _carregar_cerimonia(self.chave)
+        if not registro or not all(registro.get(p) for p in PAPEIS_CORTE[:3]):
+            await interaction.response.send_message("Escolha os três padrinhos antes de continuar.", ephemeral=True)
+            return
+        registro["status"] = "configurando_madrinhas"
+        _salvar_cerimonia(self.chave, registro)
+        view = MadrinhasCerimoniaView(self.chave, self.n1, self.n2)
+        await interaction.response.edit_message(embed=view.embed_atual(), view=view)
+
+
+class MadrinhasCerimoniaView(discord.ui.View):
+    """Segunda página da corte, separada por causa do limite de 5 linhas do Discord."""
+
+    def __init__(self, chave: str, n1: discord.Member, n2: discord.Member):
+        super().__init__(timeout=1800)
+        self.chave = chave
+        self.n1 = n1
+        self.n2 = n2
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id not in (self.n1.id, self.n2.id):
+            await interaction.response.send_message("Somente o casal pode configurar esta cerimônia.", ephemeral=True)
+            return False
+        return True
+
+    async def _selecionar(self, interaction: discord.Interaction, campo: str, member: discord.Member):
+        registro = _carregar_cerimonia(self.chave)
+        if not registro:
+            await interaction.response.send_message("A preparação desta cerimônia não foi encontrada.", ephemeral=True)
+            return
+        if member.bot or member.id in _ids_reservados(registro, ignorar=campo):
+            await interaction.response.send_message(
+                "Cada função deve ser ocupada por uma pessoa diferente e nenhum noivo pode integrar a corte.",
+                ephemeral=True,
+            )
+            return
+        registro[campo] = str(member.id)
+        _salvar_cerimonia(self.chave, registro)
+        await interaction.response.edit_message(embed=self.embed_atual(), view=self)
+
+    def embed_atual(self) -> discord.Embed:
+        registro = _carregar_cerimonia(self.chave) or {}
+        return _embed(
+            "Corte de honra — madrinhas",
+            (
+                "Agora escolham as três madrinhas. Cada função deve ser ocupada por uma pessoa diferente.\n\n"
+                f"{_formatar_corte(registro)}"
+            ),
+        )
+
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a madrinha de honra", row=0)
+    async def dama_honra(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
+        await self._selecionar(interaction, "dama_honra", select.values[0])
+
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a segunda madrinha", row=1)
+    async def segunda_madrinha(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
+        await self._selecionar(interaction, "segunda_madrinha", select.values[0])
+
+    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a terceira madrinha", row=2)
+    async def terceira_madrinha(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
+        await self._selecionar(interaction, "terceira_madrinha", select.values[0])
+
+    @discord.ui.button(label="Continuar para o Ritualista", style=discord.ButtonStyle.secondary, row=3)
+    async def continuar_madrinhas(self, interaction: discord.Interaction, button: discord.ui.Button):
+        registro = _carregar_cerimonia(self.chave)
         if not registro or not _corte_completa(registro):
-            await interaction.response.send_message("Escolha pelo menos 3 pessoas para a corte de honra.", ephemeral=True)
+            await interaction.response.send_message("Escolha as três madrinhas antes de continuar.", ephemeral=True)
             return
         registro["status"] = "escolhendo_ritualista"
         _salvar_cerimonia(self.chave, registro)
         view = RitualistaCerimoniaView(self.chave, self.n1, self.n2)
         await interaction.response.edit_message(embed=view.embed_atual(), view=view)
-
-    @discord.ui.select(cls=discord.ui.UserSelect, placeholder="Escolha a terceira madrinha (opcional)", row=5)
-    async def terceira_madrinha(self, interaction: discord.Interaction, select: discord.ui.UserSelect):
-        await self._selecionar(interaction, "terceira_madrinha", select.values[0])
 
 
 class RitualistaCerimoniaView(discord.ui.View):
@@ -648,6 +695,8 @@ class Matrimonio:
             view = AgendamentoCerimoniaView(chave, n1, n2)
         elif _corte_completa(registro):
             view = RitualistaCerimoniaView(chave, n1, n2)
+        elif all(registro.get(papel) for papel in PAPEIS_CORTE[:3]):
+            view = MadrinhasCerimoniaView(chave, n1, n2)
         else:
             view = ConfiguracaoCerimoniaView(chave, n1, n2)
         await message.channel.send(embed=view.embed_atual(), view=view)

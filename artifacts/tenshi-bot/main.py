@@ -5,6 +5,7 @@ import sys
 from datetime import UTC, datetime
 
 import discord
+from discord.ext import commands
 
 
 def _configurar_console_utf8():
@@ -101,7 +102,11 @@ intents.message_content = True
 intents.members = True
 intents.guilds   = True
 
-bot = discord.Client(intents=intents)
+bot = commands.Bot(
+    command_prefix=commands.when_mentioned_or("tenshi ", "tenshi, ", "tenshi,"),
+    intents=intents,
+    help_command=None,
+)
 
 # ── Módulos ───────────────────────────────────────────────────────────────────
 rpg         = RPG(bot)
@@ -209,6 +214,18 @@ SAUDACOES_FILE = os.path.join("data", "saudacoes.json")
 BANDEIRA_FILE = os.path.join(os.path.dirname(__file__), "assets", "tenshi-bandeira.png")
 
 
+def _extrair_comando(conteudo: str) -> str | None:
+    """Aceita `tenshi comando` e o formato histórico `Tenshi, comando`."""
+    texto = conteudo.strip()
+    texto_lower = texto.casefold()
+    for prefixo in ("tenshi,", "tenshi"):
+        if texto_lower == prefixo:
+            return ""
+        if texto_lower.startswith(prefixo + " "):
+            return texto[len(prefixo):].strip()
+    return None
+
+
 def _salvar_status_bot(online: bool):
     os.makedirs(os.path.dirname(STATUS_FILE), exist_ok=True)
     payload = {
@@ -264,6 +281,12 @@ async def on_ready():
     # cada reconexão criaria novas tarefas duplicadas causando embeds duplos.
     if not _bg_tasks_initialized:
         _bg_tasks_initialized = True
+        await bot.add_cog(infractions)
+        try:
+            sincronizados = await bot.tree.sync()
+            print(f"✅ {len(sincronizados)} comandos de barra sincronizados.")
+        except Exception as exc:
+            print(f"[AVISO] Não foi possível sincronizar comandos de barra: {exc}")
         eventos.cog_load()
         vizinhanca.cog_load()
         cotidiano.cog_load()
@@ -350,11 +373,13 @@ async def on_message(message):
 
     conteudo       = message.content.strip()
     conteudo_lower = conteudo.lower()
+    resto_comando  = _extrair_comando(conteudo)
+    eh_comando     = resto_comando is not None
     if _conteudo_repetido(message, conteudo):
         return
 
     # Saudação automática ao Imperador (apenas em mensagens sem prefixo de comando)
-    if message.author.id == IMPERADOR_ID and not conteudo_lower.startswith(PREFIXO):
+    if message.author.id == IMPERADOR_ID and not eh_comando:
         await _saudar_imperador_se_necessario(message)
 
     # Invasão ativa
@@ -362,7 +387,7 @@ async def on_message(message):
         return
 
     # Verificar bloqueio (nocaute/prisão)
-    if not conteudo_lower.startswith(PREFIXO):
+    if not eh_comando:
         u_data = get_user(message.author.id)
         bloq   = u_data.get("bloqueado_ate")
         if bloq:
@@ -403,7 +428,7 @@ async def on_message(message):
         await loremaster.handle_lore_natural(message, conteudo)
         return
 
-    resto  = conteudo[len(PREFIXO):].strip()
+    resto  = resto_comando
     partes = resto.split()
     if not partes:
         return
@@ -603,7 +628,10 @@ async def on_message(message):
         await financeiro.handle_pagar_divida(message, args)
 
     elif cmd in ("historico", "histórico", "history"):
-        await financeiro.handle_historico(message)
+        if args or message.mentions:
+            await infractions.handle_historico(message, args)
+        else:
+            await financeiro.handle_historico(message)
 
     # ── CASAS (mercado imobiliário geral) ─────────────────────────────────────
     elif cmd in ("casas", "imoveis", "propriedades"):
@@ -731,10 +759,25 @@ async def on_message(message):
     elif cmd == "mute":
         await moderacao.handle_mute(message, args)
 
+    elif cmd in ("unmute", "desmutar", "dessilenciar"):
+        await moderacao.handle_unmute(message, args)
+
+    elif cmd in ("unban", "desbanir"):
+        await moderacao.handle_unban(message, args)
+
+    elif cmd in ("slowmode", "modo-lento"):
+        await moderacao.handle_slowmode(message, args)
+
     elif cmd in ("clear", "limpar", "purge"):
         await moderacao.handle_clear(message, args)
 
-    elif cmd in ("notas", "infrações", "infrações", "avisos"):
+    elif cmd in ("nota",):
+        await infractions.handle_nota(message, args)
+
+    elif cmd in ("aviso",):
+        await infractions.handle_aviso(message, args)
+
+    elif cmd in ("notas", "infracoes", "infrações"):
         await infractions.handle_notas(message, args)
 
     elif cmd in ("info", "informacoes", "informações", "perfil-completo"):
@@ -1089,17 +1132,17 @@ async def on_message(message):
     elif cmd in ("cidadania", "certidao", "certidão", "registro-civil"):
         await geopolitica.handle_cidadania(message, args)
 
-    elif cmd in ("exilio", "exílio", "exilio-temporario", "exilar"):
+    elif cmd in ("exilio", "exílio", "exilio-temporario"):
         await geopolitica.handle_exilio_temporario(message, args)
 
     # ══════════════════════════════════════════════════════════════════════════
     # MÓDULO 13 C-H + 14 — ESTADO, ECONOMIA, TRANSPORTE, SAÚDE
     # ══════════════════════════════════════════════════════════════════════════
 
-    elif cmd in ("pedir-emprestimo", "pedir_emprestimo", "emprestimo", "empréstimo"):
+    elif cmd in ("pedir-emprestimo", "pedir_emprestimo"):
         await estado.handle_emprestimo_banco(message, args)
 
-    elif cmd in ("quitar", "quitar-divida", "pagar-divida"):
+    elif cmd in ("quitar-divida",):
         await estado.handle_quitar(message, args)
 
     elif cmd in ("lavar", "lavagem", "lavar-dinheiro"):
@@ -1149,7 +1192,7 @@ async def on_message(message):
     # PROTOCOLO 25 — METEOROLOGIA LOCALIZADA POR IA
     # ══════════════════════════════════════════════════════════════════════════
 
-    elif cmd in ("clima", "checar-clima", "tempo", "meteorologia"):
+    elif cmd in ("clima", "checar-clima", "tempo"):
         await clima_cog.handle_clima(message, args)
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -1174,7 +1217,7 @@ async def on_message(message):
     elif cmd in ("presença", "presenca", "registrar-presenca"):
         await academia.handle_presenca(message, args)
 
-    elif cmd in ("iniciar-aula", "iniciar_aula", "aula"):
+    elif cmd in ("iniciar-aula", "iniciar_aula"):
         await academia.handle_iniciar_aula(message, args)
 
     elif cmd in ("ler-apostila", "apostila", "material-didatico"):
@@ -1183,7 +1226,7 @@ async def on_message(message):
     elif cmd in ("prestar-exame", "prestar_exame", "exame", "fazer-prova"):
         await academia.handle_prestar_exame(message, args)
 
-    elif cmd in ("historico-escolar", "histórico-escolar", "notas"):
+    elif cmd in ("historico-escolar", "histórico-escolar"):
         await academia.handle_historico_escolar(message, args)
 
     elif cmd in ("segunda-via-diploma", "segunda_via_diploma", "revalidar-diploma"):

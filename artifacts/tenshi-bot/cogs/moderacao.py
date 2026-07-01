@@ -2,6 +2,7 @@ import discord
 import asyncio
 from utils import embed_imperial, IMPERADOR_ID, SEP, RODAPE_IMPERIAL
 from database import get_user, save_user
+from database_infractions import register_infraction
 from ia_router import ia_soberana, ia_analitica
 
 
@@ -342,6 +343,7 @@ class Moderacao:
             pass
         try:
             await message.guild.ban(alvo, reason=motivo)
+            await register_infraction(alvo.id, "ban", motivo, message.author.id)
             embed = discord.Embed(
                 title="🔴 DECRETO DE EXÍLIO",
                 description=(
@@ -468,6 +470,7 @@ class Moderacao:
         motivo = " ".join([a for a in args if not a.startswith("<@")]) or "Banido por decreto"
         try:
             await message.guild.ban(alvo, reason=motivo)
+            await register_infraction(alvo.id, "ban", motivo, message.author.id)
             embed = discord.Embed(
                 title="⚖️ BANIMENTO IMPERIAL", color=0x8B0000,
                 description=f"**{alvo.display_name}** foi banido do Império.\n**Motivo:** *{motivo}*"
@@ -490,6 +493,7 @@ class Moderacao:
         motivo = " ".join([a for a in args if not a.startswith("<@")]) or "Expulso por decreto"
         try:
             await message.guild.kick(alvo, reason=motivo)
+            await register_infraction(alvo.id, "kick", motivo, message.author.id)
             await message.channel.send(embed=embed_imperial("👢 Expulsão", f"**{alvo.display_name}** foi expulso. *{motivo}*", 0xFF8C00))
         except discord.Forbidden:
             await message.channel.send(embed=embed_imperial("❌", "Sem permissão.", 0x6B0000))
@@ -508,6 +512,7 @@ class Moderacao:
             import datetime as dt
             fim = discord.utils.utcnow() + dt.timedelta(minutes=30)
             await alvo.timeout(fin=fim, reason="Silenciado por decreto")
+            await register_infraction(alvo.id, "mute", "Silenciado por 30 minutos", message.author.id, fim.isoformat())
             await message.channel.send(embed=embed_imperial("🔇 Silenciado", f"**{alvo.display_name}** foi silenciado por 30 minutos.", 0x4B0082))
         except Exception as e:
             await message.channel.send(embed=embed_imperial("❌", str(e)[:80], 0x6B0000))
@@ -531,3 +536,52 @@ class Moderacao:
             await msg.delete()
         except discord.Forbidden:
             await message.channel.send(embed=embed_imperial("❌", "Sem permissão.", 0x6B0000))
+
+    async def handle_unmute(self, message, args):
+        perms = getattr(message.author, "guild_permissions", None)
+        if not (message.author.id == IMPERADOR_ID or (perms and perms.moderate_members)):
+            await message.channel.send(embed=embed_imperial("🚫", "Sem permissão para remover silêncios.", 0x6B0000))
+            return
+        if not message.mentions:
+            await message.channel.send(embed=embed_imperial("❓", "`tenshi unmute @usuario`", 0x6B0000))
+            return
+        alvo = message.mentions[0]
+        try:
+            await alvo.timeout(None, reason=f"Silêncio removido por {message.author}")
+            await message.channel.send(embed=embed_imperial("🔊 Silêncio removido", f"{alvo.mention} pode falar novamente.", 0x006400))
+        except discord.Forbidden:
+            await message.channel.send(embed=embed_imperial("❌", "Não tenho permissão ou hierarquia suficiente.", 0x6B0000))
+
+    async def handle_unban(self, message, args):
+        perms = getattr(message.author, "guild_permissions", None)
+        if not (message.author.id == IMPERADOR_ID or (perms and perms.ban_members)):
+            await message.channel.send(embed=embed_imperial("🚫", "Sem permissão para revogar banimentos.", 0x6B0000))
+            return
+        if not args or not args[0].isdigit():
+            await message.channel.send(embed=embed_imperial("❓", "`tenshi unban [ID do usuário]`", 0x6B0000))
+            return
+        alvo = discord.Object(id=int(args[0]))
+        try:
+            entrada = await message.guild.fetch_ban(alvo)
+            await message.guild.unban(entrada.user, reason=f"Anistia por {message.author}")
+            await message.channel.send(embed=embed_imperial("🕊️ Banimento revogado", f"**{entrada.user}** foi desbanido.", 0x006400))
+        except discord.NotFound:
+            await message.channel.send(embed=embed_imperial("❌", "Esse ID não está banido.", 0x6B0000))
+        except discord.Forbidden:
+            await message.channel.send(embed=embed_imperial("❌", "Não tenho permissão para desbanir.", 0x6B0000))
+
+    async def handle_slowmode(self, message, args):
+        perms = getattr(message.author, "guild_permissions", None)
+        if not (message.author.id == IMPERADOR_ID or (perms and perms.manage_channels)):
+            await message.channel.send(embed=embed_imperial("🚫", "Sem permissão para alterar o modo lento.", 0x6B0000))
+            return
+        if not args or not args[0].isdigit():
+            await message.channel.send(embed=embed_imperial("❓", "`tenshi slowmode [segundos]` (0 desativa)", 0x6B0000))
+            return
+        segundos = min(int(args[0]), 21600)
+        try:
+            await message.channel.edit(slowmode_delay=segundos, reason=f"Alterado por {message.author}")
+            estado = "desativado" if segundos == 0 else f"definido em **{segundos}s**"
+            await message.channel.send(embed=embed_imperial("⏱️ Modo lento", f"Modo lento {estado}.", 0x4B0082))
+        except discord.Forbidden:
+            await message.channel.send(embed=embed_imperial("❌", "Não tenho permissão para editar este canal.", 0x6B0000))

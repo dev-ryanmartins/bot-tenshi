@@ -12,6 +12,7 @@ from cogs import matrimonio  # noqa: E402
 from cogs.matrimonio import (  # noqa: E402
     FUSO_CERIMONIA,
     ConfiguracaoCerimoniaView,
+    MadrinhasCerimoniaView,
     PedidoCasamentoView,
     RitualistaCerimoniaView,
     VotosMatrimonioView,
@@ -42,7 +43,7 @@ class MatrimonioHelpersTest(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "data futura"):
             _parse_agendamento("01/01/2020", "12:00")
 
-    def test_corte_exige_tres_padrinhos_duas_madrinhas_e_ritualista(self):
+    def test_corte_exige_tres_padrinhos_tres_madrinhas_e_ritualista(self):
         registro = {
             "noivo1": "1",
             "noivo2": "2",
@@ -52,10 +53,11 @@ class MatrimonioHelpersTest(unittest.IsolatedAsyncioTestCase):
             "terceiro_padrinho": "6",
             "dama_honra": "7",
             "segunda_madrinha": "8",
+            "terceira_madrinha": "9",
         }
         self.assertTrue(_corte_completa(registro))
         self.assertTrue(_configuracao_completa(registro))
-        self.assertEqual(_ids_reservados(registro), {1, 2, 3, 4, 5, 6, 7, 8})
+        self.assertEqual(_ids_reservados(registro), {1, 2, 3, 4, 5, 6, 7, 8, 9})
         registro["dama_honra"] = None
         self.assertFalse(_corte_completa(registro))
 
@@ -68,6 +70,7 @@ class MatrimonioHelpersTest(unittest.IsolatedAsyncioTestCase):
             "terceiro_padrinho": "6",
             "dama_honra": "7",
             "segunda_madrinha": "8",
+            "terceira_madrinha": "9",
             "agendado_para": "2030-01-01T12:00:00-03:00",
         }
         usuarios = {1: {}, 2: {}}
@@ -87,16 +90,21 @@ class MatrimonioHelpersTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(casamento["padrinho_honra"], "4")
         self.assertEqual(casamento["terceiro_padrinho"], "6")
         self.assertEqual(casamento["segunda_madrinha"], "8")
+        self.assertEqual(casamento["terceira_madrinha"], "9")
         self.assertEqual(usuarios[1]["conjuge"], "2")
 
-    async def test_fluxo_visual_tem_cinco_testemunhas_ritualista_e_botoes_de_aceite(self):
+    async def test_fluxo_visual_tem_seis_testemunhas_ritualista_e_botoes_de_aceite(self):
         n1, n2 = FakeMember(1), FakeMember(2)
         pedido = PedidoCasamentoView(n1, n2)
         self.assertEqual([item.label for item in pedido.children], ["Sim, aceito", "Não aceito"])
 
         corte = ConfiguracaoCerimoniaView("1_2", n1, n2)
-        self.assertEqual(len(corte.children), 5)
+        self.assertEqual(len(corte.children), 4)
         self.assertTrue(any("terceiro padrinho" in item.placeholder.lower() for item in corte.children))
+
+        madrinhas = MadrinhasCerimoniaView("1_2", n1, n2)
+        self.assertEqual(len(madrinhas.children), 4)
+        self.assertTrue(any("terceira madrinha" in item.placeholder.lower() for item in madrinhas.children))
 
         ritualista = RitualistaCerimoniaView("1_2", n1, n2)
         self.assertEqual(len(ritualista.children), 1)
