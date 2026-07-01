@@ -6,10 +6,10 @@ C. Governança Compartilhada (Cônjuge Imperial)
 D. Sindicância por IA
 """
 import discord
-import asyncio
 import random
+import unicodedata
 from datetime import datetime
-from database import get_user, save_user, get_casamentos, save_casamentos, get_infrações
+from database import get_user, get_infrações
 from utils import SEP, RODAPE_IMPERIAL, IMPERADOR_ID
 
 COR_IMPERIAL = 0x2C3E50
@@ -63,8 +63,11 @@ class PadreOpcoeView(discord.ui.View):
 
     @discord.ui.button(label="Casamento", style=discord.ButtonStyle.success)
     async def casamento(self, interaction: discord.Interaction, button: discord.ui.Button):
-        modal = SolicitarNoivosModal(self.canal, self.guild)
-        await interaction.response.send_modal(modal)
+        await interaction.response.send_message(
+            "O casamento agora parte de um pedido aceito e agendado. Na data marcada, o padre escolhido usa "
+            "`Tenshi, iniciar-cerimonia @noivo1 @noivo2`.",
+            ephemeral=True,
+        )
 
     @discord.ui.button(label="Batismo", style=discord.ButtonStyle.secondary)
     async def batismo(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -91,120 +94,6 @@ class PadreOpcoeView(discord.ui.View):
         await interaction.response.send_message("Cerimônia fúnebre iniciada.", ephemeral=True)
 
 
-class SolicitarNoivosModal(discord.ui.Modal, title="Protocolo de Casamento Imperial"):
-    noivo1_id = discord.ui.TextInput(label="ID do Noivo 1", placeholder="Cole aqui o ID Discord do primeiro noivo", max_length=20)
-    noivo2_id = discord.ui.TextInput(label="ID do Noivo 2", placeholder="Cole aqui o ID Discord do segundo noivo", max_length=20)
-
-    def __init__(self, canal, guild):
-        super().__init__()
-        self.canal = canal
-        self.guild = guild
-
-    async def on_submit(self, interaction: discord.Interaction):
-        try:
-            id1 = int(self.noivo1_id.value.strip())
-            id2 = int(self.noivo2_id.value.strip())
-        except ValueError:
-            await interaction.response.send_message("IDs inválidos.", ephemeral=True)
-            return
-        m1 = self.guild.get_member(id1)
-        m2 = self.guild.get_member(id2)
-        if not m1 or not m2:
-            await interaction.response.send_message("Um ou ambos os membros não foram encontrados.", ephemeral=True)
-            return
-        votos = _gerar_votos(m1.display_name, m2.display_name)
-        embed = discord.Embed(
-            title="⚜ Cerimônia de Casamento Imperial",
-            description=(
-                f"*O Padre Imperial convoca os noivos...*\n{SEP}\n\n"
-                f"{votos}\n\n{SEP}\n\n"
-                f"{m1.mention} e {m2.mention}, confirmem sua vontade abaixo."
-            ),
-            color=COR_DOURADO
-        )
-        embed.set_footer(text=RODAPE_IMPERIAL)
-        view = VotosCeremoniaView(m1, m2)
-        await self.canal.send(embed=embed, view=view)
-        await interaction.response.send_message("Cerimônia iniciada no canal.", ephemeral=True)
-
-
-def _gerar_votos(nome1: str, nome2: str) -> str:
-    return (
-        f"*Perante o Oráculo, as estrelas e o povo do Império de Tenshi, estão reunidos hoje*\n"
-        f"**{nome1}** *e* **{nome2}**,\n\n"
-        f"*que juram, neste momento solene, lealdade mútua, parceria nos tempos de guerra e de paz, "
-        f"e fidelidade aos princípios que sustentam este Império.*\n\n"
-        f"*Que este pacto seja inscrito nos Pergaminhos Imortais e respeitado por todos os súditos.*"
-    )
-
-
-class VotosCeremoniaView(discord.ui.View):
-    def __init__(self, n1: discord.Member, n2: discord.Member):
-        super().__init__(timeout=300)
-        self.n1       = n1
-        self.n2       = n2
-        self.aceites  = set()
-        self.encerrado = False
-
-    @discord.ui.button(label="Aceito", style=discord.ButtonStyle.success)
-    async def aceitar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id not in (self.n1.id, self.n2.id):
-            await interaction.response.send_message("Este protocolo não lhe diz respeito.", ephemeral=True)
-            return
-        if self.encerrado:
-            return
-        self.aceites.add(interaction.user.id)
-        await interaction.response.send_message(f"Voto registrado.", ephemeral=True)
-        if len(self.aceites) == 2:
-            self.encerrado = True
-            await self._oficializar(interaction)
-
-    @discord.ui.button(label="Recuso", style=discord.ButtonStyle.danger)
-    async def recusar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id not in (self.n1.id, self.n2.id):
-            await interaction.response.send_message("Painel restrito.", ephemeral=True)
-            return
-        if self.encerrado:
-            return
-        self.encerrado = True
-        self.clear_items()
-        await interaction.response.edit_message(
-            embed=embed_soberano("Cerimônia Cancelada",
-                f"{interaction.user.display_name} recusou os votos. O protocolo foi encerrado.",
-                COR_NEUTRO),
-            view=self
-        )
-
-    async def _oficializar(self, interaction: discord.Interaction):
-        self.clear_items()
-        casamentos = get_casamentos()
-        cid = f"{min(self.n1.id, self.n2.id)}_{max(self.n1.id, self.n2.id)}"
-        casamentos[cid] = {
-            "noivo1": str(self.n1.id), "noivo2": str(self.n2.id),
-            "data": datetime.utcnow().isoformat(),
-        }
-        save_casamentos(casamentos)
-        u1 = get_user(self.n1.id); u2 = get_user(self.n2.id)
-        u1["conjuge"] = str(self.n2.id); u2["conjuge"] = str(self.n1.id)
-        u1["taxa_casa_divisao"] = True; u2["taxa_casa_divisao"] = True
-        if self.n1.id == IMPERADOR_ID or self.n2.id == IMPERADOR_ID:
-            cid_imp = self.n2.id if self.n1.id == IMPERADOR_ID else self.n1.id
-            cu = get_user(cid_imp); cu["co_soberano"] = True; save_user(cid_imp, cu)
-        save_user(self.n1.id, u1); save_user(self.n2.id, u2)
-        embed = discord.Embed(
-            title="⚜ Certidão Imperial de União — Selada",
-            description=(
-                f"*O Oráculo atesta e o Império reconhece:*\n{SEP}\n\n"
-                f"**{self.n1.display_name}** e **{self.n2.display_name}** estão oficialmente unidos.\n\n"
-                f"📋 Data: {datetime.utcnow().strftime('%d/%m/%Y')}\n"
-                f"🏛️ Arquivado nos Pergaminhos Imortais de Tenshi"
-            ),
-            color=COR_DOURADO
-        )
-        embed.set_footer(text=RODAPE_IMPERIAL)
-        await interaction.response.edit_message(embed=embed, view=self)
-
-
 class Clero:
     def __init__(self, bot):
         self.bot = bot
@@ -214,7 +103,16 @@ class Clero:
             adm = user.guild_permissions.administrator
         except Exception:
             adm = False
-        return adm or user.id == IMPERADOR_ID or user_data.get("co_soberano")
+        def normalizar(texto: str) -> str:
+            base = unicodedata.normalize("NFKD", texto.casefold())
+            return "".join(c for c in base if not unicodedata.combining(c))
+
+        termos_clero = ("padre", "sacerdote", "sacerdotisa", "bispo", "cardeal", "pontifice", "paroc")
+        tem_cargo_clerical = any(
+            any(termo in normalizar(role.name) for termo in termos_clero)
+            for role in getattr(user, "roles", [])
+        )
+        return adm or user.id == IMPERADOR_ID or user_data.get("co_soberano") or tem_cargo_clerical
 
     async def handle_padre(self, message, args):
         user_data = get_user(message.author.id)
