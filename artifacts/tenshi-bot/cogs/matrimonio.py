@@ -86,12 +86,16 @@ def _salvar_cerimonia(chave: str, registro: dict) -> None:
 
 def _buscar_cerimonia(user_id: int, parceiro_id: int | None = None, somente_aberta: bool = True):
     for chave, registro in get_cerimonias().items():
+        # Skip deleted or completed ceremonies
+        if registro.get("status") in {"concluida", "cancelada", "deletada"}:
+            continue
+        
         noivos = {int(registro["noivo1"]), int(registro["noivo2"])}
         if user_id not in noivos:
             continue
         if parceiro_id is not None and parceiro_id not in noivos:
             continue
-        if somente_aberta and registro.get("status") in {"concluida", "cancelada"}:
+        if somente_aberta and registro.get("status") in {"concluida", "cancelada", "deletada"}:
             continue
         return chave, registro
     return None, None
@@ -726,11 +730,10 @@ class Matrimonio:
         noivo2_id = int(registro_cerimonia["noivo2"])
         outro_noivo_id = noivo2_id if message.author.id == noivo1_id else noivo1_id
         
-        # Remover a cerimônia completamente
-        cerimonias = get_cerimonias()
-        if chave_cerimonia in cerimonias:
-            del cerimonias[chave_cerimonia]
-            save_cerimonias(cerimonias)
+        # Marcar cerimônia como deletada (não remover, apenas marcar status)
+        registro_cerimonia["status"] = "deletada"
+        registro_cerimonia["deletada_em"] = _agora().isoformat()
+        _salvar_cerimonia(chave_cerimonia, registro_cerimonia)
         
         await message.channel.send(embed=_embed(
             "Preparação abandonada",
