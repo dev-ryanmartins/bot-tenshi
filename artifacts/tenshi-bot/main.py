@@ -794,6 +794,12 @@ async def on_message(message):
     elif cmd in ("registro-casamento", "certidao-casamento", "certidão-casamento"):
         await matrimonio.handle_registro_casamento(message, args)
 
+    elif cmd in ("cancelar-casamento", "cancelar-pedido", "anular-pedido"):
+        await matrimonio.handle_cancelar_casamento_usuario(message, args)
+
+    elif cmd in ("anular-casamento", "anular-uniao", "anular-união", "dissolver-casamento"):
+        await matrimonio.handle_cancelar_casamento_admin(message, args)
+
     elif cmd in ("divorcio", "divórcio", "separar", "divorce"):
         await social_cog.handle_divorcio(message)
 

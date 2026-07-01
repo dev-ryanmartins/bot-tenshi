@@ -688,3 +688,192 @@ class Matrimonio:
                 f"**Co-soberania:** {'Sim' if user.get('co_soberano') else 'Não'}"
             ),
         ))
+
+    async def handle_cancelar_casamento_usuario(self, message, args):
+        """
+        Comando: tenshi, cancelar-casamento
+        Permite ao usuário cancelar seu próprio casamento ou cerimônia em preparação.
+        """
+        user = get_user(message.author.id)
+        conjuge_id = user.get("conjuge")
+        
+        # Verificar se há cerimônia em preparação
+        chave_cerimonia, registro_cerimonia = _buscar_cerimonia(message.author.id, somente_aberta=True)
+        
+        # Se não há cerimônia em preparação e não há casamento registrado
+        if not registro_cerimonia and not conjuge_id:
+            await message.channel.send(embed=_embed(
+                "Sem vínculo",
+                f"{message.author.mention} não possui casamento registrado ou cerimônia em preparação para cancelar.",
+                COR_NEUTRO
+            ))
+            return
+        
+        # Se há cerimônia em preparação
+        if registro_cerimonia:
+            noivo1_id = int(registro_cerimonia["noivo1"])
+            noivo2_id = int(registro_cerimonia["noivo2"])
+            
+            registro_cerimonia["status"] = "cancelada"
+            registro_cerimonia["cancelada_em"] = _agora().isoformat()
+            _salvar_cerimonia(chave_cerimonia, registro_cerimonia)
+            
+            outro_noivo_id = noivo2_id if message.author.id == noivo1_id else noivo1_id
+            
+            await message.channel.send(embed=_embed(
+                "Cerimônia cancelada",
+                f"{message.author.mention} cancelou a cerimônia de casamento com <@{outro_noivo_id}>.\n\n"
+                f"O processo foi interrompido e ambos os envolvidos foram desbloqueados.",
+                COR_SUCESSO
+            ))
+            return
+        
+        # Se há casamento registrado
+        if conjuge_id:
+            conjuge_id_int = int(conjuge_id)
+            chave_casamento = _cid(message.author.id, conjuge_id_int)
+            
+            # Remover o casamento
+            casamentos = get_casamentos()
+            if chave_casamento in casamentos:
+                del casamentos[chave_casamento]
+                save_casamentos(casamentos)
+            
+            # Limpar dados de ambos os cônjuges
+            user["conjuge"] = None
+            user["co_soberano"] = False
+            user["taxa_casa_divisao"] = False
+            save_user(message.author.id, user)
+            
+            conjuge = get_user(conjuge_id_int)
+            conjuge["conjuge"] = None
+            conjuge["co_soberano"] = False
+            conjuge["taxa_casa_divisao"] = False
+            save_user(conjuge_id_int, conjuge)
+            
+            await message.channel.send(embed=_embed(
+                "Casamento dissolvido",
+                f"O vínculo matrimonial entre {message.author.mention} e <@{conjuge_id_int}> foi dissoluto por petição.\n\n"
+                f"**Efeitos:**\n"
+                f"• Cônjuge removido do perfil\n"
+                f"• Co-soberania revogada\n"
+                f"• Divisão de renda de casa encerrada",
+                COR_PERIGO
+            ))
+            return
+
+    async def handle_cancelar_casamento_admin(self, message, args):
+        """
+        Comando: tenshi, anular-casamento @usuario1 @usuario2
+        Comando admin para cancelar qualquer casamento ou cerimônia.
+        """
+        if not _tem_autoridade_real(message.author):
+            await message.channel.send(embed=_embed(
+                "Acesso restrito",
+                "Apenas autoridades da Casa Real podem anular casamentos.",
+                COR_PERIGO
+            ))
+            return
+        
+        if len(message.mentions) < 1:
+            await message.channel.send(embed=_embed(
+                "Uso inválido",
+                "Use: `Tenshi, anular-casamento @usuario1 [@usuario2]`\n\n"
+                "Se apenas 1 usuário for mencionado, sua cerimônia será cancelada.\n"
+                "Se 2 forem mencionados, o casamento entre eles será dissolvido.",
+                COR_NEUTRO
+            ))
+            return
+        
+        usuario1 = message.mentions[0]
+        usuario2 = message.mentions[1] if len(message.mentions) > 1 else None
+        
+        # Caso 1: Cancelar cerimônia de 1 usuário
+        if not usuario2:
+            chave_cerimonia, registro_cerimonia = _buscar_cerimonia(usuario1.id, somente_aberta=True)
+            
+            if not registro_cerimonia:
+                await message.channel.send(embed=_embed(
+                    "Sem cerimônia",
+                    f"{usuario1.mention} não possui cerimônia em preparação.",
+                    COR_NEUTRO
+                ))
+                return
+            
+            noivo1_id = int(registro_cerimonia["noivo1"])
+            noivo2_id = int(registro_cerimonia["noivo2"])
+            outro_noivo_id = noivo2_id if usuario1.id == noivo1_id else noivo1_id
+            
+            registro_cerimonia["status"] = "cancelada"
+            registro_cerimonia["cancelada_em"] = _agora().isoformat()
+            registro_cerimonia["anulada_por"] = str(message.author.id)
+            _salvar_cerimonia(chave_cerimonia, registro_cerimonia)
+            
+            await message.channel.send(embed=_embed(
+                "Cerimônia anulada por ordem imperial",
+                f"{message.author.mention} cancelou a cerimônia de casamento entre "
+                f"{usuario1.mention} e <@{outro_noivo_id}>.\n\n"
+                f"**Motivo:** Decisão administrativa\n"
+                f"**Carimbo:** {_agora().strftime('%d/%m/%Y às %H:%M:%S')}",
+                COR_PERIGO
+            ))
+            return
+        
+        # Caso 2: Anular casamento entre 2 usuários
+        chave_casamento = _cid(usuario1.id, usuario2.id)
+        
+        # Verificar se há cerimônia em preparação primeiro
+        chave_cerimonia, registro_cerimonia = _buscar_cerimonia(usuario1.id, usuario2.id, somente_aberta=True)
+        if registro_cerimonia:
+            registro_cerimonia["status"] = "cancelada"
+            registro_cerimonia["cancelada_em"] = _agora().isoformat()
+            registro_cerimonia["anulada_por"] = str(message.author.id)
+            _salvar_cerimonia(chave_cerimonia, registro_cerimonia)
+            
+            await message.channel.send(embed=_embed(
+                "Cerimônia anulada por ordem imperial",
+                f"{message.author.mention} cancelou a cerimônia entre {usuario1.mention} e {usuario2.mention}.\n\n"
+                f"**Motivo:** Decisão administrativa\n"
+                f"**Carimbo:** {_agora().strftime('%d/%m/%Y às %H:%M:%S')}",
+                COR_PERIGO
+            ))
+            return
+        
+        # Verificar se há casamento registrado
+        casamentos = get_casamentos()
+        if chave_casamento not in casamentos:
+            await message.channel.send(embed=_embed(
+                "Sem casamento registrado",
+                f"Não há vínculo matrimonial ativo entre {usuario1.mention} e {usuario2.mention}.",
+                COR_NEUTRO
+            ))
+            return
+        
+        # Anular o casamento
+        del casamentos[chave_casamento]
+        save_casamentos(casamentos)
+        
+        # Limpar dados de ambos os usuários
+        user1 = get_user(usuario1.id)
+        user2 = get_user(usuario2.id)
+        
+        user1["conjuge"] = None
+        user1["co_soberano"] = False
+        user1["taxa_casa_divisao"] = False
+        user2["conjuge"] = None
+        user2["co_soberano"] = False
+        user2["taxa_casa_divisao"] = False
+        
+        save_user(usuario1.id, user1)
+        save_user(usuario2.id, user2)
+        
+        await message.channel.send(embed=_embed(
+            "Casamento anulado por ordem imperial",
+            f"{message.author.mention} anulou o vínculo matrimonial entre {usuario1.mention} e {usuario2.mention}.\n\n"
+            f"**Efeitos imediatos:**\n"
+            f"• Casamento dissolvido\n"
+            f"• Co-soberania revogada (se aplicável)\n"
+            f"• Divisão de renda de casa encerrada\n"
+            f"**Carimbo:** {_agora().strftime('%d/%m/%Y às %H:%M:%S')}",
+            COR_PERIGO
+        ))
