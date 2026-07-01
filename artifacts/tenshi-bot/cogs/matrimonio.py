@@ -707,6 +707,38 @@ class Matrimonio:
             ),
         ))
 
+    async def handle_abandonar_preparacao(self, message, args):
+        """
+        Comando: tenshi, abandonar-preparacao
+        Permite abandonar a cerimônia em preparação sem concordância do outro noivo.
+        """
+        chave_cerimonia, registro_cerimonia = _buscar_cerimonia(message.author.id, somente_aberta=True)
+        
+        if not registro_cerimonia:
+            await message.channel.send(embed=_embed(
+                "Sem preparação",
+                f"{message.author.mention} não possui cerimônia em preparação para abandonar.",
+                COR_NEUTRO
+            ))
+            return
+        
+        noivo1_id = int(registro_cerimonia["noivo1"])
+        noivo2_id = int(registro_cerimonia["noivo2"])
+        outro_noivo_id = noivo2_id if message.author.id == noivo1_id else noivo1_id
+        
+        # Remover a cerimônia completamente
+        cerimonias = get_cerimonias()
+        if chave_cerimonia in cerimonias:
+            del cerimonias[chave_cerimonia]
+            save_cerimonias(cerimonias)
+        
+        await message.channel.send(embed=_embed(
+            "Preparação abandonada",
+            f"{message.author.mention} abandonou a preparação de casamento com <@{outro_noivo_id}>.\n\n"
+            f"Ambos foram desbloqueados e podem fazer novos pedidos.",
+            COR_SUCESSO
+        ))
+
     async def handle_cancelar_casamento_usuario(self, message, args):
         """
         Comando: tenshi, cancelar-casamento

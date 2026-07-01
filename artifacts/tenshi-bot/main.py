@@ -794,6 +794,9 @@ async def on_message(message):
     elif cmd in ("registro-casamento", "certidao-casamento", "certidão-casamento"):
         await matrimonio.handle_registro_casamento(message, args)
 
+    elif cmd in ("abandonar-preparacao", "abandonar-cerimonia", "abandonar-pedido"):
+        await matrimonio.handle_abandonar_preparacao(message, args)
+
     elif cmd in ("cancelar-casamento", "cancelar-pedido", "anular-pedido"):
         await matrimonio.handle_cancelar_casamento_usuario(message, args)
 
