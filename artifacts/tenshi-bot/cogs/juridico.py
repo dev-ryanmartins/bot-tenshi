@@ -7,6 +7,7 @@ import asyncio
 import re
 from datetime import datetime, timedelta
 from database import get_user, save_user, registrar_infracao, get_infrações, remover_infracao
+from database_infractions import register_infraction as register_sqlite_infraction
 from utils import SEP, RODAPE_IMPERIAL, IMPERADOR_ID
 from ia_router import ia_analitica, ia_rapida
 
@@ -219,6 +220,7 @@ class Juridico:
         alvo   = message.mentions[0]
         motivo = " ".join(args[1:]) if len(args) > 1 else "Infração não especificada"
         registrar_infracao(alvo.id, "warn_manual", motivo, str(message.author.id))
+        await register_sqlite_infraction(alvo.id, "warn_manual", motivo, message.author.id)
         infrações = get_infrações(alvo.id)
         await message.channel.send(embed=embed_soberano(
             "Advertência Formal Emitida",

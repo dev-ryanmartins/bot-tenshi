@@ -528,7 +528,7 @@ SITE_URL = os.environ.get("TENSHI_SITE_URL") or _site_url_padrao()
 AJUDA_TEXTO = f"""
 {SEP}
 **🏛️ PERGAMINHOS IMPERIAIS DE TENSHI**
-*Prefixo: `Tenshi,`  •  RP de texto narrativo  •  7 Motores de IA*
+*Prefixos: `tenshi comando` ou `Tenshi, comando`  •  `/nota`, `/aviso`, `/historico` e `/info`*
 🌐 **Site oficial:** {SITE_URL}
 {SEP}
 
@@ -575,6 +575,7 @@ AJUDA_TEXTO = f"""
 `pedido @user` `pedido-real @user` `cerimonia @parceiro`
 `iniciar-cerimonia @noivo1 @noivo2` *(Ritualista escolhido; celebração por Tenshi IA)*
 `rito-real @rei @rainha` `registro-casamento @user` `divorcio`
+`casar` `abandonar-preparacao` `cancelar-casamento` `anular-casamento`
 `lavanderia` `sintetizar [item]` `cartaz [filme]`
 `psicologo [texto]` `beber [bebida]` `jornal-cotidiano` `correio` `estacoes`
 `entrevista [cargo]` `socorrer @user` `vdd`
@@ -619,7 +620,9 @@ AJUDA_TEXTO = f"""
 `auditoria-permissoes` `corrigir-permissoes-bot` `mapa-canais`
 `aplicar-perfil-canal #canal [perfil]`
 `masmorra-prender @user [min]` `exilar @user` `anistia-real` `trancar-portoes`
-`tesouro [v]` `veto [ação]` `ban` `kick` `mute [min]` `clear [n]` `warn @user`
+`tesouro [v]` `veto [ação]` `ban` `kick` `mute [min]` `unmute @user` `unban [ID]`
+`clear [n]` `slowmode [seg]` `warn @user` `aviso @user [motivo]` `nota @user [texto]`
+`notas @user` `info @user` `historico @user`
 
 **👑 Prerrogativas Soberanas** *(Imperador)*
 `emitir-moeda` `confiscar-fortuna` `congelar-banco` `perdoar-divida` `isencao-fiscal`
@@ -631,6 +634,17 @@ AJUDA_TEXTO = f"""
 **🔧 Utilitários**
 `top` `servidor` `ping` `backup` `bandeira` `brasao` `historia-tenshi` `base-historica`
 `status-ia` `aniversario` `ajuda`
+
+**📚 Comandos Complementares**
+`confirmar` `cancelar` `meu-lar-cond` `cronica-cond` `descansar-lazer` `auditoria-cargos`
+`clima-atual` `criar-correio` `purificar-status` `historico-imovel` `bans-lista` `confiscar-veiculo`
+`interdicao` `pedir-emprestimo` `quitar` `quitar-divida` `lavar` `titulo-divida` `presença`
+
+**👑 Administração Avançada** *(Imperador/Admin)*
+`estatizar-casa` `silenciar-geral` `perdao-judicial` `revogar-diploma` `cassar-conjuge`
+`interceptar-correio` `forçar-cronica` `censurar-termo` `forçar-pagamento` `bypass-cooldown`
+`interditar-escola` `aprovação-forçada` `estatizar-cofre-clube` `zerar-historico-academico`
+`auditoria-geral-banco` `expurgar-fichas-inativas` `reset-parcial-economia` `decreto-climatico`
 {SEP}
 *🌐 Guia completo: {SITE_URL}*
 *{RODAPE_IMPERIAL}*
