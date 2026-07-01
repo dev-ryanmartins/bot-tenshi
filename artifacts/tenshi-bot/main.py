@@ -55,6 +55,7 @@ install_discord_safety_patch()
 from cogs.academia import Academia
 from cogs.ajuda import AjudaCog, enviar_ajuda
 from cogs.assistente_ia import AssistenteIA
+from cogs.automacao_servidor import AutomacaoServidor
 from cogs.avancado import Avancado
 from cogs.biblioteca_imperial import BibliotecaImperial
 from cogs.cargos_admin import CargosAdmin
@@ -122,6 +123,7 @@ empresa     = Empresa(bot)
 financeiro  = Financeiro(bot)
 familia     = Familia(bot)
 parentesco  = Parentesco(bot)
+automacao   = AutomacaoServidor(bot)
 perfil_cfg  = PerfilConfig(bot)
 especies    = Especies(bot)
 poderes_cog = Poderes(bot)
@@ -666,6 +668,9 @@ async def on_message(message):
 
     elif cmd in ("sincronizar-condominio", "gerar-casas", "criar-canais-casas"):
         await vizinhanca.handle_sincronizar_canais(message, args)
+
+    elif cmd in ("organizar-canais", "automatizar-canais", "criar-canais-rpg"):
+        await automacao.handle_organizar_canais(message, args)
 
     elif cmd in ("meu-lar-cond", "meuların", "residencia", "residência"):
         await vizinhanca.handle_meu_lar(message)

@@ -17,7 +17,7 @@ from design import (embed_doc, embed_soberano_decreto, embed_admin_doc,
                     COR_GERAL, COR_DECRETO, COR_JUDICIAL, COR_CRIME,
                     COR_ADMIN, COR_SUCESSO, COR_PERIGO, COR_NEUTRO, rodape_padrao)
 from ia_router import ia_soberana, ia_narrativa, ia_relatorio
-from cogs.parentesco import aplicar_cargo_exclusivo, garantir_cargo_grupo
+from cogs.parentesco import aplicar_cargo_exclusivo, aplicar_parentesco, garantir_cargo_grupo
 
 # ─── ESTADO GLOBAL SOBERANO ───────────────────────────────────────────────────
 _economia_congelada    = False
@@ -68,6 +68,47 @@ CARGOS_SUPREMOS = (
     ("Chefe da Máfia", "🔫"), ("Diretor da Academia", "🎓"), ("Professor Imperial", "📚"),
 )
 
+CAMPO_TEXTO_PERFIL = {
+    "cabecalho": ("Cabeçalho do perfil", "🖼️", "cabecalho_perfil"),
+    "subtitulo": ("Frase de apresentação", "💬", "subtitulo_perfil"),
+    "rodape": ("Rodapé personalizado", "🪶", "rodape_perfil"),
+    "nome_rp": ("Nome RP", "👤", "ficha.nome"),
+    "titulo": ("Título", "🏷️", "titulo"),
+    "pegada": ("Pegada visual", "🎭", "pegada"),
+    "historia": ("História", "📖", "ficha.historia"),
+    "especie": ("Espécie", "🧬", "especie"),
+    "faccao": ("Nome da facção", "⚔️", "faccao_nome_custom"),
+    "moradia": ("Nome da moradia", "🏠", "moradia_custom"),
+    "organizacao": ("Nome da organização", "👨‍👩‍👧", "organizacao_custom"),
+    "parentesco": ("Parentesco e cargo", "🤝", "parentesco"),
+    "empresa": ("Nome da empresa", "🏢", "empresa_custom"),
+    "profissao": ("Profissão", "💼", "emprego_nome"),
+    "cargo_familia": ("Cargo na organização", "🛡️", "cargo_familia"),
+    "cargo_empresa": ("Cargo na empresa", "📋", "cargo_empresa"),
+    "cargo_trabalho": ("Cargo profissional", "🧰", "cargo_trabalho"),
+    "local": ("Localização atual", "🗺️", "local_atual"),
+    "funcao_academica": ("Função acadêmica", "🎓", "funcao_academica"),
+}
+
+REGISTROS_LIMITES = {
+    "vitorias_duelo": (0, 100_000, "⚔️", "Vitórias PvP"),
+    "derrotas_duelo": (0, 100_000, "💀", "Derrotas PvP"),
+    "missoes_completas": (0, 100_000, "📜", "Missões completas"),
+    "faccao_pontos": (0, 10_000_000, "🏳️", "Pontos de facção"),
+    "salario": (0, 10_000_000, "💼", "Salário"),
+    "aulas_ministradas": (0, 100_000, "🎓", "Aulas ministradas"),
+    "divida_manual": (0, 100_000_000, "💸", "Dívida adicional"),
+}
+
+COLECOES_PERFIL = {
+    "inventario": ("Inventário", "🎒", "inventario"),
+    "habilidades": ("Habilidades", "⚡", "ficha.habilidades"),
+    "poderes": ("Poderes", "✨", "poderes"),
+    "conquistas": ("Conquistas manuais", "🏆", "conquistas"),
+    "titulos": ("Títulos colecionáveis", "👑", "titulos"),
+    "diplomas": ("Diplomas", "🎓", "diplomas"),
+}
+
 
 def _administrador(member) -> bool:
     if getattr(member, "id", None) == IMPERADOR_ID:
@@ -110,47 +151,96 @@ async def garantir_cargos_supremos(member: discord.Member) -> None:
     await aplicar_cargo_exclusivo(member, nome, emoji, "prestigio")
 
 
-class StatusValorModal(discord.ui.Modal, title="Definir status do personagem"):
-    valor = discord.ui.TextInput(label="Novo valor", placeholder="Digite somente números", max_length=10)
+def _ler_caminho(user: dict, caminho: str, padrao=None):
+    atual = user
+    for parte in caminho.split("."):
+        if not isinstance(atual, dict):
+            return padrao
+        atual = atual.get(parte)
+    return padrao if atual is None else atual
 
-    def __init__(self, alvo: discord.Member, atributo: str, admin_id: int):
+
+def _gravar_caminho(user: dict, caminho: str, valor) -> None:
+    partes = caminho.split(".")
+    atual = user
+    for parte in partes[:-1]:
+        atual = atual.setdefault(parte, {})
+    if valor is None:
+        atual.pop(partes[-1], None)
+    else:
+        atual[partes[-1]] = valor
+
+
+class StatusValorModal(discord.ui.Modal, title="Alterar valor numérico"):
+    operacao = discord.ui.TextInput(
+        label="Operação",
+        placeholder="definir, somar, subtrair ou zerar",
+        default="definir",
+        max_length=12,
+    )
+    valor = discord.ui.TextInput(label="Quantidade", placeholder="Digite um número", required=False, max_length=12)
+
+    def __init__(self, alvo: discord.Member, atributo: str, admin_id: int, registro: bool = False):
         super().__init__()
         self.alvo = alvo
         self.atributo = atributo
         self.admin_id = admin_id
-        minimo, maximo, _ = STATUS_LIMITES[atributo]
-        self.valor.placeholder = f"Entre {minimo} e {maximo}"
+        self.registro = registro
+        limites = REGISTROS_LIMITES[atributo][:3] if registro else STATUS_LIMITES[atributo]
+        minimo, maximo, _ = limites
+        self.valor.placeholder = f"Valor/quantidade entre {minimo} e {maximo}"
 
     async def on_submit(self, interaction: discord.Interaction):
         if interaction.user.id != self.admin_id or not _administrador(interaction.user):
             await interaction.response.send_message("Somente o administrador que abriu o painel pode concluir.", ephemeral=True)
             return
-        try:
-            valor = int(self.valor.value.strip())
-        except ValueError:
-            await interaction.response.send_message("Informe um número inteiro válido.", ephemeral=True)
+        operacao = self.operacao.value.strip().casefold()
+        operacao = {"set": "definir", "+": "somar", "-": "subtrair", "reset": "zerar"}.get(operacao, operacao)
+        if operacao not in {"definir", "somar", "subtrair", "zerar"}:
+            await interaction.response.send_message("Use `definir`, `somar`, `subtrair` ou `zerar`.", ephemeral=True)
             return
-        minimo, maximo, emoji = STATUS_LIMITES[self.atributo]
-        if not minimo <= valor <= maximo:
+        if operacao == "zerar":
+            quantidade = 0
+        else:
+            try:
+                quantidade = int(self.valor.value.strip())
+            except ValueError:
+                await interaction.response.send_message("Informe uma quantidade inteira válida.", ephemeral=True)
+                return
+        if self.registro:
+            minimo, maximo, emoji, rotulo = REGISTROS_LIMITES[self.atributo]
+            caminho = self.atributo
+        else:
+            minimo, maximo, emoji = STATUS_LIMITES[self.atributo]
+            rotulo = self.atributo.replace("_", " ").title()
+            caminho = f"atributos.{self.atributo}" if self.atributo in ATRIBUTOS_FICHA else self.atributo
+        user = get_user(self.alvo.id)
+        anterior = int(_ler_caminho(user, caminho, 0) or 0)
+        if operacao == "definir":
+            novo = quantidade
+        elif operacao == "somar":
+            novo = anterior + quantidade
+        elif operacao == "subtrair":
+            novo = anterior - quantidade
+        else:
+            novo = minimo
+        if not minimo <= novo <= maximo:
             await interaction.response.send_message(
-                f"O valor de **{self.atributo}** deve ficar entre **{minimo}** e **{maximo}**.",
+                f"O resultado de **{rotulo}** deve ficar entre **{minimo}** e **{maximo}**.",
                 ephemeral=True,
             )
             return
-        user = get_user(self.alvo.id)
-        if self.atributo in ATRIBUTOS_FICHA:
-            anterior = user.setdefault("atributos", {}).get(self.atributo, 0)
-            user["atributos"][self.atributo] = valor
-        else:
-            anterior = user.get(self.atributo, 0)
-            user[self.atributo] = valor
+        _gravar_caminho(user, caminho, novo)
+        if self.atributo == "nivel":
+            user["nivel_manual"] = novo
         save_user(self.alvo.id, user)
         await interaction.response.send_message(embed=embed_soberano_decreto(
-            "Intervenção Administrativa — Status",
+            "Editor Completo — Valor atualizado",
             f"• **Alvo:** {self.alvo.mention}\n"
-            f"• **Atributo:** {emoji} {self.atributo}\n"
+            f"• **Campo:** {emoji} {rotulo}\n"
+            f"• **Operação:** {operacao.title()}\n"
             f"• **Valor anterior:** {anterior}\n"
-            f"• **Novo valor:** {valor}\n"
+            f"• **Novo valor:** {novo}\n"
             f"• **Limite permitido:** {minimo}–{maximo}\n"
             f"• **Administrador:** {interaction.user.mention}"
         ))
@@ -167,7 +257,7 @@ class StatusAtributoSelect(discord.ui.Select):
             )
             for atributo, (minimo, maximo, emoji) in STATUS_LIMITES.items()
         ]
-        super().__init__(placeholder="Selecione o status que deseja alterar", options=options)
+        super().__init__(placeholder="2 • Atributos, progressão e finanças", options=options, row=1)
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.admin_id or not _administrador(interaction.user):
@@ -176,11 +266,175 @@ class StatusAtributoSelect(discord.ui.Select):
         await interaction.response.send_modal(StatusValorModal(self.alvo, self.values[0], self.admin_id))
 
 
-class StatusPainelView(discord.ui.View):
+class CampoTextoModal(discord.ui.Modal, title="Editar informação do perfil"):
+    def __init__(self, alvo: discord.Member, campo: str, admin_id: int):
+        super().__init__()
+        self.alvo = alvo
+        self.campo = campo
+        self.admin_id = admin_id
+        rotulo, _, caminho = CAMPO_TEXTO_PERFIL[campo]
+        atual = str(_ler_caminho(get_user(alvo.id), caminho, "") or "")
+        self.acao = discord.ui.TextInput(
+            label="Ação",
+            placeholder="definir ou limpar",
+            default="definir",
+            max_length=10,
+        )
+        self.valor = discord.ui.TextInput(
+            label=rotulo,
+            placeholder="Digite a nova nomenclatura ou informação",
+            default=atual[:1000] or None,
+            required=False,
+            max_length=1000,
+            style=discord.TextStyle.paragraph if campo == "historia" else discord.TextStyle.short,
+        )
+        self.emoji = discord.ui.TextInput(
+            label="Emoji do cargo (somente parentesco)",
+            placeholder="Ex.: 👑, 🤝, 👨‍👩‍👧",
+            required=False,
+            max_length=20,
+        )
+        self.add_item(self.acao)
+        self.add_item(self.valor)
+        self.add_item(self.emoji)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Somente quem abriu o editor pode concluir.", ephemeral=True)
+            return
+        acao = self.acao.value.strip().casefold()
+        if acao not in {"definir", "limpar"}:
+            await interaction.response.send_message("A ação deve ser `definir` ou `limpar`.", ephemeral=True)
+            return
+        valor = self.valor.value.strip() if acao == "definir" else ""
+        if acao == "definir" and not valor:
+            await interaction.response.send_message("Digite o novo conteúdo ou use a ação `limpar`.", ephemeral=True)
+            return
+        rotulo, emoji_campo, caminho = CAMPO_TEXTO_PERFIL[self.campo]
+        if self.campo == "pegada" and valor.casefold() not in {"imperial", "familia", "mafia", "enterprise"}:
+            await interaction.response.send_message("Pegadas válidas: `imperial`, `familia`, `mafia`, `enterprise`.", ephemeral=True)
+            return
+        if self.campo == "parentesco":
+            nome = valor or "Membro"
+            emoji = self.emoji.value.strip() or ("👤" if not valor else "🤝")
+            await interaction.response.defer(ephemeral=True)
+            try:
+                cargo = await aplicar_parentesco(self.alvo, nome, emoji, interaction.user.id, "editor_status")
+                await interaction.followup.send(
+                    f"{emoji} **{rotulo}** de {self.alvo.mention} alterado para **{nome}** ({cargo.mention}).",
+                    ephemeral=True,
+                )
+            except discord.Forbidden:
+                await interaction.followup.send("Registro salvo, mas não consegui aplicar o cargo pela hierarquia.", ephemeral=True)
+            return
+        user = get_user(self.alvo.id)
+        anterior = _ler_caminho(user, caminho, "—")
+        _gravar_caminho(user, caminho, valor.casefold() if self.campo == "pegada" else (valor or None))
+        if self.campo == "profissao":
+            _gravar_caminho(user, "ficha.profissao", valor or None)
+        save_user(self.alvo.id, user)
+        await interaction.response.send_message(embed=embed_soberano_decreto(
+            "Editor Completo — Informação atualizada",
+            f"• **Alvo:** {self.alvo.mention}\n• **Campo:** {emoji_campo} {rotulo}\n"
+            f"• **Antes:** {anterior or '—'}\n• **Agora:** {valor or '—'}\n• **Ação:** {acao.title()}"
+        ), ephemeral=True)
+
+
+class CampoPerfilSelect(discord.ui.Select):
     def __init__(self, alvo: discord.Member, admin_id: int):
-        super().__init__(timeout=180)
-        self.add_item(StatusAtributoSelect(alvo, admin_id))
-        self.add_item(PrestigioSelect(alvo, admin_id))
+        self.alvo, self.admin_id = alvo, admin_id
+        options = [
+            discord.SelectOption(label=rotulo, value=campo, emoji=emoji, description="Renomear, definir ou limpar")
+            for campo, (rotulo, emoji, _) in CAMPO_TEXTO_PERFIL.items()
+        ]
+        super().__init__(placeholder="1 • Identidade, nomes e vínculos", options=options, row=0)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Este editor pertence a outro administrador.", ephemeral=True)
+            return
+        await interaction.response.send_modal(CampoTextoModal(self.alvo, self.values[0], self.admin_id))
+
+
+class RegistroNumericoSelect(discord.ui.Select):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        self.alvo, self.admin_id = alvo, admin_id
+        options = [
+            discord.SelectOption(label=rotulo, value=campo, emoji=emoji, description=f"Permitido: {minimo}–{maximo}")
+            for campo, (minimo, maximo, emoji, rotulo) in REGISTROS_LIMITES.items()
+        ]
+        super().__init__(placeholder="3 • PvP, missões e registros", options=options, row=2)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Este editor pertence a outro administrador.", ephemeral=True)
+            return
+        await interaction.response.send_modal(StatusValorModal(self.alvo, self.values[0], self.admin_id, registro=True))
+
+
+class ColecaoModal(discord.ui.Modal, title="Editar coleção do perfil"):
+    acao = discord.ui.TextInput(
+        label="Ação",
+        placeholder="adicionar, remover ou limpar",
+        default="adicionar",
+        max_length=10,
+    )
+    item = discord.ui.TextInput(
+        label="Item, habilidade, poder ou conquista",
+        placeholder="Digite exatamente o conteúdo desejado",
+        required=False,
+        max_length=200,
+    )
+
+    def __init__(self, alvo: discord.Member, colecao: str, admin_id: int):
+        super().__init__()
+        self.alvo, self.colecao, self.admin_id = alvo, colecao, admin_id
+
+    async def on_submit(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Somente quem abriu o editor pode concluir.", ephemeral=True)
+            return
+        acao = self.acao.value.strip().casefold()
+        if acao not in {"adicionar", "remover", "limpar"}:
+            await interaction.response.send_message("Use `adicionar`, `remover` ou `limpar`.", ephemeral=True)
+            return
+        item = self.item.value.strip()
+        if acao != "limpar" and not item:
+            await interaction.response.send_message("Informe o conteúdo que será alterado.", ephemeral=True)
+            return
+        rotulo, emoji, caminho = COLECOES_PERFIL[self.colecao]
+        user = get_user(self.alvo.id)
+        atual = list(_ler_caminho(user, caminho, []) or [])
+        if acao == "adicionar":
+            if item.casefold() not in {str(valor).casefold() for valor in atual}:
+                atual.append(item)
+        elif acao == "remover":
+            atual = [valor for valor in atual if str(valor).casefold() != item.casefold()]
+        else:
+            atual = []
+        _gravar_caminho(user, caminho, atual)
+        save_user(self.alvo.id, user)
+        await interaction.response.send_message(embed=embed_soberano_decreto(
+            "Editor Completo — Coleção atualizada",
+            f"• **Alvo:** {self.alvo.mention}\n• **Coleção:** {emoji} {rotulo}\n"
+            f"• **Ação:** {acao.title()}\n• **Conteúdo:** {item or 'Todos os registros'}\n• **Total:** {len(atual)}"
+        ), ephemeral=True)
+
+
+class ColecaoSelect(discord.ui.Select):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        self.alvo, self.admin_id = alvo, admin_id
+        options = [
+            discord.SelectOption(label=rotulo, value=campo, emoji=emoji, description="Adicionar, remover ou limpar")
+            for campo, (rotulo, emoji, _) in COLECOES_PERFIL.items()
+        ]
+        super().__init__(placeholder="4 • Inventário, habilidades e conquistas", options=options, row=3)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.admin_id or not _administrador(interaction.user):
+            await interaction.response.send_message("Este editor pertence a outro administrador.", ephemeral=True)
+            return
+        await interaction.response.send_modal(ColecaoModal(self.alvo, self.values[0], self.admin_id))
 
 
 class PrestigioSelect(discord.ui.Select):
@@ -191,7 +445,7 @@ class PrestigioSelect(discord.ui.Select):
             discord.SelectOption(label=nome, value=chave, emoji=emoji, description=f"Classe de prestígio {nome}")
             for chave, (nome, emoji, _) in PRESTIGIOS.items()
         ]
-        super().__init__(placeholder="Selecionar classe: Bronze, Prata, Ouro...", options=options, row=1)
+        super().__init__(placeholder="5 • Prestígio e classe social", options=options, row=4)
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != self.admin_id or not _administrador(interaction.user):
@@ -214,6 +468,16 @@ class PrestigioSelect(discord.ui.Select):
             await interaction.followup.send(f"{self.alvo.mention} recebeu **{emoji} {nome}** ({cargo.mention}).", ephemeral=True)
         except discord.Forbidden:
             await interaction.followup.send("Prestígio salvo, mas não consegui aplicar o cargo por hierarquia.", ephemeral=True)
+
+
+class StatusPainelView(discord.ui.View):
+    def __init__(self, alvo: discord.Member, admin_id: int):
+        super().__init__(timeout=300)
+        self.add_item(CampoPerfilSelect(alvo, admin_id))
+        self.add_item(StatusAtributoSelect(alvo, admin_id))
+        self.add_item(RegistroNumericoSelect(alvo, admin_id))
+        self.add_item(ColecaoSelect(alvo, admin_id))
+        self.add_item(PrestigioSelect(alvo, admin_id))
 
 def economia_congelada() -> bool:
     return _economia_congelada
@@ -342,17 +606,24 @@ class Soberano:
             return
         alvo = message.mentions[0] if message.mentions else message.author
         user = get_user(alvo.id)
-        resumo = "\n".join(
-            f"{emoji} **{atributo.replace('_', ' ').title()}:** "
-            f"{user.get('atributos', {}).get(atributo, 0) if atributo in ATRIBUTOS_FICHA else user.get(atributo, 0)}"
-            for atributo, (_, _, emoji) in STATUS_LIMITES.items()
-        )
         embed = embed_admin_doc(
-            "Painel de Status do Personagem",
-            f"• **Alvo:** {alvo.mention}\n• **Prestígio:** {user.get('prestigio', 'Bronze')}\n\n{resumo}\n\n"
-            "Selecione abaixo o atributo e depois digite o valor desejado dentro do limite exibido. "
-            "Sem menção, o painel edita o seu próprio personagem."
+            "🛠️ Editor Completo do Personagem",
+            f"### {alvo.mention}\n"
+            f"👤 **Nome RP:** {_ler_caminho(user, 'ficha.nome', alvo.display_name)}\n"
+            f"🏷️ **Título:** {user.get('titulo') or '—'}\n"
+            f"💠 **Prestígio:** {user.get('prestigio', 'Bronze')}\n"
+            f"📊 **Nível:** {user.get('nivel_manual') or user.get('nivel', 1)} • "
+            f"✨ **XP:** {user.get('xp', 0)} • 💥 **Poder:** {user.get('poder', 0)}\n\n"
+            "**Escolha uma área nos menus:**\n"
+            "`1` Identidade, nomenclaturas, vínculos e textos\n"
+            "`2` Atributos, nível, XP, dinheiro e banco\n"
+            "`3` PvP, missões, salário e registros\n"
+            "`4` Inventário, habilidades, poderes e conquistas\n"
+            "`5` Prestígio e cargo visual\n\n"
+            "Nos campos numéricos use **definir**, **somar**, **subtrair** ou **zerar**. "
+            "Nos textos use **definir** ou **limpar**. Sem menção, você edita o próprio perfil."
         )
+        embed.set_thumbnail(url=alvo.display_avatar.url)
         await message.channel.send(embed=embed, view=StatusPainelView(alvo, message.author.id))
 
     async def cmd_apagar_ficha(self, message, args):

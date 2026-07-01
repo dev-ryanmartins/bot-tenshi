@@ -30,6 +30,8 @@ O painel `tenshi parentesco [@usuario]` cria e aplica cargos familiares mantendo
 
 O comando `tenshi ajuda` abre uma central interativa com todas as categorias de comandos, navegação por menu e botões de página. O texto mestre continua auditável contra as rotas do bot para que nenhum comando fique escondido.
 
+O comando administrativo `tenshi set-status [@usuario]` funciona como editor completo: permite renomear identidade e campos visuais, definir/limpar textos, definir/somar/subtrair/zerar números, gerenciar inventário, habilidades, poderes e conquistas, além de trocar prestígio e parentesco com cargos sincronizados. `tenshi organizar-canais` cria uma categoria com canais temáticos para comandos, fichas, mercado, Academia, família, aventuras, eventos e suporte, sem duplicar o que já existe.
+
 O comando administrativo `tenshi sincronizar-condominio` gera ou vincula os 50 canais residenciais preservando o prefixo visual dos canais já existentes.
 
 Novos participantes recebem automaticamente o cargo estético `Membro`. Administradores usam `tenshi parentesco` para selecionar a pessoa e definir `Filho`, `Filha`, `Irmão`, `Irmã`, `Familiar` ou um vínculo personalizado. Casamentos aplicam `Familiar` e uma dissolução restaura o vínculo anterior.
