@@ -61,6 +61,8 @@ class StatusAcademiaTest(unittest.IsolatedAsyncioTestCase):
         autor = SimpleNamespace(
             id=IMPERADOR_ID,
             mention="@imperador",
+            display_name="Imperador",
+            display_avatar=SimpleNamespace(url="https://example.com/avatar.png"),
             guild_permissions=SimpleNamespace(administrator=False),
         )
         canal = FakeChannel()
@@ -70,7 +72,8 @@ class StatusAcademiaTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(len(canal.envios), 1)
         painel = canal.envios[0]["view"]
-        self.assertIs(painel.children[0].alvo, autor)
+        self.assertEqual(len(painel.children), 5)
+        self.assertTrue(all(item.alvo is autor for item in painel.children))
 
     def test_prestigios_e_funcoes_docentes_estao_disponiveis(self):
         self.assertEqual(set(PRESTIGIOS), {"bronze", "prata", "ouro", "platina", "diamante", "obsidiana", "iridio"})

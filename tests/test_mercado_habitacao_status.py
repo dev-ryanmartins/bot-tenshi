@@ -72,8 +72,8 @@ class MercadoHabitacaoStatusTest(unittest.IsolatedAsyncioTestCase):
             "lideranca", "magia", "defesa", "velocidade",
         })
         view = StatusPainelView(FakeMember(), 1)
-        self.assertEqual(len(view.children), 2)
-        self.assertEqual(len(view.children[0].options), len(STATUS_LIMITES))
+        self.assertEqual(len(view.children), 5)
+        self.assertEqual(len(view.children[1].options), len(STATUS_LIMITES))
 
 
 if __name__ == "__main__":

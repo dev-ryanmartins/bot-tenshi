@@ -81,7 +81,8 @@ class StatusView(discord.ui.View):
 # ─────────────────────────────────────────────────────────────────────────────
 async def _build_perfil_embed(bot, member: discord.Member | discord.User) -> discord.Embed:
     user      = get_user(member.id)
-    nivel, xp_prox = calcular_nivel(user["xp"])
+    nivel_calculado, xp_prox = calcular_nivel(user["xp"])
+    nivel = int(user.get("nivel_manual") or nivel_calculado)
     user["nivel"] = nivel
     pegada    = user.get("pegada", "imperial")
     cor       = CORES_PEGADA.get(pegada, 0x2B0A3D)
@@ -94,7 +95,7 @@ async def _build_perfil_embed(bot, member: discord.Member | discord.User) -> dis
     xp_barra  = barra_progresso(xp_atual % max(xp_prox, 1), xp_prox, 14)
 
     # Social
-    faccao_str  = user.get("faccao") or "—"
+    faccao_str  = user.get("faccao_nome_custom") or user.get("faccao") or "—"
     familia_str = "—"
     empresa_str = "—"
     casa_str    = "—"
@@ -115,6 +116,9 @@ async def _build_perfil_embed(bot, member: discord.Member | discord.User) -> dis
     if cid:
         cs = get_casas().get(cid, {})
         casa_str = f"{cs.get('emoji','🏠')} {cs.get('nome','?')}"
+    casa_str = user.get("moradia_custom") or casa_str
+    familia_str = user.get("organizacao_custom") or familia_str
+    empresa_str = user.get("empresa_custom") or empresa_str
 
     ficha     = user.get("ficha", {})
     nome_rp   = ficha.get("nome") or user.get("nome") or member.display_name
@@ -123,14 +127,14 @@ async def _build_perfil_embed(bot, member: discord.Member | discord.User) -> dis
 
     if eh_imp:
         embed = discord.Embed(
-            title="⚜️ 👑 IMPERADOR SUPREMO DE TENSHI 👑 ⚜️",
-            description=f"*O universo inteiro reconhece esta presença divina...*\n{SEP}",
+            title=user.get("cabecalho_perfil") or "⚜️ 👑 IMPERADOR SUPREMO DE TENSHI 👑 ⚜️",
+            description=f"*{user.get('subtitulo_perfil') or 'O universo inteiro reconhece esta presença divina...'}*\n{SEP}",
             color=0xFFD700
         )
     else:
         embed = discord.Embed(
-            title=f"{emoji_p} PERGAMINHO IMPERIAL",
-            description=f"*Os registros de Tenshi revelam a alma de **{nome_rp}**...*\n{SEP}",
+            title=user.get("cabecalho_perfil") or f"{emoji_p} PERGAMINHO IMPERIAL",
+            description=f"*{user.get('subtitulo_perfil') or f'Os registros de Tenshi revelam a alma de **{nome_rp}**...'}*\n{SEP}",
             color=cor
         )
 
@@ -166,7 +170,9 @@ async def _build_perfil_embed(bot, member: discord.Member | discord.User) -> dis
     embed.add_field(name="🏟️ PvP", value=pvp, inline=True)
 
     embed.set_thumbnail(url=member.display_avatar.url)
-    if eh_imp:
+    if user.get("rodape_perfil"):
+        embed.set_footer(text=f"{user['rodape_perfil']}  •  {RODAPE_IMPERIAL}")
+    elif eh_imp:
         embed.set_footer(text="⚜️ Alloy Tenshi — O Imperador Eterno  •  " + RODAPE_IMPERIAL)
     else:
         embed.set_footer(text=f"{emoji_p} {nome_p}  •  {RODAPE_IMPERIAL}")
@@ -216,6 +222,13 @@ def _build_conquistas_embed(member: discord.Member | discord.User) -> discord.Em
     if user.get("casa_id"): conquistas.append(("🏠 Proprietário", "Possui uma propriedade"))
     if user.get("familia_id"): conquistas.append(("👨‍👩‍👧 Laços de Sangue", "Membro de uma organização"))
     if user.get("empresa_id"): conquistas.append(("🏢 Homem de Negócios", "Ligado a uma empresa"))
+    for conquista in user.get("conquistas", []):
+        if isinstance(conquista, dict):
+            titulo = str(conquista.get("titulo") or conquista.get("nome") or "Conquista personalizada")
+            descricao = str(conquista.get("descricao") or "Concedida pela administração")
+        else:
+            titulo, descricao = str(conquista), "Concedida pela administração"
+        conquistas.append((f"🌟 {titulo}", descricao))
 
     embed = discord.Embed(
         title="🏆 CONQUISTAS IMPERIAIS",
@@ -238,7 +251,7 @@ def _build_financeiro_embed(member: discord.Member | discord.User) -> discord.Em
     cor = CORES_DESTAQUE.get(pegada, 0x8A2BE2)
     moedas = user.get("moedas", 0)
     banco  = user.get("conta_banco", 0)
-    divida = sum(e["valor_restante"] for e in user.get("emprestimos", []))
+    divida = sum(e.get("valor_restante", 0) for e in user.get("emprestimos", [])) + user.get("divida_manual", 0)
     patrimonio = moedas + banco - divida
     salario = user.get("salario", 0)
 
@@ -271,7 +284,7 @@ class PerfilConfig:
     async def handle_status(self, message):
         user_db = get_user(message.author.id)
         nivel, _ = calcular_nivel(user_db["xp"])
-        user_db["nivel"] = nivel
+        user_db["nivel"] = int(user_db.get("nivel_manual") or nivel)
         save_user(message.author.id, user_db)
 
         # Apaga a mensagem de status anterior deste usuário neste canal, se existir

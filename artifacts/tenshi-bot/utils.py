@@ -569,6 +569,7 @@ AJUDA_TEXTO = f"""
 `devolver-casa` `moradores` `relaxar` `fofoca` `trancar-casa` `destrancar-casa`
 *A portaria oferece 50 casas; canais privados são criados automaticamente após compra ou aluguel.*
 `sincronizar-condominio` *(admin; gera/vincula os 50 canais mantendo a estética existente)*
+`organizar-canais` *(admin; cria canais temáticos de RPG, mercado, Academia, família e suporte)*
 
 **🚗 Garagem, Esportes & Pets**
 `garagem` `vender-veiculo` `abastecer [v]` `basquete @user` `futebol @user`
@@ -633,7 +634,8 @@ AJUDA_TEXTO = f"""
 `notas @user` `info @user` `historico @user`
 **👑 Prerrogativas Soberanas** *(Imperador)*
 `emitir-moeda` `confiscar-fortuna` `congelar-banco` `perdoar-divida` `isencao-fiscal`
-`set-status [@user]` *(admin; sem menção edita você)* `apagar-ficha` `conceder-item` `imortalidade`
+`set-status [@user]` *(editor completo: nomes, textos, números, coleções e prestígio)*
+`apagar-ficha` `conceder-item` `imortalidade`
 `estado-de-sitio` `dissolver-mafia` `anistia-geral` `exilio-supremo`
 `atualizar-diretriz` `apagar-memoria-ia` `forcar-cronica` `censo-imperial`
 `reset-era` `irradiar [msg]` `congelar-economia` `exportar-banco` `desligar`
