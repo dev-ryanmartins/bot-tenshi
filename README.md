@@ -56,6 +56,27 @@ worker: python main.py
 
 Se o painel da Railway pedir manualmente, use exatamente esse comando.
 
+### 4. Erro comum: `DISCORD_TOKEN nao encontrado`
+
+Se os logs mostrarem:
+
+```text
+DISCORD_TOKEN nao encontrado no ambiente
+```
+
+o Worker iniciou corretamente, mas a variavel nao foi cadastrada no servico certo da Railway.
+
+Confira:
+
+1. Abra o projeto na Railway.
+2. Clique no servico do bot, o **Worker**.
+3. Abra **Variables**.
+4. Cadastre `DISCORD_TOKEN` exatamente com esse nome.
+5. Cadastre tambem `OPENROUTER_API_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_SECRET` e `ENABLE_SITE`.
+6. Clique em **Redeploy** no ultimo deploy.
+
+Nao coloque aspas ao redor do token e nao adicione espacos antes ou depois do valor.
+
 ## Rodar em VPS Linux com PM2
 
 ### 1. Instale Python, Git e PM2

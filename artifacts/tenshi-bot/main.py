@@ -2,6 +2,7 @@ import discord
 import os
 import asyncio
 import json
+import sys
 from datetime import UTC, datetime
 
 
@@ -1495,7 +1496,9 @@ if __name__ == "__main__":
     _site_thread = start_site_server_thread(bot)
     token = os.environ.get("DISCORD_TOKEN")
     if not token:
-        print("❌ DISCORD_TOKEN não encontrado no ambiente!")
+        print("[ERRO] DISCORD_TOKEN nao encontrado no ambiente.")
+        print("[ERRO] Configure DISCORD_TOKEN em Railway -> Variables e faca um redeploy.")
+        sys.exit(1)
     else:
         try:
             bot.run(token)
