@@ -476,6 +476,12 @@ async def on_message(message):
     eh_comando     = resto_comando is not None
 
     if eh_comando:
+        resto = resto_comando
+        partes = resto.split()
+        if not partes:
+            return
+        cmd = partes[0].lower()
+        args = partes[1:]
         # Verificar se o comando pode ser usado no canal atual
         if not _verificar_canal_permitido(message, resto_comando.split()[0] if resto_comando else ""):
             await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
@@ -532,14 +538,6 @@ async def on_message(message):
             return
         await loremaster.handle_lore_natural(message, conteudo)
         return
-
-    resto  = resto_comando
-    partes = resto.split()
-    if not partes:
-        return
-
-    cmd  = partes[0].lower()
-    args = partes[1:]
 
     if cmd in ("confirmar", "confirmo", "sim"):
         await processar_resposta(message, confirmar=True)

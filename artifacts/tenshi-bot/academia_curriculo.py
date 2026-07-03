@@ -483,6 +483,240 @@ CURRICULO_ACADEMIA: dict[str, dict] = {
             "alimentar, recepção, hospedagem, eventos e protocolo de serviço."
         ),
     },
+    "arquitetura_imperial": {
+        "nome": "Arquitetura e Design Imperial",
+        "emoji": "🏛️",
+        "faculdade": "Faculdade de Tecnologia",
+        "cargo_destino": "Arquiteto Imperial",
+        "tempo_estudo_h": 18,
+        "competencias": ["arquitetura", "design de interiores", "urbanismo", "restauração", "planejamento espacial"],
+        "permissoes_rpg": [
+            "projetar edifícios imperiais",
+            "supervisionar restaurações",
+            "planejar espaços públicos e privados",
+        ],
+        "empregos": ["arquiteto_imperial", "designer_interiores", "urbanista"],
+        "prompt": (
+            "Você é Professor de Arquitetura Imperial. Ensine arquitetura, design, urbanismo, restauração "
+            "e planejamento espacial no contexto do Império de Tenshi."
+        ),
+    },
+    "logistica_transportes": {
+        "nome": "Logística e Transportes Imperiais",
+        "emoji": "🚚",
+        "faculdade": "Faculdade Tenshi Enterprise",
+        "cargo_destino": "Gestor Logístico Imperial",
+        "tempo_estudo_h": 16,
+        "competencias": ["logística", "transportes", "cadeia de suprimentos", "gestão de frotas", "armazenagem"],
+        "permissoes_rpg": [
+            "gerir transportes imperiais",
+            "organizar rotas logísticas",
+            "administrar armazéns e frotas",
+        ],
+        "empregos": ["gestor_logistico", "coordenador_transportes", "gerente_armazem"],
+        "prompt": (
+            "Você é Professor de Logística Imperial. Ensine logística, transportes, cadeia de suprimentos, "
+            "gestão de frotas e armazenagem eficiente."
+        ),
+    },
+    "marketing_imperial": {
+        "nome": "Marketing e Comunicação Estratégica",
+        "emoji": "📢",
+        "faculdade": "Faculdade de Comunicação",
+        "cargo_destino": "Diretor de Marketing Imperial",
+        "tempo_estudo_h": 14,
+        "competencias": ["marketing", "branding", "publicidade", "relações públicas", "análise de mercado"],
+        "permissoes_rpg": [
+            "criar campanhas imperiais",
+            "gerir imagem pública",
+            "desenvolver estratégias de comunicação",
+        ],
+        "empregos": ["diretor_marketing", "analista_mercado", "relacoes_publicas"],
+        "prompt": (
+            "Você é Professor de Marketing Imperial. Ensine marketing, branding, publicidade, relações públicas "
+            "e análise de mercado para o Império de Tenshi."
+        ),
+    },
+    "recursos_humanos": {
+        "nome": "Gestão de Recursos Humanos",
+        "emoji": "👥",
+        "faculdade": "Faculdade Tenshi Enterprise",
+        "cargo_destino": "Diretor de RH Imperial",
+        "tempo_estudo_h": 14,
+        "competencias": ["recrutamento", "treinamento", "avaliação de desempenho", "gestão de talentos", "cultura organizacional"],
+        "permissoes_rpg": [
+            "recrutar para cargos imperiais",
+            "gerir treinamentos",
+            "avaliar desempenho de funcionários",
+        ],
+        "empregos": ["diretor_rh", "recrutador", "treinador"],
+        "prompt": (
+            "Você é Professor de Recursos Humanos. Ensine recrutamento, treinamento, avaliação, "
+            "gestão de talentos e cultura organizacional."
+        ),
+    },
+    "financas_corporativas": {
+        "nome": "Finanças Corporativas e Investimentos",
+        "emoji": "💹",
+        "faculdade": "Faculdade Tenshi Enterprise",
+        "cargo_destino": "CFO Imperial",
+        "tempo_estudo_h": 18,
+        "competencias": ["finanças corporativas", "investimentos", "análise financeira", "gestão de riscos", "mergidos e aquisições"],
+        "permissoes_rpg": [
+            "gerir finanças corporativas",
+            "analisar investimentos",
+            "supervisionar operações financeiras",
+        ],
+        "empregos": ["cfo_imperial", "analista_financeiro", "gestor_investimentos"],
+        "prompt": (
+            "Você é Professor de Finanças Corporativas. Ensine finanças, investimentos, análise financeira, "
+            "gestão de riscos e operações de M&A."
+        ),
+    },
+    "ciencias_politicas": {
+        "nome": "Ciências Políticas e Relações Governamentais",
+        "emoji": "🏛️",
+        "faculdade": "Faculdade Imperial de Governo",
+        "cargo_destino": "Analista Político Imperial",
+        "tempo_estudo_h": 16,
+        "competencias": ["ciência política", "relações governamentais", "política pública", "análise legislativa", "lobby ético"],
+        "permissoes_rpg": [
+            "analisar cenários políticos",
+            "assessorar em políticas públicas",
+            "representar interesses governamentais",
+        ],
+        "empregos": ["analista_politico", "assessor_governamental", "consultor_politico"],
+        "prompt": (
+            "Você é Professor de Ciências Políticas. Ensine ciência política, relações governamentais, "
+            "política pública, análise legislativa e lobby ético."
+        ),
+    },
+    "historia_imperial": {
+        "nome": "História Imperial e Patrimônio",
+        "emoji": "📜",
+        "faculdade": "Faculdades Complementares",
+        "cargo_destino": "Historiador Imperial",
+        "tempo_estudo_h": 14,
+        "competencias": ["história imperial", "patrimônio cultural", "arqueologia", "preservação", "memória histórica"],
+        "permissoes_rpg": [
+            "documentar história imperial",
+            "preservar patrimônio cultural",
+            "conduzir pesquisas históricas",
+        ],
+        "empregos": ["historiador_imperial", "arquivista", "curador_patrimonio"],
+        "prompt": (
+            "Você é Professor de História Imperial. Ensine história do Império, patrimônio cultural, "
+            "arqueologia, preservação e memória histórica."
+        ),
+    },
+    "educacao_pedagogia": {
+        "nome": "Educação e Pedagogia Imperial",
+        "emoji": "🎓",
+        "faculdade": "Faculdades Complementares",
+        "cargo_destino": "Pedagogo Imperial",
+        "tempo_estudo_h": 16,
+        "competencias": ["pedagogia", "metodologia de ensino", "psicologia educacional", "currículo", "avaliação educacional"],
+        "permissoes_rpg": [
+            "desenvolver currículos",
+            "treinar professores",
+            "criar métodos educacionais",
+        ],
+        "empregos": ["pedagogo_imperial", "coordenador_curricular", "treinador_professores"],
+        "prompt": (
+            "Você é Professor de Educação e Pedagogia. Ensine pedagogia, metodologia, psicologia educacional, "
+            "currículo e avaliação educacional."
+        ),
+    },
+    "esportes_educacao_fisica": {
+        "nome": "Esportes e Educação Física Imperial",
+        "emoji": "⚽",
+        "faculdade": "Faculdade de Ciências Naturais",
+        "cargo_destino": "Treinador Imperial",
+        "tempo_estudo_h": 12,
+        "competencias": ["educação física", "treinamento esportivo", "fisiologia", "nutrição esportiva", "gestão de equipes"],
+        "permissoes_rpg": [
+            "treinar atletas imperiais",
+            "organizar eventos esportivos",
+            "desenvolver programas de fitness",
+        ],
+        "empregos": ["treinador_imperial", "instrutor_fisico", "organizador_esportes"],
+        "prompt": (
+            "Você é Professor de Educação Física. Ensine esportes, treinamento, fisiologia, nutrição esportiva "
+            "e gestão de equipes atléticas."
+        ),
+    },
+    "botanica_jardinagem": {
+        "nome": "Botânica e Jardinagem Imperial",
+        "emoji": "🌿",
+        "faculdade": "Faculdade de Ciências Naturais",
+        "cargo_destino": "Botânico Imperial",
+        "tempo_estudo_h": 14,
+        "competencias": ["botânica", "jardinagem", "paisagismo", "cultivo de plantas", "conservação de espécies"],
+        "permissoes_rpg": [
+            "gerir jardins imperiais",
+            "cultivar plantas raras",
+            "projetar paisagens",
+        ],
+        "empregos": ["botanico_imperial", "jardineiro_chefe", "paisagista"],
+        "prompt": (
+            "Você é Professor de Botânica. Ensine botânica, jardinagem, paisagismo, cultivo de plantas "
+            "e conservação de espécies no Império."
+        ),
+    },
+    "astronomia_cosmologia": {
+        "nome": "Astronomia e Cosmologia Imperial",
+        "emoji": "🔭",
+        "faculdade": "Faculdade de Ciências Naturais",
+        "cargo_destino": "Astrônomo Imperial",
+        "tempo_estudo_h": 18,
+        "competencias": ["astronomia", "cosmologia", "astrofísica", "navegação celestial", "observatório"],
+        "permissoes_rpg": [
+            "operar observatórios imperiais",
+            "conduzir pesquisas astronômicas",
+            "navegar por estrelas",
+        ],
+        "empregos": ["astronomo_imperial", "astrofisico", "navegador_celestial"],
+        "prompt": (
+            "Você é Professor de Astronomia. Ensine astronomia, cosmologia, astrofísica, navegação celestial "
+            "e operação de observatórios."
+        ),
+    },
+    "quimica_alquimia": {
+        "nome": "Química e Alquimia Imperial",
+        "emoji": "⚗️",
+        "faculdade": "Faculdade de Ciências Naturais",
+        "cargo_destino": "Químico Imperial",
+        "tempo_estudo_h": 16,
+        "competencias": ["química", "alquimia", "laboratório", "análise química", "síntese"],
+        "permissoes_rpg": [
+            "conduzir experimentos químicos",
+            "analisar substâncias",
+            "desenvolver novos compostos",
+        ],
+        "empregos": ["quimico_imperial", "alquimista", "analista_laboratorial"],
+        "prompt": (
+            "Você é Professor de Química e Alquimia. Ensine química, alquimia, laboratório, análise química "
+            "e síntese de compostos no contexto do RPG."
+        ),
+    },
+    "fisica_engenharia": {
+        "nome": "Física e Engenharia Aplicada",
+        "emoji": "⚡",
+        "faculdade": "Faculdade de Tecnologia",
+        "cargo_destino": "Físico Imperial",
+        "tempo_estudo_h": 18,
+        "competencias": ["física", "engenharia aplicada", "mecânica", "termodinâmica", "eletricidade"],
+        "permissoes_rpg": [
+            "desenvolver tecnologias físicas",
+            "analisar sistemas mecânicos",
+            "projetar soluções de engenharia",
+        ],
+        "empregos": ["fisico_imperial", "engenheiro_aplicado", "pesquisador_fisico"],
+        "prompt": (
+            "Você é Professor de Física e Engenharia. Ensine física, engenharia aplicada, mecânica, "
+            "termodinâmica e eletricidade no contexto imperial."
+        ),
+    },
 }
 
 
