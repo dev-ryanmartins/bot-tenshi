@@ -101,6 +101,7 @@ from cogs.poderes import Poderes
 from cogs.psicologia import Psicologia
 from cogs.rpg import RPG
 from cogs.soberano import Soberano, aplicar_perfil_supremo_imperador, garantir_cargos_supremos
+from cogs.sistema_teste import SistemaTeste
 from cogs.social import Social
 from cogs.temporadas import Temporadas
 from cogs.vizinhanca import Vizinhanca
@@ -158,6 +159,7 @@ clero_cog   = Clero(bot)
 juridico    = Juridico(bot)
 intel       = Inteligencia(bot)
 soberano    = Soberano(bot)
+sistema_teste = SistemaTeste(bot)
 geopolitica = Geopolitica(bot)
 estado      = Estado(bot)
 eras_cog    = Eras(bot)
@@ -909,6 +911,19 @@ async def on_message(message):
 
     elif cmd in ("listar-topics", "listar-tópicos", "topics"):
         await embed_topics.handle_listar_topics(message, args)
+        return
+
+    # ── SISTEMA DE TESTE ───────────────────────────────────────────────────────────
+    elif cmd in ("teste-sistema", "testar-sistema", "diagnostico", "check"):
+        await sistema_teste.handle_teste_sistema(message, args)
+        return
+
+    elif cmd in ("teste-embed", "testar-embed", "preview-embed"):
+        await sistema_teste.handle_teste_embed(message, args)
+        return
+
+    elif cmd in ("teste-painel", "testar-painel"):
+        await sistema_teste.handle_teste_painel(message, args)
         return
 
     # ── AI CHATBOT ───────────────────────────────────────────────────────────────
