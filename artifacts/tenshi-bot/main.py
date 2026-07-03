@@ -1097,6 +1097,107 @@ async def on_message(message):
         await level_rewards.handle_add_reward(message, args)
         return
 
+    # ── PROTEÇÃO IMPERIAL - Finalização UPP ───────────────────────────────────
+    elif cmd in ("protecao-imperial", "protecaoimperial", "config-protecao"):
+        await protecao_parcerias.cmd_protecao_imperial(message)
+        return
+
+    elif cmd in ("ativar-protecao", "ativarprotecao", "enable-protection"):
+        await protecao_parcerias.cmd_ativar_protecao(message)
+        return
+
+    elif cmd in ("desativar-protecao", "desativarprotecao", "disable-protection"):
+        await protecao_parcerias.cmd_desativar_protecao(message)
+        return
+
+    elif cmd in ("confianca", "confiança", "trust", "add-trust"):
+        if args and message.mentions:
+            await protecao_parcerias.cmd_confianca(message, message.mentions[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi confianca @usuario*", 0x6B0000))
+        return
+
+    elif cmd in ("remover-confianca", "removerconfianca", "remove-trust"):
+        if args and message.mentions:
+            await protecao_parcerias.cmd_remover_confianca(message, message.mentions[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi remover-confianca @usuario*", 0x6B0000))
+        return
+
+    elif cmd in ("bloquear-servidor", "bloquearservidor", "block-server"):
+        if args:
+            try:
+                guild_id = int(args[0])
+                await protecao_parcerias.cmd_bloquear_servidor(message, guild_id)
+            except ValueError:
+                await message.channel.send(embed=embed_imperial("❌ ID Inválido", "*Use: tenshi bloquear-servidor [id do servidor]*", 0x6B0000))
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi bloquear-servidor [id do servidor]*", 0x6B0000))
+        return
+
+    elif cmd in ("desbloquear-servidor", "desbloquearservidor", "unblock-server"):
+        if args:
+            try:
+                guild_id = int(args[0])
+                await protecao_parcerias.cmd_desbloquear_servidor(message, guild_id)
+            except ValueError:
+                await message.channel.send(embed=embed_imperial("❌ ID Inválido", "*Use: tenshi desbloquear-servidor [id do servidor]*", 0x6B0000))
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi desbloquear-servidor [id do servidor]*", 0x6B0000))
+        return
+
+    elif cmd in ("atividade-suspeita", "atividadesuspeita", "suspicious-activity"):
+        if args and message.mentions:
+            await protecao_parcerias.cmd_atividade_suspeita(message, message.mentions[0])
+        else:
+            await protecao_parcerias.cmd_atividade_suspeita(message, None)
+        return
+
+    # ── SISTEMA DE PARCERIAS - Finalização UPP ────────────────────────────────
+    elif cmd in ("parceria", "partnership", "create-partnership"):
+        if args:
+            await protecao_parcerias.cmd_parceria(message, args[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi parceria [link de convite]*", 0x6B0000))
+        return
+
+    elif cmd in ("historico-parcerias", "historicoparcerias", "partnership-history"):
+        await protecao_parcerias.cmd_historico_parcerias(message)
+        return
+
+    # ── MODERAÇÃO DE CONTEÚDO - Finalização UPP ───────────────────────────────
+    elif cmd in ("config-moderacao", "configmoderacao", "moderation-config"):
+        await moderacao_conteudo.cmd_config_moderacao(message)
+        return
+
+    elif cmd in ("bloquear-link", "bloquearlink", "block-link"):
+        if args:
+            await moderacao_conteudo.cmd_bloquear_link(message, args[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi bloquear-link [url]*", 0x6B0000))
+        return
+
+    elif cmd in ("desbloquear-link", "desbloquearlink", "unblock-link"):
+        if args:
+            await moderacao_conteudo.cmd_desbloquear_link(message, args[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi desbloquear-link [url]*", 0x6B0000))
+        return
+
+    elif cmd in ("adicionar-dominio-confianca", "adicionardominioconfianca", "add-trusted-domain"):
+        if args:
+            await moderacao_conteudo.cmd_adicionar_dominio_confianca(message, args[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi adicionar-dominio-confianca [dominio]*", 0x6B0000))
+        return
+
+    elif cmd in ("remover-dominio-confianca", "removerdominioconfianca", "remove-trusted-domain"):
+        if args:
+            await moderacao_conteudo.cmd_remover_dominio_confianca(message, args[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi remover-dominio-confianca [dominio]*", 0x6B0000))
+        return
+
     elif cmd in ("add-reward-item", "adicionar-item-recompensa"):
         await level_rewards.handle_add_reward_item(message, args)
         return
