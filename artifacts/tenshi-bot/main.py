@@ -560,130 +560,169 @@ async def on_message(message):
     # ── PERFIL & FICHA ────────────────────────────────────────────────────────
     if cmd in ("status", "perfil", "eu", "me"):
         await perfil_cfg.handle_status(message)
+        return
 
     elif cmd in ("ficha",):
         await perfil_cfg.handle_ficha(message, args)
+        return
 
     elif cmd in ("criar-ficha", "criarficha", "new-char", "novo-personagem", "registrar"):
         await especies.handle_criar_ficha(message)
+        return
 
     elif cmd in ("pegada", "vibe", "estilo", "tema"):
         await perfil_cfg.handle_pegada(message, args)
+        return
 
     elif cmd in ("inventario", "inventário", "inv"):
         await perfil_cfg.handle_inventario(message)
+        return
 
     elif cmd in ("conquistas", "achievements"):
         await perfil_cfg.handle_conquistas(message)
+        return
 
     # ── ESPÉCIES & LOCALIZAÇÃO ───────────────────────────────────────────────
     elif cmd in ("especies", "espécies", "racas", "raças"):
         await especies.handle_especies(message)
+        return
 
     elif cmd in ("viajar", "travel", "mover", "ir"):
         await especies.handle_viajar(message)
+        return
 
     elif cmd in ("mundo", "viajar-mundo", "viajando-pelo-mundo", "atlas-mundial"):
         await mundo.handle_mundo(message, args)
+        return
 
     elif cmd in ("terminar-viagem", "encerrar-viagem", "voltar-de-viagem"):
         await mundo.handle_terminar_viagem(message, args)
+        return
 
     elif cmd in ("viagem-atual", "onde-estou-mundo", "destino-atual"):
         await mundo.handle_viagem_atual(message, args)
+        return
 
     elif cmd in ("local", "localizacao", "localização", "onde-estou", "mapa"):
         await especies.handle_meu_local(message)
+        return
 
     # ── PODERES DE RP ─────────────────────────────────────────────────────────
     elif cmd in ("poderes", "poder", "habilidades", "skills", "arvore"):
         await poderes_cog.handle_poderes(message)
+        return
 
     elif cmd in ("meus-poderes", "meuspoderes", "meus_poderes"):
         await poderes_cog.handle_meus_poderes(message)
+        return
 
     # ── RPG NARRATIVO ─────────────────────────────────────────────────────────
     elif cmd in ("treinar", "treino", "train"):
         await rpg.handle_treinar(message, args)
+        return
 
     elif cmd in ("missao", "missão", "mission"):
         await rpg.handle_missao(message, args)
+        return
 
     elif cmd in ("meditar", "meditate"):
         await rpg.handle_meditar(message)
+        return
 
     elif cmd in ("descansar", "rest"):
         await rpg.handle_descansar(message)
+        return
 
     elif cmd in ("trabalhar", "trabalho", "work"):
         # Atalho rápido para emprego
         await empregos.handle_emprego(message, args)
+        return
 
     elif cmd in ("emprego", "empregos", "jobs", "job"):
         if not args:
             await empregos.handle_trabalhos(message)
         else:
             await empregos.handle_emprego(message, args)
+        return
 
     elif cmd in ("carreiras", "cargos-trabalho", "profissoes-disponiveis"):
         await empregos.handle_carreiras(message)
+        return
 
     elif cmd in ("regras-trabalho", "regras-emprego", "normas-trabalho"):
         await empregos.handle_regras(message)
+        return
 
     elif cmd in ("profissao", "profissão", "classe"):
         await rpg.handle_profissao(message, args)
+        return
 
     elif cmd in ("interagir", "rp", "emote"):
         await rpg.handle_interagir(message, args)
+        return
 
     elif cmd in ("dado", "dice", "rolar"):
         await rpg.handle_dado(message, args)
+        return
 
     # ── LOREMASTER IA ─────────────────────────────────────────────────────────
     elif cmd in ("cronica", "crônica", "lore"):
         await loremaster.handle_cronica(message, args)
+        return
 
     elif cmd in ("evento-lore", "profecia"):
         await loremaster.handle_evento_lore(message)
+        return
 
     elif cmd in ("oraculo", "oráculo"):
         await loremaster.handle_oraculo(message, args)
+        return
 
     elif cmd in ("falar", "npc"):
         await loremaster.handle_falar(message, args)
+        return
 
     elif cmd in ("lore-historico", "cronicas-antigas"):
         await loremaster.handle_lore_historico(message)
+        return
 
     elif cmd in ("quadro-avisos", "avisos", "missoes-diarias"):
         await loremaster.handle_quadro_avisos(message)
+        return
 
     # ── MÍSTICO ───────────────────────────────────────────────────────────────
     elif cmd in ("tarot", "carta"):
         await mistico.handle_tarot(message)
+        return
 
     elif cmd in ("runa", "rune"):
         await mistico.handle_runa(message)
+        return
 
     elif cmd in ("astros", "constelacao", "horoscopo"):
         await mistico.handle_astros(message)
+        return
 
     elif cmd in ("destino",):
         await mistico.handle_destino(message, args)
+        return
 
     elif cmd in ("sacrificio", "sacrifício", "purificar"):
         await mistico.handle_sacrificio(message, args)
+        return
 
     elif cmd in ("ritual-protecao", "ritual"):
         await mistico.handle_ritual(message)
+        return
 
     # ── COMBATE ───────────────────────────────────────────────────────────────
     elif cmd in ("duelo", "duelar", "duel"):
         await duelo.handle_duelo(message, args)
+        return
 
     elif cmd in ("aceitar-duelo", "aceitar"):
         await duelo.handle_aceitar_duelo(message)
+        return
 
     elif cmd in ("invocar-chefe", "boss", "monstro"):
         tem_perm = False
@@ -693,6 +732,7 @@ async def on_message(message):
             await eventos.iniciar_invasao(message.channel, args)
         else:
             await message.channel.send(embed=embed_imperial("🚫", "*Apenas administradores podem invocar criaturas.*", 0x6B0000))
+        return
 
     elif cmd in ("invasao", "invasão"):
         tem_perm = False
@@ -702,249 +742,324 @@ async def on_message(message):
             await eventos.iniciar_invasao(message.channel)
         else:
             await message.channel.send(embed=embed_imperial("🚫", "*Apenas administradores podem iniciar invasões.*", 0x6B0000))
+        return
 
     # ── ECONOMIA ──────────────────────────────────────────────────────────────
     elif cmd in ("carteira", "saldo", "wallet", "moedas"):
         await economia.handle_carteira(message)
+        return
 
     elif cmd in ("mercado", "loja", "shop"):
         await economia.handle_loja(message)
+        return
 
     elif cmd in ("mercado-negro", "mercadonegro"):
         await economia.handle_mercado_negro(message)
+        return
 
     elif cmd in ("comprar", "compra", "buy"):
         await economia.handle_comprar(message, args)
+        return
 
     elif cmd in ("leilao", "leilão"):
         await economia.handle_leilao(message, args)
+        return
 
     elif cmd in ("sorteio-real", "sorteio", "giveaway"):
         await economia.handle_sorteio(message)
+        return
 
     # ── BANCO / FINANCEIRO ────────────────────────────────────────────────────
     elif cmd in ("banco", "bank", "extrato"):
         await financeiro.handle_banco(message)
+        return
 
     elif cmd in ("depositar", "deposit"):
         await financeiro.handle_depositar(message, args)
+        return
 
     elif cmd in ("sacar", "saque", "withdraw"):
         await financeiro.handle_sacar(message, args)
+        return
 
     elif cmd in ("transferir", "pagar", "pix"):
         await financeiro.handle_transferir(message, args)
+        return
 
     elif cmd in ("emprestimo", "empréstimo", "loan"):
         await financeiro.handle_emprestimo(message, args)
+        return
 
     elif cmd in ("pagar-divida", "pagardivida", "quitar"):
         await financeiro.handle_pagar_divida(message, args)
+        return
 
     elif cmd in ("historico", "histórico", "history"):
         if args or message.mentions:
             await infractions.handle_historico(message, args)
         else:
             await financeiro.handle_historico(message)
+        return
 
     # ── CASAS (mercado imobiliário geral) ─────────────────────────────────────
     elif cmd in ("casas", "imoveis", "propriedades"):
         await vizinhanca.handle_portaria(message)
+        return
 
     elif cmd in ("minha-casa", "minhacasa", "meu-lar"):
         if get_user(message.author.id).get("casa_condominio"):
             await vizinhanca.handle_meu_lar(message)
         else:
             await casas.handle_minha_casa(message)
+        return
 
     elif cmd in ("vender-casa", "vendercasa"):
         if get_user(message.author.id).get("casa_condominio"):
             await vizinhanca.handle_devolver_casa(message)
         else:
             await casas.handle_vender_casa(message)
+        return
 
     # ── VIZINHANÇA / CONDOMÍNIO ────────────────────────────────────────────────
     elif cmd in ("portaria", "condominio", "condomínio", "residencias"):
         await vizinhanca.handle_portaria(message)
+        return
 
     elif cmd in ("sincronizar-condominio", "gerar-casas", "criar-canais-casas"):
         await vizinhanca.handle_sincronizar_canais(message, args)
+        return
 
     elif cmd in ("organizar-canais", "automatizar-canais", "criar-canais-rpg"):
         await automacao.handle_organizar_canais(message, args)
+        return
 
     elif cmd in ("meu-lar-cond", "meuların", "residencia", "residência"):
         await vizinhanca.handle_meu_lar(message)
+        return
 
     elif cmd in ("convidar",):
         await vizinhanca.handle_convidar(message, args)
+        return
 
     elif cmd in ("expulsar",):
         await vizinhanca.handle_expulsar(message, args)
+        return
 
     elif cmd in ("devolver-casa", "devolvercasa", "sair-casa"):
         await vizinhanca.handle_devolver_casa(message)
+        return
 
     elif cmd in ("moradores", "vizinhos"):
         await vizinhanca.handle_moradores(message)
+        return
 
     elif cmd in ("cronica-cond", "fofoca", "crônica-cond"):
         await vizinhanca.handle_cronica_condominio(message)
+        return
 
     elif cmd in ("descansar-lazer", "descanso-lazer", "relaxar"):
         await vizinhanca.handle_descanso_lazer(message)
+        return
 
     # ── EMPRESA ───────────────────────────────────────────────────────────────
     elif cmd in ("empresa", "company", "corp", "enterprise", "negocio"):
         await empresa.handle_empresa(message, args)
+        return
 
     # ── FAMÍLIA / MÁFIA ───────────────────────────────────────────────────────
     elif cmd in ("familia", "família", "mafia", "máfia", "cla", "org"):
         await familia.handle_familia(message, args)
+        return
 
     elif cmd in ("parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar"):
         await parentesco.handle_parentesco(message, args)
+        return
 
     elif cmd in ("meu-parentesco", "parentesco-info", "ver-parentesco"):
         await parentesco.handle_meu_parentesco(message, args)
+        return
 
     elif cmd in ("lista-parentescos", "parentescos", "tipos-parentesco"):
         await parentesco.handle_lista_parentescos(message, args)
+        return
 
     elif cmd in ("arvore-familiar", "árvore-familiar", "familia-imperial"):
         await parentesco.handle_arvore_familiar(message, args)
+        return
 
     elif cmd in ("painel-admin", "admin-panel", "painel-administrativo"):
         await painel_admin.handle_painel_admin(message, args)
+        return
 
     elif cmd in ("casar-admin", "casamento-imperial", "uniao-imperial"):
         await painel_admin.handle_casar_admin(message, args)
+        return
 
     elif cmd in ("ativar-embed", "embed-ativar", "mostrar-topic"):
         await embed_topics.handle_ativar_embed(message, args)
+        return
 
     elif cmd in ("desativar-embed", "embed-desativar", "remover-topic"):
         await embed_topics.handle_desativar_embed(message, args)
+        return
 
     elif cmd in ("criar-topico", "criar-tópico", "novo-topico"):
         await embed_topics.handle_criar_topico(message, args)
+        return
 
     elif cmd in ("listar-topics", "listar-tópicos", "topics"):
         await embed_topics.handle_listar_topics(message, args)
+        return
 
     # ── AI CHATBOT ───────────────────────────────────────────────────────────────
     elif cmd in ("chat", "conversar", "falar", "tenshi"):
         await ai_chatbot.handle_chat(message, args)
+        return
 
     elif cmd in ("historico-chat", "chat-historico", "conversas"):
         await ai_chatbot.handle_historico_chat(message, args)
+        return
 
     elif cmd in ("limpar-chat", "apagar-chat", "reset-chat"):
         await ai_chatbot.handle_limpar_chat(message, args)
+        return
 
     elif cmd in ("pergunta", "perguntar", "duvida", "dúvida"):
         await ai_chatbot.handle_pergunta(message, args)
+        return
 
     # ── MÚSICA ─────────────────────────────────────────────────────────────────
     elif cmd in ("join", "entrar", "conectar"):
         await music.handle_join(message, args)
+        return
 
     elif cmd in ("leave", "sair", "disconnect"):
         await music.handle_leave(message, args)
+        return
 
     elif cmd in ("play", "tocar", "p"):
         await music.handle_play(message, args)
+        return
 
     elif cmd in ("skip", "pular"):
         await music.handle_skip(message, args)
+        return
 
     elif cmd in ("queue", "fila", "playlist"):
         await music.handle_queue(message, args)
+        return
 
     elif cmd in ("pause", "pausar"):
         await music.handle_pause(message, args)
+        return
 
     elif cmd in ("resume", "retomar", "continuar"):
         await music.handle_resume(message, args)
+        return
 
     elif cmd in ("stop", "parar"):
         await music.handle_stop(message, args)
+        return
 
     elif cmd in ("volume", "vol"):
         await music.handle_volume(message, args)
+        return
 
     elif cmd in ("np", "nowplaying", "tocando"):
         await music.handle_np(message, args)
+        return
 
     # ── MERCADO DE AÇÕES ─────────────────────────────────────────────────────
     elif cmd in ("market", "mercado", "bolsa"):
         await stock_market.handle_market(message, args)
+        return
 
     elif cmd in ("buy", "comprar"):
         await stock_market.handle_buy(message, args)
+        return
 
     elif cmd in ("sell", "vender"):
         await stock_market.handle_sell(message, args)
+        return
 
     elif cmd in ("portfolio", "carteira-acoes", "ações"):
         await stock_market.handle_portfolio(message, args)
+        return
 
     elif cmd in ("stock-info", "info-acao", "ação-info"):
         await stock_market.handle_stock_info(message, args)
+        return
 
     elif cmd in ("top-stocks", "top-ações", "melhores-ações"):
         await stock_market.handle_top_stocks(message, args)
+        return
 
     # ── MINI-JOGOS ─────────────────────────────────────────────────────────────
     elif cmd in ("adivinhacao", "adivinhação", "guess-number"):
         await minigames.handle_adivinhacao(message, args)
+        return
 
     elif cmd in ("guess", "adivinhar"):
         await minigames.handle_guess(message, args)
+        return
 
     elif cmd in ("ppt", "pedra-papel-tesoura", "jokenpo"):
         await minigames.handle_pedra_papel_tesoura(message, args)
+        return
 
     elif cmd in ("dado", "dado-sorte", "roll"):
         await minigames.handle_dado_sorte(message, args)
+        return
 
     elif cmd in ("quiz", "pergunta", "quiz-rapido"):
         await minigames.handle_quiz(message, args)
+        return
 
     elif cmd in ("quiz-answer", "quiz-resposta", "responder-quiz"):
         await minigames.handle_quiz_answer(message, args)
+        return
 
     elif cmd in ("memoria", "jogo-memoria", "memory"):
         await minigames.handle_memoria(message, args)
+        return
 
     elif cmd in ("memoria-responder", "memoria-resposta", "responder-memoria"):
         await minigames.handle_memoria_responder(message, args)
+        return
 
     elif cmd in ("jogos", "games", "minigames"):
         await minigames.handle_jogos(message, args)
+        return
 
     # ── AUTO-MOD ───────────────────────────────────────────────────────────────
     elif cmd in ("automod", "auto-mod", "automod-config"):
         await automod.handle_automod_config(message, args)
+        return
 
     elif cmd in ("automod-stats", "automod-estatisticas"):
         await automod.handle_automod_stats(message, args)
+        return
 
     # ── COMANDOS PERSONALIZADOS ─────────────────────────────────────────────
     elif cmd in ("criar-comando", "custom-create", "new-command"):
         await custom_commands.handle_criar_comando(message, args)
+        return
 
     elif cmd in ("deletar-comando", "delete-command", "remove-command"):
         await custom_commands.handle_deletar_comando(message, args)
+        return
 
     elif cmd in ("listar-comandos", "custom-list", "list-commands"):
         await custom_commands.handle_listar_comandos(message, args)
+        return
 
     elif cmd in ("editar-comando", "edit-command", "update-command"):
         await custom_commands.handle_editar_comando(message, args)
+        return
 
     elif cmd in ("info-comando", "command-info"):
         await custom_commands.handle_info_comando(message, args)
+        return
 
     # Verificar comandos personalizados antes de continuar
     if await custom_commands.execute_custom_command(message, cmd):
@@ -953,331 +1068,433 @@ async def on_message(message):
     # ── RECOMPENSAS DE NÍVEL ───────────────────────────────────────────────
     elif cmd in ("rewards", "recompensas", "level-rewards"):
         await level_rewards.handle_rewards(message, args)
+        return
 
     elif cmd in ("claim-reward", "reivindicar", "pegar-recompensa"):
         await level_rewards.handle_claim_reward(message, args)
+        return
 
     elif cmd in ("my-rewards", "minhas-recompensas", "recompensas-pendentes"):
         await level_rewards.handle_my_rewards(message, args)
+        return
 
     elif cmd in ("add-reward", "adicionar-recompensa"):
         await level_rewards.handle_add_reward(message, args)
+        return
 
     elif cmd in ("add-reward-item", "adicionar-item-recompensa"):
         await level_rewards.handle_add_reward_item(message, args)
+        return
 
     elif cmd in ("reset-rewards", "resetar-recompensas"):
         await level_rewards.handle_reset_rewards(message, args)
+        return
 
     # ── SISTEMA DE EVENTOS ─────────────────────────────────────────────────
     elif cmd in ("create-event", "criar-evento", "novo-evento"):
         await event_system.handle_create_event(message, args)
+        return
 
     elif cmd in ("schedule-event", "agendar-evento"):
         await event_system.handle_schedule_event(message, args)
+        return
 
     elif cmd in ("list-events", "listar-eventos", "eventos"):
         await event_system.handle_list_events(message, args)
+        return
 
     elif cmd in ("join-event", "entrar-evento", "participar"):
         await event_system.handle_join_event(message, args)
+        return
 
     elif cmd in ("event-info", "info-evento"):
         await event_system.handle_event_info(message, args)
+        return
 
     elif cmd in ("end-event", "finalizar-evento"):
         await event_system.handle_end_event(message, args)
+        return
 
     elif cmd in ("delete-event", "deletar-evento"):
         await event_system.handle_delete_event(message, args)
+        return
 
     # ── FACÇÕES ───────────────────────────────────────────────────────────────
     elif cmd in ("entrar", "faccao", "facção"):
         await faccoes.handle_entrar_faccao(message, args)
+        return
 
     elif cmd in ("ranking", "top-faccoes"):
         await faccoes.handle_ranking_faccoes(message)
+        return
 
     # ── MODERAÇÃO ─────────────────────────────────────────────────────────────
     elif cmd in ("decreto",):
         await moderacao.handle_decreto(message, args)
+        return
 
     elif cmd in ("promover",):
         await moderacao.handle_promover_cargo(message, args)
+        return
 
     elif cmd in ("criar-cargo", "cargo-imperial", "novo-cargo"):
         await moderacao.handle_criar_cargo_imperial(message, args)
+        return
 
     elif cmd in ("criar-secoes-cargos", "criar-seções-cargos", "separar-cargos"):
         await cargos_admin.handle_criar_secoes_cargos(message, args)
+        return
 
     elif cmd in ("cargos-servidor", "listar-cargos", "roles"):
         await cargos_admin.handle_cargos_servidor(message, args)
+        return
 
     elif cmd in ("mapear-cargos", "sincronizar-cargos"):
         await cargos_admin.handle_mapear_cargos(message, args)
+        return
 
     elif cmd in ("auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia"):
         await cargos_admin.handle_auditoria_cargos_ia(message, args)
+        return
 
     elif cmd in ("cargo-info", "info-cargo"):
         await cargos_admin.handle_cargo_info(message, args)
+        return
 
     elif cmd in ("funcao-cargo", "função-cargo", "definir-funcao-cargo"):
         await cargos_admin.handle_funcao_cargo(message, args)
+        return
 
     elif cmd in ("publicar-mapa-cargos", "manual-cargos"):
         await cargos_admin.handle_publicar_mapa(message, args)
+        return
 
     elif cmd in ("auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões"):
         await permissoes_canais.handle_auditoria_permissoes(message, args)
+        return
 
     elif cmd in ("corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot"):
         await permissoes_canais.handle_corrigir_permissoes_bot(message, args)
+        return
 
     elif cmd in ("mapa-canais", "mapa-chats", "estrutura-chats"):
         await permissoes_canais.handle_mapa_canais(message, args)
+        return
 
     elif cmd in ("aplicar-perfil-canal", "perfil-canal", "organizar-chat"):
         await permissoes_canais.handle_aplicar_perfil_canal(message, args)
+        return
 
     elif cmd in ("punir-audacia", "punir"):
         await moderacao.handle_punir_audacia(message, args)
+        return
 
     elif cmd in ("julgamento", "julgar", "trial"):
         await moderacao.handle_julgamento(message, args)
+        return
 
     elif cmd in ("masmorra-prender", "prender", "masmorrar"):
         await moderacao.handle_prender(message, args)
+        return
 
     elif cmd in ("exilar",):
         await moderacao.handle_exilar(message, args)
+        return
 
     elif cmd in ("anistia-real", "anistia"):
         await moderacao.handle_anistia(message)
+        return
 
     elif cmd in ("trancar-portoes", "lockdown"):
         await moderacao.handle_lockdown(message)
+        return
 
     elif cmd in ("tesouro",):
         await moderacao.handle_tesouro(message, args)
+        return
 
     elif cmd in ("veto",):
         await moderacao.handle_veto(message, args)
+        return
 
     elif cmd == "ban":
         await moderacao.handle_ban(message, args)
+        return
 
     elif cmd == "kick":
         await moderacao.handle_kick(message, args)
+        return
 
     elif cmd == "mute":
         await moderacao.handle_mute(message, args)
+        return
 
     elif cmd in ("unmute", "desmutar", "dessilenciar"):
         await moderacao.handle_unmute(message, args)
+        return
 
     elif cmd in ("unban", "desbanir"):
         await moderacao.handle_unban(message, args)
+        return
 
     elif cmd in ("slowmode", "modo-lento"):
         await moderacao.handle_slowmode(message, args)
+        return
 
     elif cmd in ("clear", "limpar", "purge"):
         await moderacao.handle_clear(message, args)
+        return
 
     elif cmd in ("nota",):
         await infractions.handle_nota(message, args)
+        return
 
     elif cmd in ("aviso",):
         await infractions.handle_aviso(message, args)
+        return
 
     elif cmd in ("notas", "infracoes", "infrações"):
         await infractions.handle_notas(message, args)
+        return
 
     elif cmd in ("info", "informacoes", "informações", "perfil-completo"):
         await infractions.handle_info(message, args)
+        return
 
     # ── CONDOMÍNIO AVANÇADO ───────────────────────────────────────────────────
     elif cmd in ("trancar-casa", "trancar_casa", "lock-casa"):
         await avancado.handle_trancar_casa(message)
+        return
 
     elif cmd in ("destrancar-casa", "destrancar_casa", "unlock-casa"):
         await avancado.handle_destrancar_casa(message)
+        return
 
     # ── GARAGEM & VEÍCULOS ────────────────────────────────────────────────────
     elif cmd in ("garagem", "veiculos", "veículos", "meu-veiculo"):
         await avancado.handle_garagem(message)
+        return
 
     elif cmd in ("vender-veiculo", "vender-veículo", "vender_veiculo"):
         await avancado.handle_vender_veiculo(message)
+        return
 
     # ── ESPORTES ──────────────────────────────────────────────────────────────
     elif cmd in ("basquete", "basketball"):
         await avancado.handle_esporte(message, args, "basquete")
+        return
 
     elif cmd in ("futebol", "football", "soccer"):
         await avancado.handle_esporte(message, args, "futebol")
+        return
 
     # ── POOL PARTY ────────────────────────────────────────────────────────────
     elif cmd in ("pool-party", "poolparty", "festa-piscina"):
         await avancado.handle_pool_party(message)
+        return
 
     # ── PETS ──────────────────────────────────────────────────────────────────
     elif cmd in ("pet-shop", "petshop", "loja-pets"):
         await avancado.handle_petshop(message)
+        return
 
     elif cmd in ("meu-pet", "meupet", "pet"):
         await avancado.handle_meu_pet(message)
+        return
 
     elif cmd in ("vender-pet", "venderpet"):
         await avancado.handle_vender_pet(message)
+        return
 
     # ── CASAMENTO & DIVÓRCIO ──────────────────────────────────────────────────
     elif cmd in ("casar", "pedido", "noivado", "marry"):
         await matrimonio.handle_pedido_comum(message, args)
+        return
 
     elif cmd in ("pedido-real", "pedido_rei", "pedido-rei", "noivado-real"):
         await matrimonio.handle_pedido_real(message, args)
+        return
 
     elif cmd in ("cerimonia", "cerimônia", "configurar-casamento", "agendar-casamento"):
         await matrimonio.handle_configurar_cerimonia(message, args)
+        return
 
     elif cmd in ("iniciar-cerimonia", "iniciar-cerimônia", "celebrar-casamento"):
         await matrimonio.handle_iniciar_cerimonia(message, args)
+        return
 
     elif cmd in ("rito-real", "casamento-real", "matrimonio-real", "matrimônio-real"):
         await matrimonio.handle_rito_real(message, args)
+        return
 
     elif cmd in ("registro-casamento", "certidao-casamento", "certidão-casamento"):
         await matrimonio.handle_registro_casamento(message, args)
+        return
 
     elif cmd in ("abandonar-preparacao", "abandonar-cerimonia", "abandonar-pedido"):
         await matrimonio.handle_abandonar_preparacao(message, args)
+        return
 
     elif cmd in ("cancelar-casamento", "cancelar-pedido", "anular-pedido"):
         await matrimonio.handle_cancelar_casamento_usuario(message, args)
+        return
 
     elif cmd in ("anular-casamento", "anular-uniao", "anular-união", "dissolver-casamento"):
         await matrimonio.handle_cancelar_casamento_admin(message, args)
+        return
 
     elif cmd in ("divorcio", "divórcio", "separar", "divorce"):
         await social_cog.handle_divorcio(message)
+        return
 
     # ── LAVANDERIA ────────────────────────────────────────────────────────────
     elif cmd in ("lavanderia", "lavar-itens", "limpeza"):
         await social_cog.handle_lavanderia(message)
+        return
 
     # ── LABORATÓRIO ───────────────────────────────────────────────────────────
     elif cmd in ("sintetizar", "craftar", "fabricar", "sintetisar"):
         await social_cog.handle_sintetizar(message, args)
+        return
 
     # ── CINEMA ────────────────────────────────────────────────────────────────
     elif cmd in ("cartaz", "cinema", "sessao", "sessão", "agendar-filme"):
         await social_cog.handle_cartaz(message, args)
+        return
 
     # ── CRIME & BECO ──────────────────────────────────────────────────────────
     elif cmd in ("assaltar", "roubar", "furtar"):
         await crime_cog.handle_assaltar(message, args)
+        return
 
     elif cmd in ("mercado-negro-beco", "beco-mercado"):
         await crime_cog.handle_mercado_beco(message)
+        return
 
     elif cmd in ("jornal-policial", "noticias-policiais", "boletim-policial"):
         await crime_cog.handle_jornal_policial(message, args)
+        return
 
     elif cmd in ("interagir-local", "interacao-local", "interação-local"):
         await locais.handle_interagir_local(message, args)
+        return
 
     elif cmd in ("cassino", "jogos-cassino", "apostar"):
         await locais.handle_cassino(message, args)
+        return
 
     elif cmd in ("zoologico", "zoológico", "visitar-zoologico"):
         await locais.handle_zoologico(message, args)
+        return
 
     elif cmd in ("terminar-interacao", "terminar-interação", "encerrar-interacao"):
         await locais.handle_terminar_interacao(message, args)
+        return
 
     elif cmd in ("concurso-publico", "concurso-público", "concurso-policial", "concurso-juridico"):
         await locais.handle_concurso(message, args)
+        return
 
     # ── COTIDIANO ─────────────────────────────────────────────────────────────
     elif cmd in ("jornal-cotidiano", "jornal-dia", "cronica-dia", "crônica-dia"):
         await cotidiano.handle_cronica_diaria(message)
+        return
 
     elif cmd in ("psicologo", "psicólogo", "terapia", "desabafar"):
         await cotidiano.handle_psicologo(message, args)
+        return
 
     elif cmd in ("beber", "bar", "bebida"):
         await cotidiano.handle_beber(message, args)
+        return
 
     elif cmd in ("clima-atual", "meteorologia", "tempo-atual"):
         await cotidiano.handle_clima(message)
+        return
 
     # ── CORREIO ANÔNIMO ───────────────────────────────────────────────────────
     elif cmd in ("criar-correio", "painel-correio", "correio"):
         await correio_cog.handle_criar_correio(message)
+        return
 
     # ── ESTAÇÕES ──────────────────────────────────────────────────────────────
     elif cmd in ("estacoes", "estações", "estacao", "estação", "temporada"):
         await temporadas.handle_estacoes(message)
+        return
 
     # ── ENTREVISTA DE EMPREGO ─────────────────────────────────────────────────
     elif cmd in ("entrevista", "entrevista-emprego", "candidatar"):
         await temporadas.handle_entrevista(message, args)
+        return
 
     # ── EMERGÊNCIAS MÉDICAS ───────────────────────────────────────────────────
     elif cmd in ("socorrer", "atender", "salvar"):
         await temporadas.handle_socorrer(message, args)
+        return
 
     # ── CLERO ─────────────────────────────────────────────────────────────────
     elif cmd in ("padre", "clero", "liturgia", "rito"):
         await clero_cog.handle_padre(message, args)
+        return
 
     elif cmd in ("sindicancia", "sindicância", "investigar-usuario"):
         await clero_cog.handle_sindicancia(message, args)
+        return
 
     elif cmd in ("consultar-lei", "codigo-imperial", "código-imperial", "lei"):
         await governanca_ia.handle_consultar_lei(message, args)
+        return
 
     elif cmd in ("parecer-ia", "ia-admin", "oraculo-admin", "oráculo-admin"):
         await governanca_ia.handle_parecer_ia(message, args)
+        return
 
     elif cmd in ("plano-admin", "governar-ia", "administrar-ia"):
         await governanca_ia.handle_plano_admin(message, args)
+        return
 
     # ── JURÍDICO ──────────────────────────────────────────────────────────────
     elif cmd in ("ficha-criminal", "ficha_criminal", "historico-criminal"):
         await juridico.handle_ficha_criminal(message, args)
+        return
 
     elif cmd in ("perdoar-aviso", "perdoar_aviso", "remover-warn"):
         await juridico.handle_perdoar_aviso(message, args)
+        return
 
     elif cmd in ("warn", "advertir", "advertencia", "advertência"):
         await juridico.handle_warn(message, args)
+        return
 
     # ── INTELIGÊNCIA ──────────────────────────────────────────────────────────
     elif cmd in ("subornar-porteiro", "suborno-porteiro", "espionar-casa"):
         await intel.handle_subornar_porteiro(message, args)
+        return
 
     elif cmd in ("grampear-call", "grampo", "monitorar-call"):
         await intel.handle_grampear_call(message)
+        return
 
     elif cmd in ("iniciar-festa", "festa", "comecar-festa", "começar-festa"):
         await intel.handle_iniciar_festa(message, args)
+        return
 
     elif cmd in ("registrar-perola", "perola", "pérola", "salvar-rp"):
         await intel.handle_registrar_perola(message, args)
+        return
 
     elif cmd in ("vdd", "verdade-ou-desafio", "verdade-desafio"):
         await intel.handle_vdd(message)
+        return
 
     elif cmd in ("chat", "perguntar", "assistente", "tenshi-ia"):
         await assistente_ia.handle_chat(message, args)
+        return
 
     # ── UTILITÁRIOS ───────────────────────────────────────────────────────────
     elif cmd in ("ajuda", "help", "comandos", "menu"):
         await enviar_ajuda(message)
+        return
 
     elif cmd in ("ping", "latencia"):
         lat = round(bot.latency * 1000)
@@ -1287,49 +1504,64 @@ async def on_message(message):
             f"*As ondas etéreas de Tenshi respondem...*\n{SEP}\n\n**`{lat}ms`**",
             cor
         ))
+        return
 
     elif cmd in ("top", "leaderboard", "podio"):
         await _handle_top(message)
+        return
 
     elif cmd in ("servidor", "server", "guild"):
         await _handle_servidor(message)
+        return
 
     elif cmd in ("backup",):
         await _handle_backup(message)
+        return
 
     elif cmd in ("bandeira", "brasao", "brasão", "simbolo", "símbolo", "estandarte"):
         await _handle_bandeira(message)
+        return
 
     elif cmd in ("historia-tenshi", "história-tenshi", "base-historica", "base-histórica", "origem-tenshi"):
         await _handle_historia_tenshi(message)
+        return
 
     elif cmd in ("biblioteca-imperial", "biblioteca", "documentos-imperiais"):
         await biblioteca_imperial.handle_biblioteca(message, args)
+        return
 
     elif cmd in ("documento", "pdf", "pergaminho"):
         await biblioteca_imperial.handle_documento(message, args)
+        return
 
     elif cmd in ("memoria-imperial", "memória-imperial", "consultar-memoria", "consultar-memória"):
         await biblioteca_imperial.handle_memoria(message, args)
+        return
 
     elif cmd in ("aula-imperial", "aula", "ensinar"):
         await biblioteca_imperial.handle_aula_imperial(message, args)
+        return
 
     elif cmd in ("missao-historica", "missão-histórica", "missao-histórica", "missão-historica"):
         await biblioteca_imperial.handle_missao_historica(message, args)
+        return
 
     elif cmd in ("juramento-tenshi", "juramento", "voto-tenshi"):
         await biblioteca_imperial.handle_juramento_tenshi(message, args)
+        return
 
     elif cmd in ("protocolo-imperial", "protocolo"):
         await biblioteca_imperial.handle_protocolo_imperial(message, args)
+        return
 
     elif cmd in ("quiz-imperial", "quiz-tenshi", "quiz"):
         await biblioteca_imperial.handle_quiz_imperial(message, args)
+        return
 
     elif cmd in ("aniversario", "aniversário", "birthday"):
         anos = _utcnow().year - FUNDACAO_TENSHI.year
         await _anunciar_aniversario(anos)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # MÓDULO 15 — PRERROGATIVAS SOBERANAS (todos exigem IMPERADOR_ID ou co_soberano)
@@ -1338,104 +1570,136 @@ async def on_message(message):
     # ── A) Controle Monetário ─────────────────────────────────────────────────
     elif cmd in ("emitir-moeda", "emitir_moeda", "emitir-moedas"):
         await soberano.cmd_emitir_moeda(message, args)
+        return
 
     elif cmd in ("confiscar-fortuna", "confiscar_fortuna"):
         await soberano.cmd_confiscar_fortuna(message, args)
+        return
 
     elif cmd in ("congelar-banco", "congelar_banco"):
         await soberano.cmd_congelar_banco(message, args)
+        return
 
     elif cmd in ("perdoar-divida", "perdoar_divida", "perdoar-dívida"):
         await soberano.cmd_perdoar_divida(message, args)
+        return
 
     elif cmd in ("isencao-fiscal", "isenção-fiscal", "isencao_fiscal"):
         await soberano.cmd_isencao_fiscal(message, args)
+        return
 
     # ── B) Manipulação do RPG ─────────────────────────────────────────────────
     elif cmd in ("set-status", "set_status", "setstatus"):
         await soberano.cmd_set_status(message, args)
+        return
 
     elif cmd in ("apagar-ficha", "apagar_ficha", "deletar-ficha"):
         await soberano.cmd_apagar_ficha(message, args)
+        return
 
     elif cmd in ("conceder-item", "conceder_item", "dar-item"):
         await soberano.cmd_conceder_item(message, args)
+        return
 
     elif cmd in ("purificar-status", "purificar_status", "cure"):
         await soberano.cmd_purificar_status(message, args)
+        return
 
     elif cmd in ("imortalidade",):
         await soberano.cmd_imortalidade(message, args)
+        return
 
     # ── C) Decretos de Estado ─────────────────────────────────────────────────
     elif cmd in ("estado-de-sitio", "estado_de_sitio", "sitio"):
         await soberano.cmd_estado_de_sitio(message, args)
+        return
 
     elif cmd in ("dissolver-mafia", "dissolver_mafia"):
         await soberano.cmd_dissolver_mafia(message, args)
+        return
 
     elif cmd in ("estatizar-casa", "estatizar_casa"):
         await soberano.cmd_estatizar_casa(message, args)
+        return
 
     elif cmd in ("silenciar-geral", "silenciar_geral"):
         await soberano.cmd_silenciar_geral(message, args)
+        return
 
     elif cmd in ("anistia-geral", "anistia_geral"):
         await soberano.cmd_anistia_geral(message, args)
+        return
 
     # ── D) Alta Justiça ───────────────────────────────────────────────────────
     elif cmd in ("exilio-supremo", "exilio_supremo", "banir-imperial"):
         await soberano.cmd_exilio_supremo(message, args)
+        return
 
     elif cmd in ("perdao-judicial", "perdão-judicial", "perdao_judicial"):
         await soberano.cmd_perdao_judicial(message, args)
+        return
 
     elif cmd in ("revogar-diploma", "revogar_diploma"):
         await soberano.cmd_revogar_diploma(message, args)
+        return
 
     elif cmd in ("cassar-conjuge", "cassar-cônjuge", "cassar_conjuge"):
         await soberano.cmd_cassar_conjuge(message, args)
+        return
 
     # ── E) IA e Conteúdo ──────────────────────────────────────────────────────
     elif cmd in ("atualizar-diretriz", "atualizar_diretriz"):
         await soberano.cmd_atualizar_diretriz(message, args)
+        return
 
     elif cmd in ("apagar-memoria-ia", "apagar_memoria_ia", "limpar-ia"):
         await soberano.cmd_apagar_memoria_ia(message, args)
+        return
 
     elif cmd in ("interceptar-correio", "interceptar_correio"):
         await soberano.cmd_interceptar_correio(message, args)
+        return
 
     elif cmd in ("forçar-cronica", "forcar-cronica", "forcar_cronica"):
         await soberano.cmd_forcar_cronica(message, args)
+        return
 
     # ── F) Engenharia e Manutenção ────────────────────────────────────────────
     elif cmd in ("desligar", "shutdown", "fechar"):
         await soberano.cmd_desligar(message, args)
+        return
 
     elif cmd in ("forçar-pagamento", "forcar-pagamento", "forcar_pagamento"):
         await soberano.cmd_forcar_pagamento(message, args)
+        return
 
     elif cmd in ("exportar-banco", "exportar_banco", "backup-db"):
         await soberano.cmd_exportar_banco(message, args)
+        return
 
     elif cmd in ("bypass-cooldown", "bypass_cooldown"):
         await soberano.cmd_bypass_cooldown(message, args)
+        return
 
     elif cmd in ("congelar-economia", "congelar_economia"):
         await soberano.cmd_congelar_economia(message, args)
+        return
 
     elif cmd in ("censo-imperial", "censo_imperial"):
         await soberano.cmd_censo_imperial(message, args)
+        return
 
     elif cmd in ("reset-era", "reset_era", "nova-era"):
         await soberano.cmd_reset_era(message, args)
+        return
 
     elif cmd in ("irradiar", "transmissao-nacional", "transmissão-nacional"):
         await soberano.cmd_irradiar(message, args)
+        return
 
     elif cmd in ("interdicao", "interdição", "interdicao-canal", "interditar"):
         await soberano.cmd_interdicao(message, args)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # MÓDULO 13 A-B — GEOPOLÍTICA E IMIGRAÇÃO
@@ -1443,21 +1707,27 @@ async def on_message(message):
 
     elif cmd in ("dominar", "dominar-canal", "conquistar-territorio"):
         await geopolitica.handle_dominar(message, args)
+        return
 
     elif cmd in ("territorio", "território", "status-territorio"):
         await geopolitica.handle_status_territorio(message, args)
+        return
 
     elif cmd in ("rebeliao", "rebelião", "rebelar"):
         await geopolitica.handle_rebeliao(message, args)
+        return
 
     elif cmd in ("visto", "painel-visto", "imigração", "imigracao"):
         await geopolitica.handle_painel_visto(message)
+        return
 
     elif cmd in ("cidadania", "certidao", "certidão", "registro-civil"):
         await geopolitica.handle_cidadania(message, args)
+        return
 
     elif cmd in ("exilio", "exílio", "exilio-temporario"):
         await geopolitica.handle_exilio_temporario(message, args)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # MÓDULO 13 C-H + 14 — ESTADO, ECONOMIA, TRANSPORTE, SAÚDE
@@ -1465,39 +1735,51 @@ async def on_message(message):
 
     elif cmd in ("pedir-emprestimo", "pedir_emprestimo"):
         await estado.handle_emprestimo_banco(message, args)
+        return
 
     elif cmd in ("quitar-divida",):
         await estado.handle_quitar(message, args)
+        return
 
     elif cmd in ("lavar", "lavagem", "lavar-dinheiro"):
         await estado.handle_lavagem(message, args)
+        return
 
     elif cmd in ("titulo-divida", "título-dívida", "titulo_divida"):
         await estado.handle_titulo_divida(message, args)
+        return
 
     elif cmd in ("abastecer", "combustivel", "combustível", "recarregar-veiculo"):
         await estado.handle_abastecer(message, args)
+        return
 
     elif cmd in ("mandado", "mandado-busca", "busca-e-apreensao"):
         await estado.handle_mandado(message, args)
+        return
 
     elif cmd in ("auditoria-bancaria", "auditoria_bancaria", "auditoria-banco"):
         await estado.handle_auditoria_bancaria(message, args)
+        return
 
     elif cmd in ("seguro-vida", "contratar-seguro", "seguro"):
         await estado.handle_contratar_seguro(message, args)
+        return
 
     elif cmd in ("necrolo", "necrológio", "mural-mortos"):
         await estado.handle_necrolo(message, args)
+        return
 
     elif cmd in ("aposentar", "aposentadoria", "fundo-pensao"):
         await estado.handle_aposentar(message, args)
+        return
 
     elif cmd in ("diagnostico-ia", "diagnóstico-ia", "diagnostico_ia"):
         await estado.handle_diagnostico_ia(message, args)
+        return
 
     elif cmd in ("buscar-protocolo", "buscar_protocolo"):
         await estado.handle_buscar_protocolo(message, args)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # PROTOCOLO 23 — SISTEMA DE ERAS DO TRONO
@@ -1505,12 +1787,15 @@ async def on_message(message):
 
     elif cmd in ("set-era", "set_era", "era-atual", "nova-era-trono"):
         await eras_cog.handle_set_era(message, args)
+        return
 
     elif cmd in ("era", "era-status", "qual-era", "status-era"):
         await eras_cog.handle_era_atual(message)
+        return
 
     elif cmd in ("decreto-marcial", "decreto_marcial"):
         await eras_cog.handle_decreto_marcial(message, args)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # PROTOCOLO 25 — METEOROLOGIA LOCALIZADA POR IA
@@ -1518,6 +1803,7 @@ async def on_message(message):
 
     elif cmd in ("clima", "checar-clima", "tempo"):
         await clima_cog.handle_clima(message, args)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # MÓDULO 22 — TENSHI ACADEMY
@@ -1525,64 +1811,84 @@ async def on_message(message):
 
     elif cmd in ("matricular", "matricula", "matrícula", "inscrever-materia"):
         await academia.handle_matricular(message, args)
+        return
 
     elif cmd in ("grade-academia", "grade_academia", "faculdades", "curriculo-academia", "curriculo"):
         await academia.handle_grade_academia(message, args)
+        return
 
     elif cmd in ("certificado", "certificado-info", "diploma-info", "ver-certificado"):
         await academia.handle_certificado_info(message, args)
+        return
 
     elif cmd in ("aptidao-academica", "aptidão-acadêmica", "avaliar-aptidao", "avaliar-aptidão"):
         await academia.handle_aptidao_academica(message, args)
+        return
 
     elif cmd in ("trancar-matricula", "trancar_matricula", "cancelar-materia"):
         await academia.handle_trancar_matricula(message, args)
+        return
 
     elif cmd in ("presença", "presenca", "registrar-presenca"):
         await academia.handle_presenca(message, args)
+        return
 
     elif cmd in ("professor", "gerenciar-professor", "definir-professor"):
         await academia.handle_gerenciar_professor(message, args)
+        return
 
     elif cmd in ("professores", "corpo-docente", "docentes"):
         await academia.handle_professores(message, args)
+        return
 
     elif cmd in ("ministrar-aula", "dar-aula", "aula-professor"):
         await academia.handle_ministrar_aula(message, args)
+        return
 
     elif cmd in ("iniciar-aula", "iniciar_aula"):
         await academia.handle_iniciar_aula(message, args)
+        return
 
     elif cmd in ("ler-apostila", "apostila", "material-didatico"):
         await academia.handle_ler_apostila(message, args)
+        return
 
     elif cmd in ("prestar-exame", "prestar_exame", "exame", "fazer-prova"):
         await academia.handle_prestar_exame(message, args)
+        return
 
     elif cmd in ("historico-escolar", "histórico-escolar"):
         await academia.handle_historico_escolar(message, args)
+        return
 
     elif cmd in ("segunda-via-diploma", "segunda_via_diploma", "revalidar-diploma"):
         await academia.handle_segunda_via_diploma(message, args)
+        return
 
     elif cmd in ("entrar-clube", "entrar_clube", "filiacao-clube", "clube"):
         await academia.handle_entrar_clube(message, args)
+        return
 
     elif cmd in ("cofre-clube", "cofres-clubes", "financas-clube"):
         await academia.handle_cofre_clube(message, args)
+        return
 
     # ── Comandos Soberanos da Academia ────────────────────────────────────────
     elif cmd in ("interditar-escola", "interditar_escola"):
         await academia.cmd_interditar_escola(message, args)
+        return
 
     elif cmd in ("aprovação-forçada", "aprovacao-forcada", "aprovacao_forcada"):
         await academia.cmd_aprovacao_forcada(message, args)
+        return
 
     elif cmd in ("estatizar-cofre-clube", "estatizar_cofre_clube"):
         await academia.cmd_estatizar_cofre_clube(message, args)
+        return
 
     elif cmd in ("zerar-historico-academico", "zerar_historico_academico"):
         await academia.cmd_zerar_historico_academico(message, args)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # MÓDULOS 19-21 — INFRAESTRUTURA CRÍTICA, MACROECONOMIA, VIGILÂNCIA
@@ -1591,78 +1897,100 @@ async def on_message(message):
     # ── Energética e Inflação ─────────────────────────────────────────────────
     elif cmd in ("status-energia", "status_energia", "rede-eletrica"):
         await infra.handle_status_energia(message, args)
+        return
 
     elif cmd in ("inflacao", "inflação", "status-inflacao", "indice-inflacao"):
         await infra.handle_status_inflacao(message, args)
+        return
 
     # ── Mercado de Ações e Poupança ────────────────────────────────────────────
     elif cmd in ("comprar-acoes", "comprar_acoes", "acoes", "ações"):
         await infra.handle_comprar_acoes(message, args)
+        return
 
     elif cmd in ("poupanca", "poupança", "investimento", "conta-poupanca"):
         await infra.handle_poupanca(message, args)
+        return
 
     # ── Vigilância e OSINT ────────────────────────────────────────────────────
     elif cmd in ("checar-cameras", "checar_cameras", "dvr", "cameras"):
         await infra.handle_checar_cameras(message, args)
+        return
 
     elif cmd in ("biometria", "dna", "registro-biometrico"):
         await infra.handle_biometria(message, args)
+        return
 
     elif cmd in ("rastrear-perfil", "rastrear_perfil", "osint"):
         await infra.handle_rastrear_perfil(message, args)
+        return
 
     # ── Logística e Cargas ────────────────────────────────────────────────────
     elif cmd in ("enviar-carga", "enviar_carga", "despachar-carga"):
         await infra.handle_enviar_carga(message, args)
+        return
 
     # ── Saúde ─────────────────────────────────────────────────────────────────
     elif cmd in ("laudo-medico", "laudo_medico", "laudo"):
         await infra.handle_laudo_medico(message, args)
+        return
 
     elif cmd in ("desintoxicacao", "desintoxicação", "detox"):
         await infra.handle_desintoxicacao(message, args)
+        return
 
     elif cmd in ("doacao-sangue", "doação-sangue", "doar-sangue"):
         await infra.handle_doacao_sangue(message, args)
+        return
 
     # ── Imóveis ───────────────────────────────────────────────────────────────
     elif cmd in ("titulo-propriedade", "título-propriedade", "escritura"):
         await infra.handle_titulo_propriedade(message, args)
+        return
 
     elif cmd in ("historico-imovel", "histórico-imóvel", "historico_imovel"):
         await infra.handle_historico_imovel(message, args)
+        return
 
     # ── Aluguel Comercial ─────────────────────────────────────────────────────
     elif cmd in ("alugar-comercio", "alugar_comercio", "alugar-comercial"):
         await infra.handle_alugar_comercio(message, args)
+        return
 
     # ── Fiança ────────────────────────────────────────────────────────────────
     elif cmd in ("pagar-fianca", "pagar_fianca", "pagar-fiança"):
         await infra.handle_pagar_fianca(message, args)
+        return
 
     # ── Diplomacia ────────────────────────────────────────────────────────────
     elif cmd in ("imunidade-diplomatica", "imunidade_diplomatica", "imunidade-consular"):
         await infra.handle_imunidade_diplomatica(message, args)
+        return
 
     # ── Soberania Suprema (Módulos 19-21) ─────────────────────────────────────
     elif cmd in ("auditoria-geral-banco", "auditoria_geral_banco", "auditoria-absoluta"):
         await infra.cmd_auditoria_geral_banco(message, args)
+        return
 
     elif cmd in ("expurgar-fichas-inativas", "expurgar_fichas_inativas", "limpar-fichas"):
         await infra.cmd_expurgar_fichas_inativas(message, args)
+        return
 
     elif cmd in ("reset-parcial-economia", "reset_parcial_economia"):
         await infra.cmd_reset_parcial_economia(message, args)
+        return
 
     elif cmd in ("bans-lista", "lista-exilados", "exilados"):
         await infra.cmd_bans_lista(message, args)
+        return
 
     elif cmd in ("confiscar-veiculo", "confiscar_veiculo", "apreender-veiculo"):
         await infra.cmd_confiscar_veiculo(message, args)
+        return
 
     elif cmd in ("decreto-climatico", "decreto_climatico", "forçar-clima"):
         await infra.cmd_decreto_climatico(message, args)
+        return
 
     # ══════════════════════════════════════════════════════════════════════════
     # MÓDULO 30 — PSICOLOGIA ESTRATÉGICA & CONSELHEIRO IMPERIAL
@@ -1670,6 +1998,7 @@ async def on_message(message):
     elif cmd in ("aconselhar-estrategia", "aconselhar_estrategia",
                  "aconselhar-estratégia", "conselheiro", "conselho-estrategico"):
         await psicologia.handle_aconselhar(message, args)
+        return
 
     # ── STATUS DOS MOTORES DE IA ───────────────────────────────────────────────
     elif cmd in ("status-ia", "status_ia", "motores-ia", "ia-status"):
@@ -1691,6 +2020,7 @@ async def on_message(message):
         )
         embed.set_footer(text=f"⚙️ OpenRouter  •  {RODAPE_IMPERIAL}")
         await message.channel.send(embed=embed)
+        return
 
     else:
         await message.channel.send(embed=embed_imperial(
