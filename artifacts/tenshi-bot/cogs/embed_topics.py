@@ -5,6 +5,7 @@ import os
 from datetime import UTC, datetime
 
 import discord
+from discord.ext import commands
 from database import get_user, save_user
 from utils import IMPERADOR_ID, RODAPE_IMPERIAL, embed_imperial
 
