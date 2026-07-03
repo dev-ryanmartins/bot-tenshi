@@ -101,6 +101,7 @@ from cogs.poderes import Poderes
 from cogs.psicologia import Psicologia
 from cogs.rpg import RPG
 from cogs.soberano import Soberano, aplicar_perfil_supremo_imperador, garantir_cargos_supremos
+from cogs.sistema_teste import SistemaTeste
 from cogs.social import Social
 from cogs.temporadas import Temporadas
 from cogs.vizinhanca import Vizinhanca
@@ -158,6 +159,7 @@ clero_cog   = Clero(bot)
 juridico    = Juridico(bot)
 intel       = Inteligencia(bot)
 soberano    = Soberano(bot)
+sistema_teste = SistemaTeste(bot)
 geopolitica = Geopolitica(bot)
 estado      = Estado(bot)
 eras_cog    = Eras(bot)
@@ -241,8 +243,8 @@ _comandos_por_categoria = {
     "banco": ["banco", "bank", "extrato", "depositar", "deposit", "sacar", "saque", "withdraw", "transferir", "pagar", "pix", "emprestimo", "empréstimo", "loan", "pagar-divida", "poupanca", "poupança", "comprar-acoes", "seguro-vida", "aposentar"],
     "rpg": ["status", "ficha", "criar-ficha", "pegada", "inventario", "conquistas", "especies", "treinar", "missao", "meditar", "descansar", "interagir", "dado", "trabalhar", "emprego", "carreiras", "profissao", "clima", "poderes", "meus-poderes"],
     "social": ["pedido", "pedido-real", "cerimonia", "iniciar-cerimonia", "rito-real", "registro-casamento", "divorcio", "casar", "abandonar-preparacao", "cancelar-casamento", "anular-casamento", "lavanderia", "sintetizar", "cartaz", "psicologo", "beber", "jornal-cotidiano", "correio", "estacoes", "entrevista", "socorrer", "vdd", "cassino"],
-    "familia": ["familia", "família", "mafia", "máfia", "cla", "org", "parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar", "meu-parentesco", "parentesco-info", "ver-parentesco", "lista-parentescos", "parentescos", "tipos-parentesco", "arvore-familiar", "árvore-familiar", "familia-imperial", "painel-admin", "admin-panel", "painel-administrativo", "casar-admin", "casamento-imperial", "uniao-imperial"],
-    "admin": ["decreto", "promover", "criar-cargo", "cargo-imperial", "novo-cargo", "criar-secoes-cargos", "criar-seções-cargos", "separar-cargos", "cargos-servidor", "listar-cargos", "roles", "mapear-cargos", "sincronizar-cargos", "auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia", "cargo-info", "info-cargo", "funcao-cargo", "função-cargo", "definir-funcao-cargo", "publicar-mapa-cargos", "manual-cargos", "auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões", "corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot", "mapa-canais", "mapa-chats", "estrutura-chats", "aplicar-perfil-canal", "perfil-canal", "organizar-chat", "punir-audacia", "punir", "julgamento", "julgar", "trial", "masmorra-prender", "prender", "masmorrar", "exilar", "anistia-real", "anistia", "trancar-portoes", "lockdown", "tesouro", "veto", "ban", "kick", "mute", "unmute", "desmutar", "dessilenciar", "unban", "clear", "slowmode", "warn", "aviso", "nota", "notas", "info", "historico", "ativar-embed", "embed-ativar", "mostrar-topic", "desativar-embed", "embed-desativar", "remover-topic", "criar-topico", "criar-tópico", "novo-topico", "listar-topics", "listar-tópicos", "topics"]
+    "familia": ["familia", "família", "mafia", "máfia", "cla", "org", "parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar", "meu-parentesco", "parentesco-info", "ver-parentesco", "lista-parentescos", "parentescos", "tipos-parentesco", "arvore-familiar", "árvore-familiar", "familia-imperial", "casar-admin", "casamento-imperial", "uniao-imperial"],
+    "admin": ["decreto", "promover", "criar-cargo", "cargo-imperial", "novo-cargo", "criar-secoes-cargos", "criar-seções-cargos", "separar-cargos", "cargos-servidor", "listar-cargos", "roles", "mapear-cargos", "sincronizar-cargos", "auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia", "cargo-info", "info-cargo", "funcao-cargo", "função-cargo", "definir-funcao-cargo", "publicar-mapa-cargos", "manual-cargos", "auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões", "corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot", "mapa-canais", "mapa-chats", "estrutura-chats", "aplicar-perfil-canal", "perfil-canal", "organizar-chat", "punir-audacia", "punir", "julgamento", "julgar", "trial", "masmorra-prender", "prender", "masmorrar", "exilar", "anistia-real", "anistia", "trancar-portoes", "lockdown", "tesouro", "veto", "ban", "kick", "mute", "unmute", "desmutar", "dessilenciar", "unban", "clear", "slowmode", "warn", "aviso", "nota", "notas", "info", "historico", "ativar-embed", "embed-ativar", "mostrar-topic", "desativar-embed", "embed-desativar", "remover-topic", "criar-topico", "criar-tópico", "novo-topico", "listar-topics", "listar-tópicos", "topics", "painel-admin", "admin-panel", "painel-administrativo"]
 }
 
 # ── Guard 1: dedup por ID de mensagem (mesma msg processada 2x) ───────────────
@@ -467,6 +469,8 @@ async def _anunciar_aniversario(anos: int):
 async def on_message(message):
     if message.author.bot:
         return
+    
+    # Marcar como processado ANTES de qualquer processamento
     if _ja_processou(message.id):
         return
 
@@ -907,6 +911,19 @@ async def on_message(message):
 
     elif cmd in ("listar-topics", "listar-tópicos", "topics"):
         await embed_topics.handle_listar_topics(message, args)
+        return
+
+    # ── SISTEMA DE TESTE ───────────────────────────────────────────────────────────
+    elif cmd in ("teste-sistema", "testar-sistema", "diagnostico", "check"):
+        await sistema_teste.handle_teste_sistema(message, args)
+        return
+
+    elif cmd in ("teste-embed", "testar-embed", "preview-embed"):
+        await sistema_teste.handle_teste_embed(message, args)
+        return
+
+    elif cmd in ("teste-painel", "testar-painel"):
+        await sistema_teste.handle_teste_painel(message, args)
         return
 
     # ── AI CHATBOT ───────────────────────────────────────────────────────────────

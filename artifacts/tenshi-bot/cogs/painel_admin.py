@@ -5,11 +5,19 @@ from discord.ext import commands
 from database import get_user, save_user, get_all_users
 from utils import IMPERADOR_ID, RODAPE_IMPERIAL, embed_imperial
 from cogs.parentesco import aplicar_parentesco, VINCULOS
-
-COR_DOURADO = 0x9E7815
-COR_SUCESSO = 0x1A5C2E
-COR_PERIGO = 0x7B1F1F
-COR_NEUTRO = 0x6B7280
+from cogs.design_visual import (
+    CoresImperial,
+    EmojisImperial,
+    criar_embed_moderno,
+    criar_embed_categoria,
+    criar_embed_sucesso,
+    criar_embed_erro,
+    criar_embed_aviso,
+    formatar_numero_grande,
+    criar_lista_decorativa,
+    criar_separador
+)
+from datetime import datetime
 
 
 def _tem_autoridade(member):
@@ -22,20 +30,23 @@ def _tem_autoridade(member):
         return False
 
 
-def _embed(titulo: str, descricao: str, cor: int = COR_DOURADO) -> discord.Embed:
-    embed = discord.Embed(title=titulo, description=descricao, color=cor)
-    embed.set_footer(text=RODAPE_IMPERIAL)
-    return embed
+def _embed(titulo: str, descricao: str, cor: int = CoresImperial.DOURADO, thumbnail_url: str = None) -> discord.Embed:
+    """Função de compatibilidade - usa novo sistema de design"""
+    return criar_embed_moderno(
+        titulo=titulo,
+        descricao=descricao,
+        cor=cor,
+        thumbnail_url=thumbnail_url,
+        footer_text=RODAPE_IMPERIAL
+    )
 
 
-class EditarUsuarioModal(discord.ui.Modal, title="Editar Usuário Completo"):
+class EditarUsuarioModal(discord.ui.Modal, title="Editar Usuário"):
     xp = discord.ui.TextInput(label="XP", placeholder="Ex: 1000", required=False, max_length=10)
     poder = discord.ui.TextInput(label="Poder", placeholder="Ex: 100", required=False, max_length=10)
-    nivel_manual = discord.ui.TextInput(label="Nível Manual (deixe vazio para auto)", placeholder="Ex: 10", required=False, max_length=5)
+    nivel_manual = discord.ui.TextInput(label="Nível (vazio = auto)", placeholder="Ex: 10", required=False, max_length=5)
     moedas = discord.ui.TextInput(label="Moedas", placeholder="Ex: 500", required=False, max_length=15)
     banco = discord.ui.TextInput(label="Banco", placeholder="Ex: 1000", required=False, max_length=15)
-    titulo = discord.ui.TextInput(label="Título Personalizado", placeholder="Ex: Cavaleiro das Sombras", required=False, max_length=50)
-    pegada = discord.ui.TextInput(label="Pegada (imperial/familia/mafia/enterprise)", placeholder="Ex: imperial", required=False, max_length=20)
 
     def __init__(self, alvo: discord.Member, admin_id: int):
         super().__init__()
@@ -61,10 +72,6 @@ class EditarUsuarioModal(discord.ui.Modal, title="Editar Usuário Completo"):
                 user["moedas"] = int(self.moedas.value)
             if self.banco.value.strip():
                 user["conta_banco"] = int(self.banco.value)
-            if self.titulo.value.strip():
-                user["titulo"] = self.titulo.value
-            if self.pegada.value.strip() and self.pegada.value.lower() in ["imperial", "familia", "mafia", "enterprise"]:
-                user["pegada"] = self.pegada.value.lower()
             
             save_user(self.alvo.id, user)
             
@@ -195,7 +202,10 @@ class AcoesMembroView(discord.ui.View):
 
     @discord.ui.button(label="✏️ Editar Usuário", style=discord.ButtonStyle.primary, row=1)
     async def editar_usuario(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_modal(EditarUsuarioModal(self.alvo, self.admin_id))
+        try:
+            await interaction.response.send_modal(EditarUsuarioModal(self.alvo, self.admin_id))
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Erro ao abrir modal: {str(e)}", ephemeral=True)
 
     @discord.ui.button(label="👨‍👩‍👧 Parentesco", style=discord.ButtonStyle.secondary, row=1)
     async def parentesco(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -208,7 +218,12 @@ class AcoesMembroView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -223,67 +238,216 @@ class PainelPrincipalView(discord.ui.View):
         await interaction.response.send_message("Abra seu próprio painel com `tenshi painel-admin`.", ephemeral=True)
         return False
 
-    @discord.ui.button(label="👤 Gerenciar Usuários", style=discord.ButtonStyle.primary, row=1)
+    @discord.ui.button(label="👤 Usuários", style=discord.ButtonStyle.primary, emoji="👤", row=1)
     async def gerenciar_usuarios(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = GerenciarUsuariosView(self.admin_id)
-        embed = _embed("👤 Gerenciar Usuários", "Selecione um usuário para editar suas informações.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="usuarios",
+            titulo="Gerenciar Usuários",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Editar XP, Poder, Nível, Moedas, Banco', 'Definir Título e Pegada', 'Configurar Parentesco', 'Criar Cargos Personalizados'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Selecione um usuário para editar suas informações.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="💰 Economia", style=discord.ButtonStyle.secondary, row=1)
+    @discord.ui.button(label="💰 Economia", style=discord.ButtonStyle.success, emoji="💰", row=1)
     async def economia(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = EconomiaView(self.admin_id)
-        embed = _embed("💰 Economia", "Gerencie moedas, banco, mercado e leilões.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="economia",
+            titulo="Controle Econômico",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Dar Moedas para usuários', 'Adicionar saldo no Banco', 'Gerenciar transações'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Gerencie a economia do servidor.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="⚔️ RPG", style=discord.ButtonStyle.secondary, row=1)
+    @discord.ui.button(label="⚔️ RPG", style=discord.ButtonStyle.primary, emoji="⚔️", row=1)
     async def rpg(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = RPGView(self.admin_id)
-        embed = _embed("⚔️ RPG", "Gerencie missões, treinamento, combate e poderes.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="rpg",
+            titulo="Sistema RPG",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Dar XP para usuários', 'Adicionar Poder', 'Gerenciar progresso'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Gerencie o sistema de RPG.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="🛡️ Moderação", style=discord.ButtonStyle.secondary, row=2)
+    @discord.ui.button(label="🛡️ Moderação", style=discord.ButtonStyle.danger, emoji="🛡️", row=2)
     async def moderacao(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = ModeracaoView(self.admin_id)
-        embed = _embed("🛡️ Moderação", "Gerencie punições, decretos e cargos do servidor.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="moderacao",
+            titulo="Moderação",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Enviar Decretos Imperiais', 'Gerenciar punições', 'Controlar cargos do servidor'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Ferramentas de moderação do servidor.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="👨‍👩‍👧 Família", style=discord.ButtonStyle.secondary, row=2)
+    @discord.ui.button(label="👨‍👩‍👧 Família", style=discord.ButtonStyle.secondary, emoji="👨‍👩‍👧", row=2)
     async def familia(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = FamiliaView(self.admin_id)
-        embed = _embed("👨‍👩‍👧 Família", "Gerencie famílias, máfias e parentesco.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="familia",
+            titulo="Sistema Familiar",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Visualizar Árvore Familiar', 'Ver Vínculos disponíveis', 'Gerenciar relações'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Gerencie famílias e parentesco.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="🎭 Perfil", style=discord.ButtonStyle.secondary, row=2)
+    @discord.ui.button(label="🎭 Perfil", style=discord.ButtonStyle.secondary, emoji="🎭", row=2)
     async def perfil(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PerfilView(self.admin_id)
-        embed = _embed("🎭 Perfil", "Gerencie fichas, títulos e conquistas.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="perfil",
+            titulo="Gerenciar Perfis",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Dar Títulos Personalizados', 'Editar fichas de personagem', 'Gerenciar conquistas'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Gerencie perfis dos usuários.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="🎪 Eventos", style=discord.ButtonStyle.secondary, row=3)
+    @discord.ui.button(label="🎪 Eventos", style=discord.ButtonStyle.success, emoji="🎪", row=3)
     async def eventos(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = EventosView(self.admin_id)
-        embed = _embed("🎪 Eventos", "Gerencie eventos, invasões e sorteios.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="eventos",
+            titulo="Eventos",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Criar Sorteios', 'Gerenciar Invasões', 'Controlar eventos especiais'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Gerencie eventos do servidor.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="🎵 Música", style=discord.ButtonStyle.secondary, row=3)
+    @discord.ui.button(label="🎵 Música", style=discord.ButtonStyle.secondary, emoji="🎵", row=3)
     async def musica(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = MusicaView(self.admin_id)
-        embed = _embed("🎵 Música", "Controle o sistema de música.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="musica",
+            titulo="Sistema de Música",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Parar música atual', 'Gerenciar fila', 'Controlar volume'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Controle o sistema de música.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="🎮 Jogos", style=discord.ButtonStyle.secondary, row=3)
+    @discord.ui.button(label="🎮 Jogos", style=discord.ButtonStyle.secondary, emoji="🎮", row=3)
     async def jogos(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = JogosView(self.admin_id)
-        embed = _embed("🎮 Jogos", "Gerencie mini-jogos e recompensas.", COR_DOURADO)
+        embed = criar_embed_categoria(
+            categoria="jogos",
+            titulo="Jogos",
+            descricao=f"{criar_separador('Funções')}\n"
+                      f"{criar_lista_decorativa(['Criar Quizzes', 'Gerenciar recompensas', 'Controlar jogos ativos'])}\n"
+                      f"{criar_separador()}\n"
+                      f"Gerencie mini-jogos.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @discord.ui.button(label="❌ Fechar", style=discord.ButtonStyle.danger, row=3)
+    @discord.ui.button(label="📊 Estatísticas", style=discord.ButtonStyle.primary, emoji="📊", row=4)
+    async def estatisticas(self, interaction: discord.Interaction, button: discord.ui.Button):
+        view = EstatisticasView(self.admin_id)
+        total_users = len(get_all_users())
+        embed = criar_embed_categoria(
+            categoria="estatisticas",
+            titulo="Estatísticas do Servidor",
+            descricao=f"{criar_separador('Visão Geral')}\n"
+                      f"**Total de Usuários:** {formatar_numero_grande(total_users)}\n"
+                      f"**Data:** {datetime.utcnow().strftime('%d/%m/%Y %H:%M')}\n"
+                      f"{criar_separador()}\n"
+                      f"Selecione uma estatística para visualizar detalhes.",
+            thumbnail_url=interaction.guild.icon.url if interaction.guild.icon else None
+        )
+        await interaction.response.edit_message(embed=embed, view=view)
+
+    @discord.ui.button(label="❌ Fechar", style=discord.ButtonStyle.danger, emoji="❌", row=4)
     async def fechar(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.stop()
         await interaction.response.edit_message(
-            embed=_embed("📕 Painel Encerrado", "Use `tenshi painel-admin` quando precisar novamente.", COR_NEUTRO),
+            embed=criar_embed_aviso(
+                "Painel Encerrado",
+                "Use `tenshi painel-admin` quando precisar novamente."
+            ),
             view=None
         )
+
+
+class EstatisticasView(discord.ui.View):
+    def __init__(self, admin_id: int):
+        super().__init__(timeout=600)
+        self.admin_id = admin_id
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id == self.admin_id:
+            return True
+        await interaction.response.send_message("Acesso negado.", ephemeral=True)
+        return False
+
+    @discord.ui.button(label="👥 Usuários Ativos", style=discord.ButtonStyle.primary, row=1)
+    async def usuarios_ativos(self, interaction: discord.Interaction, button: discord.ui.Button):
+        all_users = get_all_users()
+        total = len(all_users)
+        
+        # Contar usuários com XP > 0
+        ativos = sum(1 for u in all_users.values() if u.get('xp', 0) > 0)
+        
+        embed = _embed(
+            "👥 Estatísticas de Usuários",
+            f"**Total de Usuários:** {total}\n"
+            f"**Usuários Ativos:** {ativos}\n"
+            f"**Taxa de Atividade:** {(ativos/total*100):.1f}%\n\n"
+            f"Usuários ativos são aqueles com XP > 0.",
+            COR_INFO
+        )
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="💰 Economia Total", style=discord.ButtonStyle.success, row=1)
+    async def economia_total(self, interaction: discord.Interaction, button: discord.ui.Button):
+        all_users = get_all_users()
+        
+        total_moedas = sum(u.get('moedas', 0) for u in all_users.values())
+        total_banco = sum(u.get('conta_banco', 0) for u in all_users.values())
+        
+        embed = _embed(
+            "💰 Estatísticas Econômicas",
+            f"**Moedas em Circulação:** {total_moedas:,}\n"
+            f"**Moedas no Banco:** {total_banco:,}\n"
+            f"**Total da Economia:** {total_moedas + total_banco:,}\n\n"
+            f"Valores atualizados em tempo real.",
+            COR_SUCESSO
+        )
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
+    async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
+        view = PainelPrincipalView(self.admin_id)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
+        await interaction.response.edit_message(embed=embed, view=view)
 
 
 class GerenciarUsuariosView(discord.ui.View):
@@ -332,7 +496,12 @@ class GerenciarUsuariosView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -359,7 +528,12 @@ class EconomiaView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -454,7 +628,12 @@ class RPGView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -544,7 +723,12 @@ class ModeracaoView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -614,7 +798,12 @@ class FamiliaView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -637,7 +826,12 @@ class PerfilView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -693,7 +887,12 @@ class EventosView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -743,7 +942,12 @@ class MusicaView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -765,7 +969,12 @@ class JogosView(discord.ui.View):
     @discord.ui.button(label="⬅️ Voltar", style=discord.ButtonStyle.danger, row=1)
     async def voltar(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = PainelPrincipalView(self.admin_id)
-        embed = _embed("🏛️ Painel Administrativo Imperial", "Selecione uma categoria abaixo para gerenciar o bot.", COR_DOURADO)
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao="Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA
+        )
         await interaction.response.edit_message(embed=embed, view=view)
 
 
@@ -774,30 +983,51 @@ class PainelAdmin(commands.Cog):
         self.bot = bot
 
     async def handle_painel_admin(self, message, args):
-        """Abre o painel administrativo completo."""
+        """Abre o painel administrativo completo com design premium."""
         if not _tem_autoridade(message.author):
-            await message.channel.send(embed=_embed("🚫 Acesso Negado", "Apenas administradores podem usar este comando.", COR_PERIGO))
+            await message.channel.send(embed=criar_embed_erro(
+                "🚫 Acesso Negado",
+                "Apenas administradores podem usar este comando."
+            ))
             return
         
         if not message.guild.me.guild_permissions.manage_roles:
-            await message.channel.send(embed=_embed("🚫 Permissão Insuficiente", "Preciso da permissão **Gerenciar Cargos**.", COR_PERIGO))
+            await message.channel.send(embed=criar_embed_erro(
+                "🚫 Permissão Insuficiente",
+                "Preciso da permissão **Gerenciar Cargos**."
+            ))
             return
 
-        embed = _embed(
-            "🏛️ Painel Administrativo Imperial",
-            f"**Administrador:** {message.author.mention}\n\n"
-            f"Selecione uma categoria abaixo para gerenciar o bot.\n\n"
-            f"**Categorias disponíveis:**\n"
-            f"• 👤 Gerenciar Usuários (editar XP, Poder, Nível, Moedas, Título)\n"
-            f"• 💰 Economia (dar moedas, banco)\n"
-            f"• ⚔️ RPG (dar XP, Poder)\n"
-            f"• 🛡️ Moderação (decretos)\n"
-            f"• 👨‍👩‍👧 Família (árvore familiar)\n"
-            f"• 🎭 Perfil (dar títulos)\n"
-            f"• 🎪 Eventos (sorteios)\n"
-            f"• 🎵 Música (controle)\n"
-            f"• 🎮 Jogos (quiz)",
-            COR_DOURADO
+        total_users = len(get_all_users())
+        
+        # Categorias com descrições detalhadas
+        categorias_desc = criar_lista_decorativa([
+            f"{EmojisImperial.USUARIO} **Usuários** - Editar XP, Poder, Nível, Moedas, Título",
+            f"{EmojisImperial.ECONOMIA} **Economia** - Dar moedas, banco",
+            f"{EmojisImperial.RPG} **RPG** - Dar XP, Poder",
+            f"{EmojisImperial.MODERACAO} **Moderação** - Decretos imperiais",
+            f"{EmojisImperial.FAMILIA} **Família** - Árvore familiar",
+            f"{EmojisImperial.PERFIL} **Perfil** - Títulos personalizados",
+            f"{EmojisImperial.EVENTOS} **Eventos** - Sorteios",
+            f"{EmojisImperial.MUSICA} **Música** - Controle de música",
+            f"{EmojisImperial.JOGOS} **Jogos** - Quizzes e jogos",
+            f"{EmojisImperial.ESTATISTICAS} **Estatísticas** - Dados do servidor"
+        ], "▸")
+        
+        embed = criar_embed_moderno(
+            titulo="Painel Administrativo Imperial",
+            descricao=f"{criar_separador('Informações')}\n"
+                      f"**Administrador:** {message.author.mention}\n"
+                      f"**Servidor:** {message.guild.name}\n"
+                      f"**Total de Usuários:** {formatar_numero_grande(total_users)}\n"
+                      f"{criar_separador('Categorias')}\n"
+                      f"{categorias_desc}\n"
+                      f"{criar_separador()}\n"
+                      f"Selecione uma categoria abaixo para gerenciar o bot.",
+            cor=CoresImperial.DOURADO,
+            emoji_titulo=EmojisImperial.COROA,
+            thumbnail_url=message.guild.icon.url if message.guild.icon else None,
+            footer_text=f"💎 Sistema Imperial Tenshi • {datetime.utcnow().strftime('%d/%m/%Y')}"
         )
         
         view = PainelPrincipalView(message.author.id)
