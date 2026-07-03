@@ -51,6 +51,8 @@ def _embed(titulo: str, descricao: str, cor: int = COR_DOURADO) -> discord.Embed
 class EventSystem(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    def cog_load(self):
         self.check_events.start()
 
     def cog_unload(self):

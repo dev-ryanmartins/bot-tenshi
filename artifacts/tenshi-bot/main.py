@@ -394,6 +394,7 @@ async def on_ready():
         eras_cog.cog_load()
         clima_cog.cog_load()
         infra.cog_load()
+        event_system.cog_load()
         _task_aniversario = bot.loop.create_task(_loop_aniversario())
         _task_status = bot.loop.create_task(_loop_status_bot())
         print("✅ Tarefas de background inicializadas.")
