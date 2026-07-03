@@ -3,15 +3,17 @@ import os
 import uuid
 from datetime import datetime
 
-DB_FILE        = "data/db.json"
-CASAS_FILE     = "data/casas.json"
-EMPRESAS_FILE  = "data/empresas.json"
-FAMILIAS_FILE  = "data/familias.json"
-BANCO_FILE     = "data/banco.json"
-CASAMENTOS_FILE = "data/casamentos.json"
-CERIMONIAS_FILE = "data/cerimonias.json"
-INFRACOES_FILE  = "data/infracoes.json"
-INTERNADOS_FILE = "data/internados.json"
+from data_paths import data_file
+
+DB_FILE        = data_file("db.json")
+CASAS_FILE     = data_file("casas.json")
+EMPRESAS_FILE  = data_file("empresas.json")
+FAMILIAS_FILE  = data_file("familias.json")
+BANCO_FILE     = data_file("banco.json")
+CASAMENTOS_FILE = data_file("casamentos.json")
+CERIMONIAS_FILE = data_file("cerimonias.json")
+INFRACOES_FILE  = data_file("infracoes.json")
+INTERNADOS_FILE = data_file("internados.json")
 
 def _load(path: str) -> dict:
     if not os.path.exists(path):
@@ -586,8 +588,8 @@ LOJA_ITEMS = [
 # FACÇÕES
 # ─────────────────────────────────────────────
 
-FACCOES_FILE    = "data/faccoes.json"
-VIZINHANCA_FILE = "data/vizinhanca.json"
+FACCOES_FILE    = data_file("faccoes.json")
+VIZINHANCA_FILE = data_file("vizinhanca.json")
 
 def get_faccoes() -> dict:
     if not os.path.exists(FACCOES_FILE):

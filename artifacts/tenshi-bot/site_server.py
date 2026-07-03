@@ -11,10 +11,11 @@ from typing import Any
 
 from aiohttp import web
 from academia_curriculo import CURRICULO_ACADEMIA, CURSOS_VISIVEIS, formatar_cargo_diploma
+from data_paths import bot_data_dir
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = bot_data_dir()
 ASSETS_DIR = BASE_DIR / "assets"
 BANNER_FILE = ASSETS_DIR / "tenshi-bandeira.png"
 STATUS_FILE = DATA_DIR / "status.json"
@@ -957,7 +958,11 @@ async def start_site_server(bot=None) -> web.AppRunner | None:
     await runner.setup()
     site = web.TCPSite(runner, host, port)
     await site.start()
-    print(f"[SITE] Tenshi site online em http://{host}:{port}")
+    public_url = os.environ.get("TENSHI_SITE_URL", "").strip()
+    if public_url:
+        print(f"[SITE] Tenshi site online em {public_url} (porta interna {port})")
+    else:
+        print(f"[SITE] Tenshi site online em http://{host}:{port}")
     return runner
 
 
