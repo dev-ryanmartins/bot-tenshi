@@ -394,6 +394,7 @@ async def on_ready():
         eras_cog.cog_load()
         clima_cog.cog_load()
         infra.cog_load()
+        event_system.cog_load()
         _task_aniversario = bot.loop.create_task(_loop_aniversario())
         _task_status = bot.loop.create_task(_loop_status_bot())
         print("✅ Tarefas de background inicializadas.")
@@ -475,10 +476,9 @@ async def on_message(message):
     eh_comando     = resto_comando is not None
 
     if eh_comando:
-        cmd, args = resto_comando
         # Verificar se o comando pode ser usado no canal atual
-        if not _verificar_canal_permitido(message, cmd):
-            await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando `{cmd}` só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
+        if not _verificar_canal_permitido(message, resto_comando.split()[0] if resto_comando else ""):
+            await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
             return
     if _conteudo_repetido(message, conteudo):
         return
