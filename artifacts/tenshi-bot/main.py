@@ -244,7 +244,8 @@ _comandos_por_categoria = {
     "rpg": ["status", "ficha", "criar-ficha", "pegada", "inventario", "conquistas", "especies", "treinar", "missao", "meditar", "descansar", "interagir", "dado", "trabalhar", "emprego", "carreiras", "profissao", "clima", "poderes", "meus-poderes"],
     "social": ["pedido", "pedido-real", "cerimonia", "iniciar-cerimonia", "rito-real", "registro-casamento", "divorcio", "casar", "abandonar-preparacao", "cancelar-casamento", "anular-casamento", "lavanderia", "sintetizar", "cartaz", "psicologo", "beber", "jornal-cotidiano", "correio", "estacoes", "entrevista", "socorrer", "vdd", "cassino"],
     "familia": ["familia", "família", "mafia", "máfia", "cla", "org", "parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar", "meu-parentesco", "parentesco-info", "ver-parentesco", "lista-parentescos", "parentescos", "tipos-parentesco", "arvore-familiar", "árvore-familiar", "familia-imperial", "casar-admin", "casamento-imperial", "uniao-imperial"],
-    "admin": ["decreto", "promover", "criar-cargo", "cargo-imperial", "novo-cargo", "criar-secoes-cargos", "criar-seções-cargos", "separar-cargos", "cargos-servidor", "listar-cargos", "roles", "mapear-cargos", "sincronizar-cargos", "auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia", "cargo-info", "info-cargo", "funcao-cargo", "função-cargo", "definir-funcao-cargo", "publicar-mapa-cargos", "manual-cargos", "auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões", "corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot", "mapa-canais", "mapa-chats", "estrutura-chats", "aplicar-perfil-canal", "perfil-canal", "organizar-chat", "punir-audacia", "punir", "julgamento", "julgar", "trial", "masmorra-prender", "prender", "masmorrar", "exilar", "anistia-real", "anistia", "trancar-portoes", "lockdown", "tesouro", "veto", "ban", "kick", "mute", "unmute", "desmutar", "dessilenciar", "unban", "clear", "slowmode", "warn", "aviso", "nota", "notas", "info", "historico", "ativar-embed", "embed-ativar", "mostrar-topic", "desativar-embed", "embed-desativar", "remover-topic", "criar-topico", "criar-tópico", "novo-topico", "listar-topics", "listar-tópicos", "topics", "painel-admin", "admin-panel", "painel-administrativo"]
+    "admin": ["decreto", "promover", "criar-cargo", "cargo-imperial", "novo-cargo", "criar-secoes-cargos", "criar-seções-cargos", "separar-cargos", "cargos-servidor", "listar-cargos", "roles", "mapear-cargos", "sincronizar-cargos", "auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia", "cargo-info", "info-cargo", "funcao-cargo", "função-cargo", "definir-funcao-cargo", "publicar-mapa-cargos", "manual-cargos", "auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões", "corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot", "mapa-canais", "mapa-chats", "estrutura-chats", "aplicar-perfil-canal", "perfil-canal", "organizar-chat", "punir-audacia", "punir", "julgamento", "julgar", "trial", "masmorra-prender", "prender", "masmorrar", "exilar", "anistia-real", "anistia", "trancar-portoes", "lockdown", "tesouro", "veto", "ban", "kick", "mute", "unmute", "desmutar", "dessilenciar", "unban", "clear", "slowmode", "warn", "aviso", "nota", "notas", "info", "historico", "ativar-embed", "embed-ativar", "mostrar-topic", "desativar-embed", "embed-desativar", "remover-topic", "criar-topico", "criar-tópico", "novo-topico", "listar-topics", "listar-tópicos", "topics", "painel-admin", "admin-panel", "painel-administrativo"],
+    "utilitarios": ["ajuda", "help", "comandos", "menu", "ping", "servidor", "top", "backup", "bandeira", "brasao", "historia-tenshi", "base-historica", "status-ia", "aniversario"]
 }
 
 # ── Guard 1: dedup por ID de mensagem (mesma msg processada 2x) ───────────────
@@ -489,9 +490,11 @@ async def on_message(message):
         cmd = partes[0].lower()
         args = partes[1:]
         # Verificar se o comando pode ser usado no canal atual
-        if not _verificar_canal_permitido(message, resto_comando.split()[0] if resto_comando else ""):
-            await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
-            return
+        # Comandos de ajuda sempre permitidos em qualquer canal
+        if cmd not in ["ajuda", "help", "comandos", "menu"]:
+            if not _verificar_canal_permitido(message, resto_comando.split()[0] if resto_comando else ""):
+                await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
+                return
     if _conteudo_repetido(message, conteudo):
         return
 
