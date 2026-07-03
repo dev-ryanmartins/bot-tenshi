@@ -1,0 +1,14 @@
+{
+  "canais_comandos": {
+    "comandos": "ID_DO_CANAL_COMANDOS",
+    "geral": "ID_DO_CANAL_GERAL"
+  },
+  "categorias": {
+    "economia": ["comandos"],
+    "banco": ["comandos"],
+    "rpg": ["comandos", "geral"],
+    "social": ["comandos", "geral"],
+    "familia": ["comandos"],
+    "admin": ["comandos"]
+  }
+}

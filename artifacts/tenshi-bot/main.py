@@ -94,6 +94,7 @@ from cogs.moderacao import Moderacao
 from cogs.mundo import Mundo
 from cogs.npcs import NPCs
 from cogs.parentesco import Parentesco, aplicar_membro_inicial, garantir_parentesco_patriarca
+from cogs.painel_admin import PainelAdmin
 from cogs.perfil_config import PerfilConfig
 from cogs.permissoes_canais import PermissoesCanais
 from cogs.poderes import Poderes
@@ -103,6 +104,7 @@ from cogs.soberano import Soberano, aplicar_perfil_supremo_imperador, garantir_c
 from cogs.social import Social
 from cogs.temporadas import Temporadas
 from cogs.vizinhanca import Vizinhanca
+from cogs.embed_topics import EmbedTopics
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -129,6 +131,7 @@ empresa     = Empresa(bot)
 financeiro  = Financeiro(bot)
 familia     = Familia(bot)
 parentesco  = Parentesco(bot)
+painel_admin = PainelAdmin(bot)
 automacao   = AutomacaoServidor(bot)
 mundo       = Mundo(bot)
 locais      = InteracoesLocais(bot)
@@ -162,12 +165,69 @@ assistente_ia = AssistenteIA(bot)
 permissoes_canais = PermissoesCanais(bot)
 biblioteca_imperial = BibliotecaImperial(bot)
 infractions = Infractions(bot)
+embed_topics = EmbedTopics(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
 
 _imperador_saudado: set = set()
 _aniversario_anunciado: set = set()
+
+# ── Verificação de Canais ─────────────────────────────────────────────────────
+import json
+import os
+
+CANAIS_CONFIG_FILE = "data/canais_comandos.json"
+
+def _carregar_canais_config() -> dict:
+    if not os.path.exists(CANAIS_CONFIG_FILE):
+        return {"canais_comandos": {}, "categorias": {}}
+    try:
+        with open(CANAIS_CONFIG_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {"canais_comandos": {}, "categorias": {}}
+
+def _verificar_canal_permitido(message, cmd: str) -> bool:
+    """Verifica se o comando pode ser usado no canal atual."""
+    config = _carregar_canais_config()
+    canais = config.get("canais_comandos", {})
+    
+    # Se não houver configuração, permitir em todos os canais
+    if not canais:
+        return True
+    
+    # Imperador pode usar comandos em qualquer lugar
+    if message.author.id == IMPERADOR_ID:
+        return True
+    
+    canal_nome = message.channel.name.lower() if hasattr(message.channel, 'name') else ""
+    canal_id = str(message.channel.id)
+    
+    # Verificar se o canal está na lista de canais permitidos
+    for nome_canal, id_canal in canais.items():
+        if id_canal == canal_id or canal_nome == nome_canal.lower():
+            return True
+    
+    # Verificar por categoria de comando
+    categorias = config.get("categorias", {})
+    for categoria, canais_permitidos in categorias.items():
+        if canal_id in canais_permitidos or any(canal_nome == c.lower() for c in canais_permitidos):
+            # Verificar se o comando pertence a esta categoria
+            if cmd in _comandos_por_categoria.get(categoria, []):
+                return True
+    
+    return False
+
+# Mapeamento de comandos por categoria
+_comandos_por_categoria = {
+    "economia": ["carteira", "saldo", "wallet", "moedas", "mercado", "loja", "shop", "comprar", "compra", "buy", "leilao", "leilão", "sorteio", "sorteio-real", "giveaway"],
+    "banco": ["banco", "bank", "extrato", "depositar", "deposit", "sacar", "saque", "withdraw", "transferir", "pagar", "pix", "emprestimo", "empréstimo", "loan", "pagar-divida", "poupanca", "poupança", "comprar-acoes", "seguro-vida", "aposentar"],
+    "rpg": ["status", "ficha", "criar-ficha", "pegada", "inventario", "conquistas", "especies", "treinar", "missao", "meditar", "descansar", "interagir", "dado", "trabalhar", "emprego", "carreiras", "profissao", "clima", "poderes", "meus-poderes"],
+    "social": ["pedido", "pedido-real", "cerimonia", "iniciar-cerimonia", "rito-real", "registro-casamento", "divorcio", "casar", "abandonar-preparacao", "cancelar-casamento", "anular-casamento", "lavanderia", "sintetizar", "cartaz", "psicologo", "beber", "jornal-cotidiano", "correio", "estacoes", "entrevista", "socorrer", "vdd", "cassino"],
+    "familia": ["familia", "família", "mafia", "máfia", "cla", "org", "parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar", "meu-parentesco", "parentesco-info", "ver-parentesco", "lista-parentescos", "parentescos", "tipos-parentesco", "arvore-familiar", "árvore-familiar", "familia-imperial", "painel-admin", "admin-panel", "painel-administrativo", "casar-admin", "casamento-imperial", "uniao-imperial"],
+    "admin": ["decreto", "promover", "criar-cargo", "cargo-imperial", "novo-cargo", "criar-secoes-cargos", "criar-seções-cargos", "separar-cargos", "cargos-servidor", "listar-cargos", "roles", "mapear-cargos", "sincronizar-cargos", "auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia", "cargo-info", "info-cargo", "funcao-cargo", "função-cargo", "definir-funcao-cargo", "publicar-mapa-cargos", "manual-cargos", "auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões", "corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot", "mapa-canais", "mapa-chats", "estrutura-chats", "aplicar-perfil-canal", "perfil-canal", "organizar-chat", "punir-audacia", "punir", "julgamento", "julgar", "trial", "masmorra-prender", "prender", "masmorrar", "exilar", "anistia-real", "anistia", "trancar-portoes", "lockdown", "tesouro", "veto", "ban", "kick", "mute", "unmute", "desmutar", "dessilenciar", "unban", "clear", "slowmode", "warn", "aviso", "nota", "notas", "info", "historico", "ativar-embed", "embed-ativar", "mostrar-topic", "desativar-embed", "embed-desativar", "remover-topic", "criar-topico", "criar-tópico", "novo-topico", "listar-topics", "listar-tópicos", "topics"]
+}
 
 # ── Guard 1: dedup por ID de mensagem (mesma msg processada 2x) ───────────────
 import time as _time
@@ -397,6 +457,13 @@ async def on_message(message):
     conteudo_lower = conteudo.lower()
     resto_comando  = _extrair_comando(conteudo)
     eh_comando     = resto_comando is not None
+
+    if eh_comando:
+        cmd, args = resto_comando
+        # Verificar se o comando pode ser usado no canal atual
+        if not _verificar_canal_permitido(message, cmd):
+            await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando `{cmd}` só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
+            return
     if _conteudo_repetido(message, conteudo):
         return
 
@@ -730,6 +797,24 @@ async def on_message(message):
 
     elif cmd in ("arvore-familiar", "árvore-familiar", "familia-imperial"):
         await parentesco.handle_arvore_familiar(message, args)
+
+    elif cmd in ("painel-admin", "admin-panel", "painel-administrativo"):
+        await painel_admin.handle_painel_admin(message, args)
+
+    elif cmd in ("casar-admin", "casamento-imperial", "uniao-imperial"):
+        await painel_admin.handle_casar_admin(message, args)
+
+    elif cmd in ("ativar-embed", "embed-ativar", "mostrar-topic"):
+        await embed_topics.handle_ativar_embed(message, args)
+
+    elif cmd in ("desativar-embed", "embed-desativar", "remover-topic"):
+        await embed_topics.handle_desativar_embed(message, args)
+
+    elif cmd in ("criar-topico", "criar-tópico", "novo-topico"):
+        await embed_topics.handle_criar_topico(message, args)
+
+    elif cmd in ("listar-topics", "listar-tópicos", "topics"):
+        await embed_topics.handle_listar_topics(message, args)
 
     # ── FACÇÕES ───────────────────────────────────────────────────────────────
     elif cmd in ("entrar", "faccao", "facção"):

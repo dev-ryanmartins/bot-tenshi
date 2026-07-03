@@ -145,6 +145,7 @@ def _default_user() -> dict:
         "parentesco_atribuido_por": None,
         "parentesco_atualizado_em": None,
         "divida_manual": 0,
+        "acesso_painel_admin": False,  # Acesso ao painel administrativo
         # Ficha completa
         "ficha": {},
     }
@@ -178,7 +179,7 @@ def _template_usuario() -> dict:
         "professor": False, "diretor_academia": False, "funcao_academica": None,
         "materias_professor": [], "aulas_ministradas": 0,
         "parentesco": None, "parentesco_emoji": None, "cargo_parentesco_id": None, "parentesco_origem": None,
-        "parentesco_atribuido_por": None, "parentesco_atualizado_em": None, "divida_manual": 0, "ficha": {},
+        "parentesco_atribuido_por": None, "parentesco_atualizado_em": None, "divida_manual": 0, "acesso_painel_admin": False, "ficha": {},
         # Módulos 13-15
         "divida": 0, "juros_acumulados": 0, "banco_congelado": False,
         "isento_fiscal": False, "cidadania": False, "estrangeiro": True,
