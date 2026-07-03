@@ -467,6 +467,8 @@ async def _anunciar_aniversario(anos: int):
 async def on_message(message):
     if message.author.bot:
         return
+    
+    # Marcar como processado ANTES de qualquer processamento
     if _ja_processou(message.id):
         return
 
