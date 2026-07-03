@@ -34,6 +34,10 @@ def _carregar_env_local():
 
 _carregar_env_local()
 
+from data_paths import configurar_diretorio_dados, data_file
+
+configurar_diretorio_dados()
+
 
 def _utcnow():
     return datetime.now(UTC).replace(tzinfo=None)
@@ -216,8 +220,8 @@ _bg_tasks_initialized: bool = False
 _task_aniversario = None
 _task_status = None
 _site_thread = None
-STATUS_FILE = os.path.join("data", "status.json")
-SAUDACOES_FILE = os.path.join("data", "saudacoes.json")
+STATUS_FILE = data_file("status.json")
+SAUDACOES_FILE = data_file("saudacoes.json")
 BANDEIRA_FILE = os.path.join(os.path.dirname(__file__), "assets", "tenshi-bandeira.png")
 
 

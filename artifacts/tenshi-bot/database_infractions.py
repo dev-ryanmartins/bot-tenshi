@@ -9,7 +9,9 @@ from typing import List, Optional
 
 import aiosqlite
 
-DB_PATH = os.environ.get("TENSHI_DB_PATH", "data/tenshi.db")
+from data_paths import data_file
+
+DB_PATH = os.environ.get("TENSHI_DB_PATH", data_file("tenshi.db"))
 
 
 class Database:
