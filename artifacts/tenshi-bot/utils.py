@@ -651,7 +651,19 @@ AJUDA_TEXTO = f"""
 `top` `servidor` `ping` `backup` `bandeira` `brasao` `historia-tenshi` `base-historica`
 `status-ia` `aniversario` `ajuda`
 
-**📚 Comandos Complementares**
+**�️ Proteção Imperial - Finalização UPP** *(Admin)*
+`protecao-imperial` *(painel de configuração)* `ativar-protecao` `desativar-protecao`
+`confianca @user` `remover-confianca @user` `bloquear-servidor [id]` `desbloquear-servidor [id]`
+`atividade-suspeita [@user]` *(verifica comportamento suspeito)*
+
+**🤝 Sistema de Parcerias - Finalização UPP** *(Admin)*
+`parceria [link-convite]` *(gera embed de parceria com IA)* `historico-parcerias`
+
+**🔒 Moderação de Conteúdo - Finalização UPP** *(Admin)*
+`config-moderacao` *(painel de configuração)* `bloquear-link [url]` `desbloquear-link [url]`
+`adicionar-dominio-confianca [dominio]` `remover-dominio-confianca [dominio]`
+
+**�📚 Comandos Complementares**
 `confirmar` `cancelar` `meu-lar-cond` `cronica-cond` `descansar-lazer` `auditoria-cargos`
 `clima-atual` `criar-correio` `purificar-status` `historico-imovel` `bans-lista` `confiscar-veiculo`
 `interdicao` `pedir-emprestimo` `quitar` `quitar-divida` `lavar` `titulo-divida` `presença`
