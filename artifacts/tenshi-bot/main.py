@@ -105,6 +105,14 @@ from cogs.social import Social
 from cogs.temporadas import Temporadas
 from cogs.vizinhanca import Vizinhanca
 from cogs.embed_topics import EmbedTopics
+from cogs.ai_chatbot import AIChatbot
+from cogs.music import Music
+from cogs.stock_market import StockMarket
+from cogs.minigames import MiniGames
+from cogs.automod import AutoMod
+from cogs.custom_commands import CustomCommands
+from cogs.level_rewards import LevelRewards
+from cogs.event_system import EventSystem
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -166,6 +174,14 @@ permissoes_canais = PermissoesCanais(bot)
 biblioteca_imperial = BibliotecaImperial(bot)
 infractions = Infractions(bot)
 embed_topics = EmbedTopics(bot)
+ai_chatbot = AIChatbot(bot)
+music = Music(bot)
+stock_market = StockMarket(bot)
+minigames = MiniGames(bot)
+automod = AutoMod(bot)
+custom_commands = CustomCommands(bot)
+level_rewards = LevelRewards(bot)
+event_system = EventSystem(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
@@ -815,6 +831,165 @@ async def on_message(message):
 
     elif cmd in ("listar-topics", "listar-tópicos", "topics"):
         await embed_topics.handle_listar_topics(message, args)
+
+    # ── AI CHATBOT ───────────────────────────────────────────────────────────────
+    elif cmd in ("chat", "conversar", "falar", "tenshi"):
+        await ai_chatbot.handle_chat(message, args)
+
+    elif cmd in ("historico-chat", "chat-historico", "conversas"):
+        await ai_chatbot.handle_historico_chat(message, args)
+
+    elif cmd in ("limpar-chat", "apagar-chat", "reset-chat"):
+        await ai_chatbot.handle_limpar_chat(message, args)
+
+    elif cmd in ("pergunta", "perguntar", "duvida", "dúvida"):
+        await ai_chatbot.handle_pergunta(message, args)
+
+    # ── MÚSICA ─────────────────────────────────────────────────────────────────
+    elif cmd in ("join", "entrar", "conectar"):
+        await music.handle_join(message, args)
+
+    elif cmd in ("leave", "sair", "disconnect"):
+        await music.handle_leave(message, args)
+
+    elif cmd in ("play", "tocar", "p"):
+        await music.handle_play(message, args)
+
+    elif cmd in ("skip", "pular"):
+        await music.handle_skip(message, args)
+
+    elif cmd in ("queue", "fila", "playlist"):
+        await music.handle_queue(message, args)
+
+    elif cmd in ("pause", "pausar"):
+        await music.handle_pause(message, args)
+
+    elif cmd in ("resume", "retomar", "continuar"):
+        await music.handle_resume(message, args)
+
+    elif cmd in ("stop", "parar"):
+        await music.handle_stop(message, args)
+
+    elif cmd in ("volume", "vol"):
+        await music.handle_volume(message, args)
+
+    elif cmd in ("np", "nowplaying", "tocando"):
+        await music.handle_np(message, args)
+
+    # ── MERCADO DE AÇÕES ─────────────────────────────────────────────────────
+    elif cmd in ("market", "mercado", "bolsa"):
+        await stock_market.handle_market(message, args)
+
+    elif cmd in ("buy", "comprar"):
+        await stock_market.handle_buy(message, args)
+
+    elif cmd in ("sell", "vender"):
+        await stock_market.handle_sell(message, args)
+
+    elif cmd in ("portfolio", "carteira-acoes", "ações"):
+        await stock_market.handle_portfolio(message, args)
+
+    elif cmd in ("stock-info", "info-acao", "ação-info"):
+        await stock_market.handle_stock_info(message, args)
+
+    elif cmd in ("top-stocks", "top-ações", "melhores-ações"):
+        await stock_market.handle_top_stocks(message, args)
+
+    # ── MINI-JOGOS ─────────────────────────────────────────────────────────────
+    elif cmd in ("adivinhacao", "adivinhação", "guess-number"):
+        await minigames.handle_adivinhacao(message, args)
+
+    elif cmd in ("guess", "adivinhar"):
+        await minigames.handle_guess(message, args)
+
+    elif cmd in ("ppt", "pedra-papel-tesoura", "jokenpo"):
+        await minigames.handle_pedra_papel_tesoura(message, args)
+
+    elif cmd in ("dado", "dado-sorte", "roll"):
+        await minigames.handle_dado_sorte(message, args)
+
+    elif cmd in ("quiz", "pergunta", "quiz-rapido"):
+        await minigames.handle_quiz(message, args)
+
+    elif cmd in ("quiz-answer", "quiz-resposta", "responder-quiz"):
+        await minigames.handle_quiz_answer(message, args)
+
+    elif cmd in ("memoria", "jogo-memoria", "memory"):
+        await minigames.handle_memoria(message, args)
+
+    elif cmd in ("memoria-responder", "memoria-resposta", "responder-memoria"):
+        await minigames.handle_memoria_responder(message, args)
+
+    elif cmd in ("jogos", "games", "minigames"):
+        await minigames.handle_jogos(message, args)
+
+    # ── AUTO-MOD ───────────────────────────────────────────────────────────────
+    elif cmd in ("automod", "auto-mod", "automod-config"):
+        await automod.handle_automod_config(message, args)
+
+    elif cmd in ("automod-stats", "automod-estatisticas"):
+        await automod.handle_automod_stats(message, args)
+
+    # ── COMANDOS PERSONALIZADOS ─────────────────────────────────────────────
+    elif cmd in ("criar-comando", "custom-create", "new-command"):
+        await custom_commands.handle_criar_comando(message, args)
+
+    elif cmd in ("deletar-comando", "delete-command", "remove-command"):
+        await custom_commands.handle_deletar_comando(message, args)
+
+    elif cmd in ("listar-comandos", "custom-list", "list-commands"):
+        await custom_commands.handle_listar_comandos(message, args)
+
+    elif cmd in ("editar-comando", "edit-command", "update-command"):
+        await custom_commands.handle_editar_comando(message, args)
+
+    elif cmd in ("info-comando", "command-info"):
+        await custom_commands.handle_info_comando(message, args)
+
+    # Verificar comandos personalizados antes de continuar
+    if await custom_commands.execute_custom_command(message, cmd):
+        return
+
+    # ── RECOMPENSAS DE NÍVEL ───────────────────────────────────────────────
+    elif cmd in ("rewards", "recompensas", "level-rewards"):
+        await level_rewards.handle_rewards(message, args)
+
+    elif cmd in ("claim-reward", "reivindicar", "pegar-recompensa"):
+        await level_rewards.handle_claim_reward(message, args)
+
+    elif cmd in ("my-rewards", "minhas-recompensas", "recompensas-pendentes"):
+        await level_rewards.handle_my_rewards(message, args)
+
+    elif cmd in ("add-reward", "adicionar-recompensa"):
+        await level_rewards.handle_add_reward(message, args)
+
+    elif cmd in ("add-reward-item", "adicionar-item-recompensa"):
+        await level_rewards.handle_add_reward_item(message, args)
+
+    elif cmd in ("reset-rewards", "resetar-recompensas"):
+        await level_rewards.handle_reset_rewards(message, args)
+
+    # ── SISTEMA DE EVENTOS ─────────────────────────────────────────────────
+    elif cmd in ("create-event", "criar-evento", "novo-evento"):
+        await event_system.handle_create_event(message, args)
+
+    elif cmd in ("schedule-event", "agendar-evento"):
+        await event_system.handle_schedule_event(message, args)
+
+    elif cmd in ("list-events", "listar-eventos", "eventos"):
+        await event_system.handle_list_events(message, args)
+
+    elif cmd in ("join-event", "entrar-evento", "participar"):
+        await event_system.handle_join_event(message, args)
+
+    elif cmd in ("event-info", "info-evento"):
+        await event_system.handle_event_info(message, args)
+
+    elif cmd in ("end-event", "finalizar-evento"):
+        await event_system.handle_end_event(message, args)
+
+    elif cmd in ("delete-event", "deletar-evento"):
+        await event_system.handle_delete_event(message, args)
 
     # ── FACÇÕES ───────────────────────────────────────────────────────────────
     elif cmd in ("entrar", "faccao", "facção"):
