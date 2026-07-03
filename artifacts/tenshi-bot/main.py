@@ -94,6 +94,7 @@ from cogs.moderacao import Moderacao
 from cogs.mundo import Mundo
 from cogs.npcs import NPCs
 from cogs.parentesco import Parentesco, aplicar_membro_inicial, garantir_parentesco_patriarca
+from cogs.painel_admin import PainelAdmin
 from cogs.perfil_config import PerfilConfig
 from cogs.permissoes_canais import PermissoesCanais
 from cogs.poderes import Poderes
@@ -103,6 +104,15 @@ from cogs.soberano import Soberano, aplicar_perfil_supremo_imperador, garantir_c
 from cogs.social import Social
 from cogs.temporadas import Temporadas
 from cogs.vizinhanca import Vizinhanca
+from cogs.embed_topics import EmbedTopics
+from cogs.ai_chatbot import AIChatbot
+from cogs.music import Music
+from cogs.stock_market import StockMarket
+from cogs.minigames import MiniGames
+from cogs.automod import AutoMod
+from cogs.custom_commands import CustomCommands
+from cogs.level_rewards import LevelRewards
+from cogs.event_system import EventSystem
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -129,6 +139,7 @@ empresa     = Empresa(bot)
 financeiro  = Financeiro(bot)
 familia     = Familia(bot)
 parentesco  = Parentesco(bot)
+painel_admin = PainelAdmin(bot)
 automacao   = AutomacaoServidor(bot)
 mundo       = Mundo(bot)
 locais      = InteracoesLocais(bot)
@@ -162,12 +173,77 @@ assistente_ia = AssistenteIA(bot)
 permissoes_canais = PermissoesCanais(bot)
 biblioteca_imperial = BibliotecaImperial(bot)
 infractions = Infractions(bot)
+embed_topics = EmbedTopics(bot)
+ai_chatbot = AIChatbot(bot)
+music = Music(bot)
+stock_market = StockMarket(bot)
+minigames = MiniGames(bot)
+automod = AutoMod(bot)
+custom_commands = CustomCommands(bot)
+level_rewards = LevelRewards(bot)
+event_system = EventSystem(bot)
 
 # ── Fundação de Tenshi ────────────────────────────────────────────────────────
 FUNDACAO_TENSHI = datetime(2016, 6, 6)
 
 _imperador_saudado: set = set()
 _aniversario_anunciado: set = set()
+
+# ── Verificação de Canais ─────────────────────────────────────────────────────
+import json
+import os
+
+CANAIS_CONFIG_FILE = "data/canais_comandos.json"
+
+def _carregar_canais_config() -> dict:
+    if not os.path.exists(CANAIS_CONFIG_FILE):
+        return {"canais_comandos": {}, "categorias": {}}
+    try:
+        with open(CANAIS_CONFIG_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {"canais_comandos": {}, "categorias": {}}
+
+def _verificar_canal_permitido(message, cmd: str) -> bool:
+    """Verifica se o comando pode ser usado no canal atual."""
+    config = _carregar_canais_config()
+    canais = config.get("canais_comandos", {})
+    
+    # Se não houver configuração, permitir em todos os canais
+    if not canais:
+        return True
+    
+    # Imperador pode usar comandos em qualquer lugar
+    if message.author.id == IMPERADOR_ID:
+        return True
+    
+    canal_nome = message.channel.name.lower() if hasattr(message.channel, 'name') else ""
+    canal_id = str(message.channel.id)
+    
+    # Verificar se o canal está na lista de canais permitidos
+    for nome_canal, id_canal in canais.items():
+        if id_canal == canal_id or canal_nome == nome_canal.lower():
+            return True
+    
+    # Verificar por categoria de comando
+    categorias = config.get("categorias", {})
+    for categoria, canais_permitidos in categorias.items():
+        if canal_id in canais_permitidos or any(canal_nome == c.lower() for c in canais_permitidos):
+            # Verificar se o comando pertence a esta categoria
+            if cmd in _comandos_por_categoria.get(categoria, []):
+                return True
+    
+    return False
+
+# Mapeamento de comandos por categoria
+_comandos_por_categoria = {
+    "economia": ["carteira", "saldo", "wallet", "moedas", "mercado", "loja", "shop", "comprar", "compra", "buy", "leilao", "leilão", "sorteio", "sorteio-real", "giveaway"],
+    "banco": ["banco", "bank", "extrato", "depositar", "deposit", "sacar", "saque", "withdraw", "transferir", "pagar", "pix", "emprestimo", "empréstimo", "loan", "pagar-divida", "poupanca", "poupança", "comprar-acoes", "seguro-vida", "aposentar"],
+    "rpg": ["status", "ficha", "criar-ficha", "pegada", "inventario", "conquistas", "especies", "treinar", "missao", "meditar", "descansar", "interagir", "dado", "trabalhar", "emprego", "carreiras", "profissao", "clima", "poderes", "meus-poderes"],
+    "social": ["pedido", "pedido-real", "cerimonia", "iniciar-cerimonia", "rito-real", "registro-casamento", "divorcio", "casar", "abandonar-preparacao", "cancelar-casamento", "anular-casamento", "lavanderia", "sintetizar", "cartaz", "psicologo", "beber", "jornal-cotidiano", "correio", "estacoes", "entrevista", "socorrer", "vdd", "cassino"],
+    "familia": ["familia", "família", "mafia", "máfia", "cla", "org", "parentesco", "vinculo-familiar", "vínculo-familiar", "cargo-familiar", "meu-parentesco", "parentesco-info", "ver-parentesco", "lista-parentescos", "parentescos", "tipos-parentesco", "arvore-familiar", "árvore-familiar", "familia-imperial", "painel-admin", "admin-panel", "painel-administrativo", "casar-admin", "casamento-imperial", "uniao-imperial"],
+    "admin": ["decreto", "promover", "criar-cargo", "cargo-imperial", "novo-cargo", "criar-secoes-cargos", "criar-seções-cargos", "separar-cargos", "cargos-servidor", "listar-cargos", "roles", "mapear-cargos", "sincronizar-cargos", "auditoria-cargos", "auditoria-cargos-ia", "organizar-cargos-ia", "organizar-servidor-ia", "cargo-info", "info-cargo", "funcao-cargo", "função-cargo", "definir-funcao-cargo", "publicar-mapa-cargos", "manual-cargos", "auditoria-permissoes", "auditoria-permissões", "checar-permissoes", "checar-permissões", "corrigir-permissoes-bot", "corrigir-permissões-bot", "arrumar-permissoes-bot", "mapa-canais", "mapa-chats", "estrutura-chats", "aplicar-perfil-canal", "perfil-canal", "organizar-chat", "punir-audacia", "punir", "julgamento", "julgar", "trial", "masmorra-prender", "prender", "masmorrar", "exilar", "anistia-real", "anistia", "trancar-portoes", "lockdown", "tesouro", "veto", "ban", "kick", "mute", "unmute", "desmutar", "dessilenciar", "unban", "clear", "slowmode", "warn", "aviso", "nota", "notas", "info", "historico", "ativar-embed", "embed-ativar", "mostrar-topic", "desativar-embed", "embed-desativar", "remover-topic", "criar-topico", "criar-tópico", "novo-topico", "listar-topics", "listar-tópicos", "topics"]
+}
 
 # ── Guard 1: dedup por ID de mensagem (mesma msg processada 2x) ───────────────
 import time as _time
@@ -397,6 +473,13 @@ async def on_message(message):
     conteudo_lower = conteudo.lower()
     resto_comando  = _extrair_comando(conteudo)
     eh_comando     = resto_comando is not None
+
+    if eh_comando:
+        cmd, args = resto_comando
+        # Verificar se o comando pode ser usado no canal atual
+        if not _verificar_canal_permitido(message, cmd):
+            await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando `{cmd}` só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
+            return
     if _conteudo_repetido(message, conteudo):
         return
 
@@ -730,6 +813,183 @@ async def on_message(message):
 
     elif cmd in ("arvore-familiar", "árvore-familiar", "familia-imperial"):
         await parentesco.handle_arvore_familiar(message, args)
+
+    elif cmd in ("painel-admin", "admin-panel", "painel-administrativo"):
+        await painel_admin.handle_painel_admin(message, args)
+
+    elif cmd in ("casar-admin", "casamento-imperial", "uniao-imperial"):
+        await painel_admin.handle_casar_admin(message, args)
+
+    elif cmd in ("ativar-embed", "embed-ativar", "mostrar-topic"):
+        await embed_topics.handle_ativar_embed(message, args)
+
+    elif cmd in ("desativar-embed", "embed-desativar", "remover-topic"):
+        await embed_topics.handle_desativar_embed(message, args)
+
+    elif cmd in ("criar-topico", "criar-tópico", "novo-topico"):
+        await embed_topics.handle_criar_topico(message, args)
+
+    elif cmd in ("listar-topics", "listar-tópicos", "topics"):
+        await embed_topics.handle_listar_topics(message, args)
+
+    # ── AI CHATBOT ───────────────────────────────────────────────────────────────
+    elif cmd in ("chat", "conversar", "falar", "tenshi"):
+        await ai_chatbot.handle_chat(message, args)
+
+    elif cmd in ("historico-chat", "chat-historico", "conversas"):
+        await ai_chatbot.handle_historico_chat(message, args)
+
+    elif cmd in ("limpar-chat", "apagar-chat", "reset-chat"):
+        await ai_chatbot.handle_limpar_chat(message, args)
+
+    elif cmd in ("pergunta", "perguntar", "duvida", "dúvida"):
+        await ai_chatbot.handle_pergunta(message, args)
+
+    # ── MÚSICA ─────────────────────────────────────────────────────────────────
+    elif cmd in ("join", "entrar", "conectar"):
+        await music.handle_join(message, args)
+
+    elif cmd in ("leave", "sair", "disconnect"):
+        await music.handle_leave(message, args)
+
+    elif cmd in ("play", "tocar", "p"):
+        await music.handle_play(message, args)
+
+    elif cmd in ("skip", "pular"):
+        await music.handle_skip(message, args)
+
+    elif cmd in ("queue", "fila", "playlist"):
+        await music.handle_queue(message, args)
+
+    elif cmd in ("pause", "pausar"):
+        await music.handle_pause(message, args)
+
+    elif cmd in ("resume", "retomar", "continuar"):
+        await music.handle_resume(message, args)
+
+    elif cmd in ("stop", "parar"):
+        await music.handle_stop(message, args)
+
+    elif cmd in ("volume", "vol"):
+        await music.handle_volume(message, args)
+
+    elif cmd in ("np", "nowplaying", "tocando"):
+        await music.handle_np(message, args)
+
+    # ── MERCADO DE AÇÕES ─────────────────────────────────────────────────────
+    elif cmd in ("market", "mercado", "bolsa"):
+        await stock_market.handle_market(message, args)
+
+    elif cmd in ("buy", "comprar"):
+        await stock_market.handle_buy(message, args)
+
+    elif cmd in ("sell", "vender"):
+        await stock_market.handle_sell(message, args)
+
+    elif cmd in ("portfolio", "carteira-acoes", "ações"):
+        await stock_market.handle_portfolio(message, args)
+
+    elif cmd in ("stock-info", "info-acao", "ação-info"):
+        await stock_market.handle_stock_info(message, args)
+
+    elif cmd in ("top-stocks", "top-ações", "melhores-ações"):
+        await stock_market.handle_top_stocks(message, args)
+
+    # ── MINI-JOGOS ─────────────────────────────────────────────────────────────
+    elif cmd in ("adivinhacao", "adivinhação", "guess-number"):
+        await minigames.handle_adivinhacao(message, args)
+
+    elif cmd in ("guess", "adivinhar"):
+        await minigames.handle_guess(message, args)
+
+    elif cmd in ("ppt", "pedra-papel-tesoura", "jokenpo"):
+        await minigames.handle_pedra_papel_tesoura(message, args)
+
+    elif cmd in ("dado", "dado-sorte", "roll"):
+        await minigames.handle_dado_sorte(message, args)
+
+    elif cmd in ("quiz", "pergunta", "quiz-rapido"):
+        await minigames.handle_quiz(message, args)
+
+    elif cmd in ("quiz-answer", "quiz-resposta", "responder-quiz"):
+        await minigames.handle_quiz_answer(message, args)
+
+    elif cmd in ("memoria", "jogo-memoria", "memory"):
+        await minigames.handle_memoria(message, args)
+
+    elif cmd in ("memoria-responder", "memoria-resposta", "responder-memoria"):
+        await minigames.handle_memoria_responder(message, args)
+
+    elif cmd in ("jogos", "games", "minigames"):
+        await minigames.handle_jogos(message, args)
+
+    # ── AUTO-MOD ───────────────────────────────────────────────────────────────
+    elif cmd in ("automod", "auto-mod", "automod-config"):
+        await automod.handle_automod_config(message, args)
+
+    elif cmd in ("automod-stats", "automod-estatisticas"):
+        await automod.handle_automod_stats(message, args)
+
+    # ── COMANDOS PERSONALIZADOS ─────────────────────────────────────────────
+    elif cmd in ("criar-comando", "custom-create", "new-command"):
+        await custom_commands.handle_criar_comando(message, args)
+
+    elif cmd in ("deletar-comando", "delete-command", "remove-command"):
+        await custom_commands.handle_deletar_comando(message, args)
+
+    elif cmd in ("listar-comandos", "custom-list", "list-commands"):
+        await custom_commands.handle_listar_comandos(message, args)
+
+    elif cmd in ("editar-comando", "edit-command", "update-command"):
+        await custom_commands.handle_editar_comando(message, args)
+
+    elif cmd in ("info-comando", "command-info"):
+        await custom_commands.handle_info_comando(message, args)
+
+    # Verificar comandos personalizados antes de continuar
+    if await custom_commands.execute_custom_command(message, cmd):
+        return
+
+    # ── RECOMPENSAS DE NÍVEL ───────────────────────────────────────────────
+    elif cmd in ("rewards", "recompensas", "level-rewards"):
+        await level_rewards.handle_rewards(message, args)
+
+    elif cmd in ("claim-reward", "reivindicar", "pegar-recompensa"):
+        await level_rewards.handle_claim_reward(message, args)
+
+    elif cmd in ("my-rewards", "minhas-recompensas", "recompensas-pendentes"):
+        await level_rewards.handle_my_rewards(message, args)
+
+    elif cmd in ("add-reward", "adicionar-recompensa"):
+        await level_rewards.handle_add_reward(message, args)
+
+    elif cmd in ("add-reward-item", "adicionar-item-recompensa"):
+        await level_rewards.handle_add_reward_item(message, args)
+
+    elif cmd in ("reset-rewards", "resetar-recompensas"):
+        await level_rewards.handle_reset_rewards(message, args)
+
+    # ── SISTEMA DE EVENTOS ─────────────────────────────────────────────────
+    elif cmd in ("create-event", "criar-evento", "novo-evento"):
+        await event_system.handle_create_event(message, args)
+
+    elif cmd in ("schedule-event", "agendar-evento"):
+        await event_system.handle_schedule_event(message, args)
+
+    elif cmd in ("list-events", "listar-eventos", "eventos"):
+        await event_system.handle_list_events(message, args)
+
+    elif cmd in ("join-event", "entrar-evento", "participar"):
+        await event_system.handle_join_event(message, args)
+
+    elif cmd in ("event-info", "info-evento"):
+        await event_system.handle_event_info(message, args)
+
+    elif cmd in ("end-event", "finalizar-evento"):
+        await event_system.handle_end_event(message, args)
+
+    elif cmd in ("delete-event", "deletar-evento"):
+        await event_system.handle_delete_event(message, args)
 
     # ── FACÇÕES ───────────────────────────────────────────────────────────────
     elif cmd in ("entrar", "faccao", "facção"):

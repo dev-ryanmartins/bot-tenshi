@@ -624,6 +624,8 @@ AJUDA_TEXTO = f"""
 `familia criar/entrar/info/membros/missao/depositar` `entrar [facção]` `ranking`
 `parentesco [@user]` *(admin; lista de filhos, irmãos, cunhad@, sobrinhos, netos e outros)*
 `meu-parentesco [@user]` `lista-parentescos` `arvore-familiar`
+`painel-admin` *(admin; painel completo para gerenciar família e parentesco)*
+`casar-admin @user` *(Imperador; casa e concede acesso admin ao cônjuge)*
 *O fundador é Patriarca; novos membros recebem Membro e casamentos derivam vínculos por afinidade.*
 
 **🛡️ Moderação Imperial** *(Admin)*
