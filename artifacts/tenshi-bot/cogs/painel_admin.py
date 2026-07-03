@@ -37,14 +37,12 @@ def _embed(titulo: str, descricao: str, cor: int = COR_DOURADO, thumbnail_url: s
     return embed
 
 
-class EditarUsuarioModal(discord.ui.Modal, title="Editar Usuário Completo"):
+class EditarUsuarioModal(discord.ui.Modal, title="Editar Usuário"):
     xp = discord.ui.TextInput(label="XP", placeholder="Ex: 1000", required=False, max_length=10)
     poder = discord.ui.TextInput(label="Poder", placeholder="Ex: 100", required=False, max_length=10)
-    nivel_manual = discord.ui.TextInput(label="Nível Manual (deixe vazio para auto)", placeholder="Ex: 10", required=False, max_length=5)
+    nivel_manual = discord.ui.TextInput(label="Nível (vazio = auto)", placeholder="Ex: 10", required=False, max_length=5)
     moedas = discord.ui.TextInput(label="Moedas", placeholder="Ex: 500", required=False, max_length=15)
     banco = discord.ui.TextInput(label="Banco", placeholder="Ex: 1000", required=False, max_length=15)
-    titulo = discord.ui.TextInput(label="Título Personalizado", placeholder="Ex: Cavaleiro das Sombras", required=False, max_length=50)
-    pegada = discord.ui.TextInput(label="Pegada (imperial/familia/mafia/enterprise)", placeholder="Ex: imperial", required=False, max_length=20)
 
     def __init__(self, alvo: discord.Member, admin_id: int):
         super().__init__()
@@ -70,10 +68,6 @@ class EditarUsuarioModal(discord.ui.Modal, title="Editar Usuário Completo"):
                 user["moedas"] = int(self.moedas.value)
             if self.banco.value.strip():
                 user["conta_banco"] = int(self.banco.value)
-            if self.titulo.value.strip():
-                user["titulo"] = self.titulo.value
-            if self.pegada.value.strip() and self.pegada.value.lower() in ["imperial", "familia", "mafia", "enterprise"]:
-                user["pegada"] = self.pegada.value.lower()
             
             save_user(self.alvo.id, user)
             
@@ -204,7 +198,10 @@ class AcoesMembroView(discord.ui.View):
 
     @discord.ui.button(label="✏️ Editar Usuário", style=discord.ButtonStyle.primary, row=1)
     async def editar_usuario(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_modal(EditarUsuarioModal(self.alvo, self.admin_id))
+        try:
+            await interaction.response.send_modal(EditarUsuarioModal(self.alvo, self.admin_id))
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Erro ao abrir modal: {str(e)}", ephemeral=True)
 
     @discord.ui.button(label="👨‍👩‍👧 Parentesco", style=discord.ButtonStyle.secondary, row=1)
     async def parentesco(self, interaction: discord.Interaction, button: discord.ui.Button):
