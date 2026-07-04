@@ -617,7 +617,7 @@ class ProtecaoParcerias(commands.Cog):
         embed.set_footer(text=RODAPE_IMPERIAL)
         await message.channel.send(embed=embed)
 
-    @commands.CogListener()
+    @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """Verifica novos membros ao entrarem no servidor."""
         config = _carregar_protecao()
@@ -664,7 +664,7 @@ class ProtecaoParcerias(commands.Cog):
                 f"**Entrou em:** {member.joined_at}"
             )
 
-    @commands.CogListener()
+    @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         """Verifica se o servidor está bloqueado quando o bot entra."""
         config = _carregar_protecao()
