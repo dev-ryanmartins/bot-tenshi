@@ -15,23 +15,34 @@ PADRAO_TITULO = re.compile(r"^\*\*(.+?)\*\*(?:\s+.*)?$")
 
 def categorias_ajuda(texto: str = AJUDA_TEXTO) -> list[tuple[str, str]]:
     """Divide o texto mestre em categorias pequenas o bastante para embeds."""
-    categorias: list[tuple[str, str]] = []
-    titulo: str | None = None
-    linhas: list[str] = []
-    for linha in texto.strip().splitlines():
-        encontrado = PADRAO_TITULO.match(linha.strip())
-        if encontrado:
-            novo_titulo = encontrado.group(1).strip()
-            if "PERGAMINHOS IMPERIAIS" in novo_titulo:
-                continue
-            if titulo:
-                categorias.append((titulo, "\n".join(linhas).strip()))
-            titulo, linhas = novo_titulo, []
-        elif titulo and linha.strip() not in {"", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"}:
-            linhas.append(linha.rstrip())
-    if titulo:
-        categorias.append((titulo, "\n".join(linhas).strip()))
-    return [(nome, corpo[:4000]) for nome, corpo in categorias if corpo]
+    try:
+        categorias: list[tuple[str, str]] = []
+        titulo: str | None = None
+        linhas: list[str] = []
+        for linha in texto.strip().splitlines():
+            encontrado = PADRAO_TITULO.match(linha.strip())
+            if encontrado:
+                novo_titulo = encontrado.group(1).strip()
+                if "PERGAMINHOS IMPERIAIS" in novo_titulo:
+                    continue
+                if titulo:
+                    categorias.append((titulo, "\n".join(linhas).strip()))
+                titulo, linhas = novo_titulo, []
+            elif titulo and linha.strip() not in {"", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━"}:
+                linhas.append(linha.rstrip())
+        if titulo:
+            categorias.append((titulo, "\n".join(linhas).strip()))
+        return [(nome, corpo[:4000]) for nome, corpo in categorias if corpo]
+    except Exception as e:
+        print(f"Erro ao processar categorias de ajuda: {e}")
+        # Retornar categorias básicas em caso de erro
+        return [
+            ("🏛️ Central de Comandos", "Use `/ajuda` para ver todos os comandos disponíveis."),
+            ("🔧 Utilitários", "ping, servidor, top, backup, bandeira, brasao, historia-tenshi, base-historica, status-ia, aniversario"),
+            ("🛡️ Proteção Imperial", "protecao-imperial, ativar-protecao, desativar-protecao, confianca, remover-confianca, bloquear-servidor, desbloquear-servidor, atividade-suspeita"),
+            ("🤝 Sistema de Parcerias", "parceria, historico-parcerias"),
+            ("🔒 Moderação de Conteúdo", "config-moderacao, bloquear-link, desbloquear-link, adicionar-dominio-confianca, remover-dominio-confianca"),
+        ]
 
 
 AJUDA_CATEGORIAS = categorias_ajuda()
@@ -123,10 +134,21 @@ class PainelAjudaView(discord.ui.View):
 
 
 async def enviar_ajuda(message) -> None:
-    await message.channel.send(
-        embed=embed_inicio(message.guild, message.author),
-        view=PainelAjudaView(message.author.id),
-    )
+    try:
+        await message.channel.send(
+            embed=embed_inicio(message.guild, message.author),
+            view=PainelAjudaView(message.author.id),
+        )
+    except Exception as e:
+        print(f"Erro ao enviar ajuda: {e}")
+        # Fallback simples se houver erro
+        embed = discord.Embed(
+            title="🏛️ Central de Comandos — Tenshi",
+            description=f"Use o comando `/ajuda` para ver todos os comandos disponíveis.\n\n🌐 Guia: {SITE_URL}",
+            color=COR_AJUDA,
+        )
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
 
 
 class AjudaCog(commands.Cog):
