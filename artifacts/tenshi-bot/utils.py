@@ -651,15 +651,15 @@ AJUDA_TEXTO = f"""
 `top` `servidor` `ping` `backup` `bandeira` `brasao` `historia-tenshi` `base-historica`
 `status-ia` `aniversario` `ajuda`
 
-**�️ Proteção Imperial - Finalização UPP** *(Admin)*
+**🛡️ Proteção Imperial** *(Admin)*
 `protecao-imperial` *(painel de configuração)* `ativar-protecao` `desativar-protecao`
 `confianca @user` `remover-confianca @user` `bloquear-servidor [id]` `desbloquear-servidor [id]`
 `atividade-suspeita [@user]` *(verifica comportamento suspeito)*
 
-**🤝 Sistema de Parcerias - Finalização UPP** *(Admin)*
+**🤝 Sistema de Parcerias** *(Admin)*
 `parceria [link-convite]` *(gera embed de parceria com IA)* `historico-parcerias`
 
-**🔒 Moderação de Conteúdo - Finalização UPP** *(Admin)*
+**🔒 Moderação de Conteúdo** *(Admin)*
 `config-moderacao` *(painel de configuração)* `bloquear-link [url]` `desbloquear-link [url]`
 `adicionar-dominio-confianca [dominio]` `remover-dominio-confianca [dominio]`
 
