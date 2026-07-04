@@ -1135,26 +1135,46 @@ async def on_message(message):
             await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi remover-confianca @usuario*", 0x6B0000))
         return
 
-    elif cmd in ("whitelist-fantasma", "whitelistfantasma", "ghost-whitelist"):
+    elif cmd in ("whitelist-fantasma", "whitelistfantasma", "ghost-whitelist", "whitelist-add", "whitelistadd"):
         if args and message.mentions:
             await protecao_parcerias.cmd_whitelist_fantasma(message, message.mentions[0])
         else:
             await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi whitelist-fantasma @usuario*", 0x6B0000))
         return
 
-    elif cmd in ("remover-whitelist-fantasma", "removerwhitelistfantasma", "remove-ghost-whitelist"):
+    elif cmd in ("remover-whitelist-fantasma", "removerwhitelistfantasma", "remove-ghost-whitelist", "whitelist-remove", "whitelistremove"):
         if args and message.mentions:
             await protecao_parcerias.cmd_remover_whitelist_fantasma(message, message.mentions[0])
         else:
             await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi remover-whitelist-fantasma @usuario*", 0x6B0000))
         return
 
-    elif cmd in ("listar-whitelist-fantasma", "listarwhitelistfantasma", "list-ghost-whitelist"):
+    elif cmd in ("listar-whitelist-fantasma", "listarwhitelistfantasma", "list-ghost-whitelist", "whitelist-list", "whitelistlist"):
         await protecao_parcerias.cmd_listar_whitelist_fantasma(message)
         return
 
-    elif cmd in ("criar-backup", "criarbackup", "create-backup"):
+    elif cmd in ("criar-backup", "criarbackup", "create-backup", "backup-protecao", "backupprotecao"):
         await protecao_parcerias.cmd_criar_backup(message)
+        return
+
+    elif cmd in ("listar-backups", "listarbackups", "list-backups"):
+        await protecao_parcerias.cmd_listar_backups(message)
+        return
+
+    elif cmd in ("restaurar-backup", "restaurarbackup", "restore-backup"):
+        if args:
+            await protecao_parcerias.cmd_restaurar_backup(message, args[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi restaurar-backup [nome do arquivo]*", 0x6B0000))
+        return
+
+    elif cmd in ("logs-protecao", "logsprotecao", "protection-logs"):
+        filtro = args[0] if args else None
+        await protecao_parcerias.cmd_logs_protecao(message, filtro)
+        return
+
+    elif cmd in ("estatisticas-protecao", "estatisticasprotecao", "protection-stats", "stats-protecao"):
+        await protecao_parcerias.cmd_estatisticas_protecao(message)
         return
 
     elif cmd in ("bloquear-servidor", "bloquearservidor", "block-server"):

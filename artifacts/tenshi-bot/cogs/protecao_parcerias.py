@@ -17,6 +17,7 @@ from utils import IMPERADOR_ID, RODAPE_IMPERIAL, SEP, embed_imperial
 
 PROTECAO_FILE = "data/protecao_imperial.json"
 PARCERIAS_FILE = "data/parcerias.json"
+LOGS_FILE = "data/protecao_logs.json"
 
 
 def _carregar_protecao() -> dict:
@@ -26,6 +27,14 @@ def _carregar_protecao() -> dict:
             "servidores_bloqueados": [],
             "atividade_suspeita": {},
             "whitelist_fantasma": [],
+            "estatisticas": {
+                "bans_automaticos": 0,
+                "alertas_enviados": 0,
+                "whitelist_adicoes": 0,
+                "whitelist_remocoes": 0,
+                "backups_criados": 0,
+                "backups_restaurados": 0
+            },
             "configuracoes": {
                 "protecao_ativa": True,
                 "max_tentativas": 5,
@@ -41,6 +50,15 @@ def _carregar_protecao() -> dict:
             # Migrate old data structure
             if "whitelist_fantasma" not in data:
                 data["whitelist_fantasma"] = []
+            if "estatisticas" not in data:
+                data["estatisticas"] = {
+                    "bans_automaticos": 0,
+                    "alertas_enviados": 0,
+                    "whitelist_adicoes": 0,
+                    "whitelist_remocoes": 0,
+                    "backups_criados": 0,
+                    "backups_restaurados": 0
+                }
             if "backup_automatico" not in data["configuracoes"]:
                 data["configuracoes"]["backup_automatico"] = True
             if "ultimo_backup" not in data["configuracoes"]:
@@ -52,6 +70,14 @@ def _carregar_protecao() -> dict:
             "servidores_bloqueados": [],
             "atividade_suspeita": {},
             "whitelist_fantasma": [],
+            "estatisticas": {
+                "bans_automaticos": 0,
+                "alertas_enviados": 0,
+                "whitelist_adicoes": 0,
+                "whitelist_remocoes": 0,
+                "backups_criados": 0,
+                "backups_restaurados": 0
+            },
             "configuracoes": {
                 "protecao_ativa": True,
                 "max_tentativas": 5,
@@ -84,6 +110,10 @@ def _criar_backup():
         config["configuracoes"]["ultimo_backup"] = datetime.now(UTC).isoformat()
         _salvar_protecao(config)
         
+        # Log e estatísticas
+        _incrementar_estatistica("backups_criados")
+        _registrar_log("backup", "criar_backup", f"Backup criado: {backup_file}")
+        
         print(f"✅ Backup criado: {backup_file}")
         return True
     except Exception as e:
@@ -112,6 +142,61 @@ def _verificar_e_criar_backup():
     except Exception as e:
         print(f"❌ Erro ao verificar backup: {e}")
         return False
+
+
+def _carregar_logs() -> list:
+    """Carrega logs do sistema de proteção."""
+    if not os.path.exists(LOGS_FILE):
+        return []
+    try:
+        with open(LOGS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _salvar_log(log: dict):
+    """Salva um log no sistema."""
+    logs = _carregar_logs()
+    logs.append(log)
+    
+    # Manter apenas os últimos 1000 logs
+    if len(logs) > 1000:
+        logs = logs[-1000:]
+    
+    os.makedirs(os.path.dirname(LOGS_FILE), exist_ok=True)
+    with open(LOGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(logs, f, ensure_ascii=False, indent=2)
+
+
+def _registrar_log(tipo: str, acao: str, detalhes: str, user_id: int = None, target_id: int = None):
+    """Registra uma ação no sistema de logs."""
+    log = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "tipo": tipo,  # "ban", "alert", "whitelist", "backup", "config"
+        "acao": acao,
+        "detalhes": detalhes,
+        "user_id": user_id,
+        "target_id": target_id
+    }
+    _salvar_log(log)
+
+
+def _incrementar_estatistica(chave: str):
+    """Incrementa uma estatística no sistema."""
+    config = _carregar_protecao()
+    if "estatisticas" not in config:
+        config["estatisticas"] = {
+            "bans_automaticos": 0,
+            "alertas_enviados": 0,
+            "whitelist_adicoes": 0,
+            "whitelist_remocoes": 0,
+            "backups_criados": 0,
+            "backups_restaurados": 0
+        }
+    if chave in config["estatisticas"]:
+        config["estatisticas"][chave] += 1
+    _salvar_protecao(config)
 
 
 def _carregar_parcerias() -> dict:
@@ -373,7 +458,11 @@ class ProtecaoParcerias(commands.Cog):
                     "`tenshi desbloquear-servidor [id]` - Desbloqueia servidor\n"
                     "`tenshi atividade-suspeita @usuario` - Verifica atividade\n"
                     "`tenshi teste-protecao @usuario` - Testa detecção de conta fantasma\n"
-                    "`tenshi criar-backup` - Cria backup manual das configurações"
+                    "`tenshi criar-backup` - Cria backup manual das configurações\n"
+                    "`tenshi listar-backups` - Lista backups disponíveis\n"
+                    "`tenshi restaurar-backup [arquivo]` - Restaura backup\n"
+                    "`tenshi logs-protecao [filtro]` - Ver logs do sistema\n"
+                    "`tenshi estatisticas-protecao` - Ver estatísticas"
                 ),
                 inline=False
             )
@@ -504,6 +593,10 @@ class ProtecaoParcerias(commands.Cog):
         config["whitelist_fantasma"].append(member.id)
         _salvar_protecao(config)
 
+        # Log e estatísticas
+        _incrementar_estatistica("whitelist_adicoes")
+        _registrar_log("whitelist", "adicionar", f"Usuário {member.display_name} adicionado à whitelist fantasma", message.author.id, member.id)
+
         await message.channel.send(embed=embed_imperial("✅ Adicionado à Whitelist", f"*{member.display_name} foi adicionado à whitelist de contas fantasma e não será analisado.*", 0x2B0A3D))
 
     async def cmd_remover_whitelist_fantasma(self, message, member: discord.Member):
@@ -522,6 +615,10 @@ class ProtecaoParcerias(commands.Cog):
 
         config["whitelist_fantasma"].remove(member.id)
         _salvar_protecao(config)
+
+        # Log e estatísticas
+        _incrementar_estatistica("whitelist_remocoes")
+        _registrar_log("whitelist", "remover", f"Usuário {member.display_name} removido da whitelist fantasma", message.author.id, member.id)
 
         await message.channel.send(embed=embed_imperial("✅ Removido da Whitelist", f"*{member.display_name} foi removido da whitelist de contas fantasma.*", 0x2B0A3D))
 
@@ -567,6 +664,7 @@ class ProtecaoParcerias(commands.Cog):
         if _criar_backup():
             config = _carregar_protecao()
             ultimo_backup = config["configuracoes"].get("ultimo_backup", "N/A")
+            _registrar_log("backup", "criar_backup_manual", f"Backup manual criado por {message.author.display_name}", message.author.id)
             await message.channel.send(embed=embed_imperial(
                 "✅ Backup Criado",
                 f"*Backup das configurações de proteção criado com sucesso.*\n\n"
@@ -578,6 +676,234 @@ class ProtecaoParcerias(commands.Cog):
             ))
         else:
             await message.channel.send(embed=embed_imperial("❌ Erro no Backup", "*Ocorreu um erro ao criar o backup das configurações.*", 0x6B0000))
+
+    async def cmd_listar_backups(self, message):
+        """Lista todos os backups disponíveis."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        try:
+            backup_dir = os.path.dirname("data/protecao_imperial_backup_*.json")
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir, exist_ok=True)
+            
+            # Listar arquivos de backup
+            import glob
+            backup_files = glob.glob("data/protecao_imperial_backup_*.json")
+            backup_files.sort(reverse=True)  # Mais recentes primeiro
+
+            if not backup_files:
+                await message.channel.send(embed=embed_imperial("📭 Sem Backups", "*Nenhum backup encontrado.*", 0x2B0A3D))
+                return
+
+            embed = discord.Embed(
+                title="💾 Backups Disponíveis",
+                description=f"Total de {len(backup_files)} backups encontrados.\n\n{SEP}",
+                color=0x2B0A3D
+            )
+
+            for idx, backup_file in enumerate(backup_files[:10], 1):  # Mostrar apenas os 10 mais recentes
+                filename = os.path.basename(backup_file)
+                # Extrair timestamp do nome do arquivo
+                timestamp_str = filename.replace("protecao_imperial_backup_", "").replace(".json", "")
+                try:
+                    timestamp = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+                    formatted_time = timestamp.strftime("%d/%m/%Y %H:%M:%S")
+                    file_size = os.path.getsize(backup_file)
+                    size_kb = file_size / 1024
+                except:
+                    formatted_time = timestamp_str
+                    size_kb = "N/A"
+
+                embed.add_field(
+                    name=f"📁 Backup {idx}",
+                    value=f"**Arquivo:** {filename}\n**Data:** {formatted_time}\n**Tamanho:** {size_kb:.2f} KB",
+                    inline=False
+                )
+
+            if len(backup_files) > 10:
+                embed.add_field(
+                    name="ℹ️",
+                    value=f"E mais {len(backup_files) - 10} backups antigos...",
+                    inline=False
+                )
+
+            embed.set_footer(text=RODAPE_IMPERIAL)
+            await message.channel.send(embed=embed)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro", f"*Ocorreu um erro ao listar backups: {e}*", 0x6B0000))
+            print(f"Erro ao listar backups: {e}")
+
+    async def cmd_restaurar_backup(self, message, backup_file: str = None):
+        """Restaura configuração de backup."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        if not backup_file:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi restaurar-backup [nome do arquivo]*\n*Exemplo: tenshi restaurar-backup protecao_imperial_backup_20260103_120000.json*", 0x6B0000))
+            return
+
+        # Verificar se o arquivo existe
+        if not backup_file.startswith("data/"):
+            backup_file = f"data/{backup_file}"
+        
+        if not os.path.exists(backup_file):
+            await message.channel.send(embed=embed_imperial("❌ Arquivo Não Encontrado", f"*O arquivo de backup não foi encontrado: {backup_file}*\n\nUse `tenshi listar-backups` para ver os backups disponíveis.", 0x6B0000))
+            return
+
+        try:
+            # Criar backup atual antes de restaurar
+            await message.channel.send("💾 Criando backup de segurança antes de restaurar...")
+            _criar_backup()
+
+            # Carregar backup
+            with open(backup_file, "r", encoding="utf-8") as f:
+                backup_data = json.load(f)
+
+            # Restaurar configuração
+            _salvar_protecao(backup_data)
+
+            # Log e estatísticas
+            _incrementar_estatistica("backups_restaurados")
+            _registrar_log("backup", "restaurar_backup", f"Backup restaurado: {backup_file} por {message.author.display_name}", message.author.id)
+
+            await message.channel.send(embed=embed_imperial(
+                "✅ Backup Restaurado",
+                f"*As configurações foram restauradas com sucesso do backup:* {backup_file}\n\n"
+                f"{SEP}\n\n"
+                f"**⚠️ Aviso:** Um backup de segurança foi criado automaticamente antes da restauração.",
+                0x2B0A3D
+            ))
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro ao Restaurar", f"*Ocorreu um erro ao restaurar o backup: {e}*", 0x6B0000))
+            print(f"Erro ao restaurar backup: {e}")
+
+    async def cmd_logs_protecao(self, message, filtro: str = None):
+        """Mostra logs do sistema de proteção."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        logs = _carregar_logs()
+
+        if not logs:
+            await message.channel.send(embed=embed_imperial("📭 Sem Logs", "*Nenhum log registrado até o momento.*", 0x2B0A3D))
+            return
+
+        # Filtrar logs se especificado
+        if filtro:
+            filtro = filtro.lower()
+            logs = [log for log in logs if filtro in log.get("tipo", "").lower() or filtro in log.get("acao", "").lower()]
+
+        # Mostrar apenas os últimos 20 logs
+        logs_recentes = logs[-20:]
+
+        embed = discord.Embed(
+            title="📜 Logs do Sistema de Proteção",
+            description=f"Total de {len(logs)} logs registrados. Mostrando os 20 mais recentes.\n\n{SEP}",
+            color=0x2B0A3D
+        )
+
+        for idx, log in enumerate(logs_recentes, 1):
+            timestamp = log.get("timestamp", "Desconhecido")[:19]
+            tipo = log.get("tipo", "N/A").upper()
+            acao = log.get("acao", "N/A")
+            detalhes = log.get("detalhes", "N/A")
+            
+            # Emoji baseado no tipo
+            emoji = {
+                "ban": "🚨",
+                "alert": "⚠️",
+                "whitelist": "👥",
+                "backup": "💾",
+                "config": "⚙️"
+            }.get(tipo.lower(), "📌")
+
+            embed.add_field(
+                name=f"{emoji} Log {idx} - {tipo}",
+                value=f"**Ação:** {acao}\n**Data:** {timestamp}\n**Detalhes:** {detalhes}",
+                inline=False
+            )
+
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    async def cmd_estatisticas_protecao(self, message):
+        """Mostra estatísticas do sistema de proteção."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        stats = config.get("estatisticas", {})
+        logs = _carregar_logs()
+
+        # Calcular taxa de falsos positivos (aproximada)
+        total_acoes = stats.get("bans_automaticos", 0) + stats.get("alertas_enviados", 0)
+        taxa_falsos_positivos = "N/A"
+        if total_acoes > 0:
+            # Assumindo que whitelist remocões podem indicar falsos positivos
+            falsos_positivos = stats.get("whitelist_remocoes", 0)
+            taxa = (falsos_positivos / total_acoes) * 100
+            taxa_falsos_positivos = f"{taxa:.2f}%"
+
+        embed = discord.Embed(
+            title="📊 Estatísticas do Sistema de Proteção",
+            description=f"Estatísticas de uso e performance do sistema.\n\n{SEP}",
+            color=0x2B0A3D
+        )
+
+        embed.add_field(
+            name="🚨 Ações de Segurança",
+            value=(
+                f"**Bans Automáticos:** {stats.get('bans_automaticos', 0)}\n"
+                f"**Alertas Enviados:** {stats.get('alertas_enviados', 0)}\n"
+                f"**Total de Ações:** {total_acoes}"
+            ),
+            inline=True
+        )
+
+        embed.add_field(
+            name="👥 Whitelist",
+            value=(
+                f"**Adições:** {stats.get('whitelist_adicoes', 0)}\n"
+                f"**Remoções:** {stats.get('whitelist_remocoes', 0)}\n"
+                f"**Usuários na Whitelist:** {len(config.get('whitelist_fantasma', []))}"
+            ),
+            inline=True
+        )
+
+        embed.add_field(
+            name="💾 Backups",
+            value=(
+                f"**Criados:** {stats.get('backups_criados', 0)}\n"
+                f"**Restaurados:** {stats.get('backups_restaurados', 0)}"
+            ),
+            inline=True
+        )
+
+        embed.add_field(
+            name="📈 Performance",
+            value=(
+                f"**Taxa de Falsos Positivos:** {taxa_falsos_positivos}\n"
+                f"**Total de Logs:** {len(logs)}"
+            ),
+            inline=True
+        )
+
+        embed.add_field(
+            name="⚙️ Configuração",
+            value=(
+                f"**Proteção Ativa:** {'✅ Sim' if config['configuracoes'].get('protecao_ativa', True) else '❌ Não'}\n"
+                f"**Backup Automático:** {'✅ Sim' if config['configuracoes'].get('backup_automatico', True) else '❌ Não'}"
+            ),
+            inline=True
+        )
+
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
 
     async def cmd_bloquear_servidor(self, message, guild_id: int):
         """Bloqueia um servidor específico."""
@@ -828,6 +1154,11 @@ class ProtecaoParcerias(commands.Cog):
             
             try:
                 await member.ban(reason="Conta fantasma detectada pelo sistema de proteção imperial")
+                
+                # Log e estatísticas
+                _incrementar_estatistica("bans_automaticos")
+                _registrar_log("ban", "ban_automatico", f"Usuário {member.display_name} banido automaticamente (conta fantasma)", target_id=member.id)
+                
                 await self._alertar_imperador(
                     "🚨 Ban Automático - Conta Fantasma",
                     f"O usuário **{member.display_name}** ({member.id}) foi banido automaticamente por ser uma conta fantasma.\n\n"
@@ -838,6 +1169,7 @@ class ProtecaoParcerias(commands.Cog):
                 )
                 return
             except discord.Forbidden:
+                _registrar_log("ban", "falha_ban", f"Falha ao banir {member.display_name} - sem permissão", target_id=member.id)
                 await self._alertar_imperador(
                     "⚠️ Falha ao Banir Conta Fantasma",
                     f"O usuário **{member.display_name}** ({member.id}) é uma conta fantasma, mas o bot não tem permissão para banir.\n\n"
@@ -855,6 +1187,11 @@ class ProtecaoParcerias(commands.Cog):
                 member.id,
                 f"Conta nova detectada - Alerta (1-3 dias)"
             )
+            
+            # Log e estatísticas
+            _incrementar_estatistica("alertas_enviados")
+            _registrar_log("alert", "alerta_conta_nova", f"Alerta enviado para conta nova: {member.display_name}", target_id=member.id)
+            
             await self._alertar_imperador(
                 "⚠️ Alerta - Conta Nova",
                 f"O usuário **{member.display_name}** ({member.id}) entrou no servidor com uma conta recente (1-3 dias).\n\n"
@@ -867,6 +1204,7 @@ class ProtecaoParcerias(commands.Cog):
 
         # Verificar comportamento suspeito
         if await self._verificar_comportamento_suspeito(member):
+            _registrar_log("alert", "comportamento_suspeito", f"Comportamento suspeito detectado: {member.display_name}", target_id=member.id)
             await self._alertar_imperador(
                 "Novo Membro Suspeito",
                 f"O usuário **{member.display_name}** ({member.id}) entrou no servidor e apresenta comportamento suspeito.\n\n"
