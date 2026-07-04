@@ -41,8 +41,12 @@ def _carregar_protecao() -> dict:
                 "tempo_bloqueio": 3600,
                 "alertar_imperador": True,
                 "backup_automatico": True,
-                "ultimo_backup": None
-            }
+                "ultimo_backup": None,
+                "canal_alertas": None,
+                "modo_teste": False,
+                "cooldown_alertas": 300
+            },
+            "alertas_cooldown": {}
         }
     try:
         with open(PROTECAO_FILE, "r", encoding="utf-8") as f:
@@ -63,6 +67,14 @@ def _carregar_protecao() -> dict:
                 data["configuracoes"]["backup_automatico"] = True
             if "ultimo_backup" not in data["configuracoes"]:
                 data["configuracoes"]["ultimo_backup"] = None
+            if "canal_alertas" not in data["configuracoes"]:
+                data["configuracoes"]["canal_alertas"] = None
+            if "modo_teste" not in data["configuracoes"]:
+                data["configuracoes"]["modo_teste"] = False
+            if "cooldown_alertas" not in data["configuracoes"]:
+                data["configuracoes"]["cooldown_alertas"] = 300
+            if "alertas_cooldown" not in data:
+                data["alertas_cooldown"] = {}
             return data
     except Exception:
         return {
@@ -84,8 +96,12 @@ def _carregar_protecao() -> dict:
                 "tempo_bloqueio": 3600,
                 "alertar_imperador": True,
                 "backup_automatico": True,
-                "ultimo_backup": None
-            }
+                "ultimo_backup": None,
+                "canal_alertas": None,
+                "modo_teste": False,
+                "cooldown_alertas": 300
+            },
+            "alertas_cooldown": {}
         }
 
 
@@ -199,6 +215,32 @@ def _incrementar_estatistica(chave: str):
     _salvar_protecao(config)
 
 
+def _verificar_cooldown(user_id: int) -> bool:
+    """Verifica se o usuário está em cooldown para alertas."""
+    config = _carregar_protecao()
+    cooldown_time = config["configuracoes"].get("cooldown_alertas", 300)
+    
+    if user_id not in config["alertas_cooldown"]:
+        return False
+    
+    ultimo_alerta = config["alertas_cooldown"][user_id]
+    tempo_passado = (datetime.now(UTC) - datetime.fromisoformat(ultimo_alerta)).total_seconds()
+    
+    if tempo_passado >= cooldown_time:
+        del config["alertas_cooldown"][user_id]
+        _salvar_protecao(config)
+        return False
+    
+    return True
+
+
+def _definir_cooldown(user_id: int):
+    """Define cooldown para um usuário."""
+    config = _carregar_protecao()
+    config["alertas_cooldown"][user_id] = datetime.now(UTC).isoformat()
+    _salvar_protecao(config)
+
+
 def _carregar_parcerias() -> dict:
     if not os.path.exists(PARCERIAS_FILE):
         return {"parcerias": [], "historico": []}
@@ -235,24 +277,43 @@ class ProtecaoParcerias(commands.Cog):
             return True
         return False
 
-    async def _alertar_imperador(self, titulo: str, mensagem: str):
-        """Envia alerta ao Imperador sobre atividade suspeita."""
+    async def _alertar_imperador(self, titulo: str, mensagem: str, canal: discord.TextChannel = None):
+        """Envia alerta ao Imperador e/ou canal sobre atividade suspeita."""
         config = _carregar_protecao()
         if not config["configuracoes"].get("alertar_imperador", True):
             return
 
+        embed = discord.Embed(
+            title=f"🚨 {titulo}",
+            description=mensagem,
+            color=0xFF0000
+        )
+        embed.set_footer(text=RODAPE_IMPERIAL)
+
+        # Enviar para o Imperador via DM
         imperador = self.bot.get_user(IMPERADOR_ID)
         if imperador:
             try:
-                embed = discord.Embed(
-                    title=f"🚨 {titulo}",
-                    description=mensagem,
-                    color=0xFF0000
-                )
-                embed.set_footer(text=RODAPE_IMPERIAL)
                 await imperador.send(embed=embed)
             except Exception as e:
                 print(f"Erro ao alertar imperador: {e}")
+
+        # Enviar para canal configurado
+        canal_alertas_id = config["configuracoes"].get("canal_alertas")
+        if canal_alertas_id:
+            canal_alertas = self.bot.get_channel(canal_alertas_id)
+            if canal_alertas:
+                try:
+                    await canal_alertas.send(embed=embed)
+                except Exception as e:
+                    print(f"Erro ao enviar alerta para canal: {e}")
+
+        # Enviar para canal especificado (se fornecido)
+        if canal:
+            try:
+                await canal.send(embed=embed)
+            except Exception as e:
+                print(f"Erro ao enviar alerta para canal especificado: {e}")
 
     async def _registrar_atividade_suspeita(self, user_id: int, atividade: str):
         """Registra atividade suspeita para análise."""
@@ -462,7 +523,12 @@ class ProtecaoParcerias(commands.Cog):
                     "`tenshi listar-backups` - Lista backups disponíveis\n"
                     "`tenshi restaurar-backup [arquivo]` - Restaura backup\n"
                     "`tenshi logs-protecao [filtro]` - Ver logs do sistema\n"
-                    "`tenshi estatisticas-protecao` - Ver estatísticas"
+                    "`tenshi estatisticas-protecao` - Ver estatísticas\n"
+                    "`tenshi config-canal-alertas #canal` - Configura canal de alertas\n"
+                    "`tenshi limpar-logs [dias]` - Limpa logs antigos\n"
+                    "`tenshi relatorio-protecao` - Gera relatório detalhado\n"
+                    "`tenshi resetar-estatisticas` - Zera estatísticas\n"
+                    "`tenshi modo-teste` - Ativa/desativa modo de teste"
                 ),
                 inline=False
             )
@@ -897,13 +963,218 @@ class ProtecaoParcerias(commands.Cog):
             name="⚙️ Configuração",
             value=(
                 f"**Proteção Ativa:** {'✅ Sim' if config['configuracoes'].get('protecao_ativa', True) else '❌ Não'}\n"
-                f"**Backup Automático:** {'✅ Sim' if config['configuracoes'].get('backup_automatico', True) else '❌ Não'}"
+                f"**Backup Automático:** {'✅ Sim' if config['configuracoes'].get('backup_automatico', True) else '❌ Não'}\n"
+                f"**Modo Teste:** {'✅ Sim' if config['configuracoes'].get('modo_teste', False) else '❌ Não'}\n"
+                f"**Cooldown Alertas:** {config['configuracoes'].get('cooldown_alertas', 300)}s"
             ),
             inline=True
         )
 
         embed.set_footer(text=RODAPE_IMPERIAL)
         await message.channel.send(embed=embed)
+
+    async def cmd_config_canal_alertas(self, message, canal: discord.TextChannel = None):
+        """Configura canal para alertas do sistema."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+
+        if canal:
+            config["configuracoes"]["canal_alertas"] = canal.id
+            _salvar_protecao(config)
+            _registrar_log("config", "config_canal_alertas", f"Canal de alertas configurado: {canal.name}", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Canal Configurado",
+                f"*O canal {canal.mention} foi configurado para receber alertas do sistema de proteção.*\n\n"
+                f"{SEP}\n\n"
+                f"Os alertas serão enviados para este canal além do DM ao Imperador.",
+                0x2B0A3D
+            ))
+        else:
+            # Remover configuração
+            config["configuracoes"]["canal_alertas"] = None
+            _salvar_protecao(config)
+            _registrar_log("config", "remover_canal_alertas", "Canal de alertas removido", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Canal Removido",
+                f"*A configuração de canal de alertas foi removida.*\n\n"
+                f"{SEP}\n\n"
+                f"Os alertas serão enviados apenas via DM ao Imperador.",
+                0x2B0A3D
+            ))
+
+    async def cmd_limpar_logs(self, message, dias: int = None):
+        """Limpa logs antigos do sistema."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        if dias is None:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi limpar-logs [dias]*\n*Exemplo: tenshi limpar-logs 7 (remove logs com mais de 7 dias)*", 0x6B0000))
+            return
+
+        logs = _carregar_logs()
+        if not logs:
+            await message.channel.send(embed=embed_imperial("📭 Sem Logs", "*Nenhum log para limpar.*", 0x2B0A3D))
+            return
+
+        from datetime import timedelta
+        cutoff_date = datetime.now(UTC) - timedelta(days=dias)
+        
+        logs_filtrados = [
+            log for log in logs 
+            if datetime.fromisoformat(log["timestamp"]) >= cutoff_date
+        ]
+
+        logs_removidos = len(logs) - len(logs_filtrados)
+        
+        # Salvar logs filtrados
+        os.makedirs(os.path.dirname(LOGS_FILE), exist_ok=True)
+        with open(LOGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(logs_filtrados, f, ensure_ascii=False, indent=2)
+
+        _registrar_log("config", "limpar_logs", f"Logs com mais de {dias} dias removidos ({logs_removidos} logs)", message.author.id)
+
+        await message.channel.send(embed=embed_imperial(
+            "✅ Logs Limpos",
+            f"*{logs_removidos} logs com mais de {dias} dias foram removidos.*\n\n"
+            f"{SEP}\n\n"
+            f"**Logs restantes:** {len(logs_filtrados)}",
+            0x2B0A3D
+        ))
+
+    async def cmd_relatorio_protecao(self, message):
+        """Gera relatório detalhado do sistema de proteção."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        stats = config.get("estatisticas", {})
+        logs = _carregar_logs()
+
+        relatorio = f"""
+═══════════════════════════════════════════════════════════
+📊 RELATÓRIO DO SISTEMA DE PROTEÇÃO IMPERIAL
+═══════════════════════════════════════════════════════════
+📅 Data: {datetime.now(UTC).strftime('%d/%m/%Y %H:%M:%S')} UTC
+
+═══════════════════════════════════════════════════════════
+📈 ESTATÍSTICAS
+═══════════════════════════════════════════════════════════
+🚨 Bans Automáticos: {stats.get('bans_automaticos', 0)}
+⚠️ Alertas Enviados: {stats.get('alertas_enviados', 0)}
+👥 Whitelist Adições: {stats.get('whitelist_adicoes', 0)}
+👥 Whitelist Remoções: {stats.get('whitelist_remocoes', 0)}
+💾 Backups Criados: {stats.get('backups_criados', 0)}
+💾 Backups Restaurados: {stats.get('backups_restaurados', 0)}
+
+═══════════════════════════════════════════════════════════
+⚙️ CONFIGURAÇÕES
+═══════════════════════════════════════════════════════════
+🛡️ Proteção Ativa: {'✅ SIM' if config['configuracoes'].get('protecao_ativa', True) else '❌ NÃO'}
+📢 Alertar Imperador: {'✅ SIM' if config['configuracoes'].get('alertar_imperador', True) else '❌ NÃO'}
+💾 Backup Automático: {'✅ SIM' if config['configuracoes'].get('backup_automatico', True) else '❌ NÃO'}
+🧪 Modo Teste: {'✅ SIM' if config['configuracoes'].get('modo_teste', False) else '❌ NÃO'}
+⏱️ Cooldown Alertas: {config['configuracoes'].get('cooldown_alertas', 300)} segundos
+📺 Canal Alertas: {config['configuracoes'].get('canal_alertas') or 'Não configurado'}
+
+═══════════════════════════════════════════════════════════
+👥 LISTAS
+═══════════════════════════════════════════════════════════
+📋 Usuários Confiança: {len(config.get('usuarios_confianca', []))}
+👻 Whitelist Fantasma: {len(config.get('whitelist_fantasma', []))}
+🚫 Servidores Bloqueados: {len(config.get('servidores_bloqueados', []))}
+
+═══════════════════════════════════════════════════════════
+📜 LOGS
+═══════════════════════════════════════════════════════════
+Total de Logs: {len(logs)}
+Último Backup: {config['configuracoes'].get('ultimo_backup', 'N/A')[:19] if config['configuracoes'].get('ultimo_backup') else 'N/A'}
+
+═══════════════════════════════════════════════════════════
+"""
+
+        # Enviar como arquivo
+        try:
+            with open("data/relatorio_protecao.txt", "w", encoding="utf-8") as f:
+                f.write(relatorio)
+            
+            await message.channel.send(
+                "📊 Relatório gerado com sucesso!",
+                file=discord.File("data/relatorio_protecao.txt", "relatorio_protecao.txt")
+            )
+            
+            _registrar_log("config", "gerar_relatorio", "Relatório de proteção gerado", message.author.id)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro", f"*Ocorreu um erro ao gerar o relatório: {e}*", 0x6B0000))
+
+    async def cmd_resetar_estatisticas(self, message):
+        """Reseta todas as estatísticas do sistema."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        config["estatisticas"] = {
+            "bans_automaticos": 0,
+            "alertas_enviados": 0,
+            "whitelist_adicoes": 0,
+            "whitelist_remocoes": 0,
+            "backups_criados": 0,
+            "backups_restaurados": 0
+        }
+        _salvar_protecao(config)
+
+        _registrar_log("config", "resetar_estatisticas", "Estatísticas resetadas", message.author.id)
+
+        await message.channel.send(embed=embed_imperial(
+            "✅ Estatísticas Resetadas",
+            f"*Todas as estatísticas do sistema foram zeradas.*\n\n"
+            f"{SEP}\n\n"
+            f"Isso é útil para começar um novo período de análise.",
+            0x2B0A3D
+        ))
+
+    async def cmd_modo_teste(self, message):
+        """Ativa ou desativa o modo de teste."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        modo_atual = config["configuracoes"].get("modo_teste", False)
+        novo_modo = not modo_atual
+        
+        config["configuracoes"]["modo_teste"] = novo_modo
+        _salvar_protecao(config)
+
+        _registrar_log("config", "modo_teste", f"Modo teste {'ativado' if novo_modo else 'desativado'}", message.author.id)
+
+        if novo_modo:
+            await message.channel.send(embed=embed_imperial(
+                "🧪 Modo Teste Ativado",
+                f"*O modo de teste foi ativado.*\n\n"
+                f"{SEP}\n\n"
+                f"**⚠️ Avisos:**\n"
+                f"• Bans automáticos serão SIMULADOS (não executados)\n"
+                f"• Alertas serão enviados indicando simulação\n"
+                f"• Útil para testar o sistema sem riscos\n\n"
+                f"Use `tenshi modo-teste` novamente para desativar.",
+                0xFF6600
+            ))
+        else:
+            await message.channel.send(embed=embed_imperial(
+                "✅ Modo Teste Desativado",
+                f"*O modo de teste foi desativado.*\n\n"
+                f"{SEP}\n\n"
+                f"**🛡️ Sistema Normal:**\n"
+                f"• Bans automáticos serão executados normalmente\n"
+                f"• O sistema está operando em modo de produção.",
+                0x2B0A3D
+            ))
 
     async def cmd_bloquear_servidor(self, message, guild_id: int):
         """Bloqueia um servidor específico."""
@@ -1143,6 +1414,8 @@ class ProtecaoParcerias(commands.Cog):
         if not config["configuracoes"].get("protecao_ativa", True):
             return
 
+        modo_teste = config["configuracoes"].get("modo_teste", False)
+
         # Verificar se é conta fantasma - BAN ou ALERTA
         status_fantasma = await self._eh_conta_fantasma(member)
         
@@ -1151,6 +1424,22 @@ class ProtecaoParcerias(commands.Cog):
                 member.id,
                 f"Conta fantasma detectada - Ban automático"
             )
+            
+            acao_real = "SIMULAÇÃO" if modo_teste else "REAL"
+            
+            if modo_teste:
+                # Modo teste - apenas log e alerta
+                _registrar_log("ban", "ban_simulado", f"[MODO TESTE] Usuário {member.display_name} seria banido (conta fantasma)", target_id=member.id)
+                await self._alertar_imperador(
+                    f"🧪 [MODO TESTE] Ban Simulado - Conta Fantasma",
+                    f"O usuário **{member.display_name}** ({member.id}) seria banido automaticamente por ser uma conta fantasma.\n\n"
+                    f"**Ação:** {acao_real}\n"
+                    f"**Conta criada em:** {member.created_at}\n"
+                    f"**Entrou em:** {member.joined_at}\n"
+                    f"**Avatar:** {'Sim' if member.avatar else 'Não'}\n\n"
+                    f"Esta ação foi SIMULADA pelo sistema de proteção imperial."
+                )
+                return
             
             try:
                 await member.ban(reason="Conta fantasma detectada pelo sistema de proteção imperial")
@@ -1162,6 +1451,7 @@ class ProtecaoParcerias(commands.Cog):
                 await self._alertar_imperador(
                     "🚨 Ban Automático - Conta Fantasma",
                     f"O usuário **{member.display_name}** ({member.id}) foi banido automaticamente por ser uma conta fantasma.\n\n"
+                    f"**Ação:** {acao_real}\n"
                     f"**Conta criada em:** {member.created_at}\n"
                     f"**Entrou em:** {member.joined_at}\n"
                     f"**Avatar:** {'Sim' if member.avatar else 'Não'}\n\n"
@@ -1183,10 +1473,18 @@ class ProtecaoParcerias(commands.Cog):
                 return
         
         elif status_fantasma == "alert":
+            # Verificar cooldown
+            if _verificar_cooldown(member.id):
+                print(f"Alerta para {member.display_name} ignorado por cooldown")
+                return
+            
             await self._registrar_atividade_suspeita(
                 member.id,
                 f"Conta nova detectada - Alerta (1-3 dias)"
             )
+            
+            # Definir cooldown
+            _definir_cooldown(member.id)
             
             # Log e estatísticas
             _incrementar_estatistica("alertas_enviados")
