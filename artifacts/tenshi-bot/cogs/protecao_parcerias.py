@@ -1,5 +1,5 @@
 """
-Sistema de Proteção Imperial e Parcerias - Finalização UPP
+Sistema de Proteção Imperial e Parcerias
 Proteção contra invasões e sistema de parcerias com IA
 """
 import json
@@ -259,16 +259,15 @@ class ProtecaoParcerias(commands.Cog):
             inline=False
         )
 
-        embed.set_footer(text=f"{RODAPE_IMPERIAL} • Finalização UPP")
+        embed.set_footer(text=f"{RODAPE_IMPERIAL}")
         embed.timestamp = datetime.now(UTC)
 
         return embed
 
-    @commands.command(name="protecao-imperial")
-    async def cmd_protecao_imperial(self, ctx):
+    async def cmd_protecao_imperial(self, message):
         """Painel de configuração da proteção imperial."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_protecao()
@@ -289,39 +288,36 @@ class ProtecaoParcerias(commands.Cog):
         embed.add_field(name="🚫 Servidores Bloqueados", value=str(len(config.get("servidores_bloqueados", []))), inline=True)
 
         embed.set_footer(text=RODAPE_IMPERIAL)
-        await ctx.send(embed=embed)
+        await message.channel.send(embed=embed)
 
-    @commands.command(name="ativar-protecao")
-    async def cmd_ativar_protecao(self, ctx):
+    async def cmd_ativar_protecao(self, message):
         """Ativa a proteção imperial."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_protecao()
         config["configuracoes"]["protecao_ativa"] = True
         _salvar_protecao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Proteção Ativada", "*A proteção imperial foi ativada com sucesso.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Proteção Ativada", "*A proteção imperial foi ativada com sucesso.*", 0x2B0A3D))
 
-    @commands.command(name="desativar-protecao")
-    async def cmd_desativar_protecao(self, ctx):
+    async def cmd_desativar_protecao(self, message):
         """Desativa a proteção imperial."""
-        if ctx.author.id != IMPERADOR_ID:
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode desativar a proteção.*", 0x6B0000))
+        if message.author.id != IMPERADOR_ID:
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode desativar a proteção.*", 0x6B0000))
             return
 
         config = _carregar_protecao()
         config["configuracoes"]["protecao_ativa"] = False
         _salvar_protecao(config)
 
-        await ctx.send(embed=embed_imperial("⚠️ Proteção Desativada", "*A proteção imperial foi desativada pelo Imperador.*", 0xFF6600))
+        await message.channel.send(embed=embed_imperial("⚠️ Proteção Desativada", "*A proteção imperial foi desativada pelo Imperador.*", 0xFF6600))
 
-    @commands.command(name="confianca")
-    async def cmd_confianca(self, ctx, member: discord.Member):
+    async def cmd_confianca(self, message, member: discord.Member):
         """Adiciona usuário à lista de confiança."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_protecao()
@@ -329,19 +325,18 @@ class ProtecaoParcerias(commands.Cog):
             config["usuarios_confianca"] = []
 
         if member.id in config["usuarios_confianca"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Já na Lista", f"*{member.display_name} já está na lista de confiança.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Já na Lista", f"*{member.display_name} já está na lista de confiança.*", 0x6B0000))
             return
 
         config["usuarios_confianca"].append(member.id)
         _salvar_protecao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Adicionado à Confiança", f"*{member.display_name} foi adicionado à lista de confiança imperial.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Adicionado à Confiança", f"*{member.display_name} foi adicionado à lista de confiança imperial.*", 0x2B0A3D))
 
-    @commands.command(name="remover-confianca")
-    async def cmd_remover_confianca(self, ctx, member: discord.Member):
+    async def cmd_remover_confianca(self, message, member: discord.Member):
         """Remove usuário da lista de confiança."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_protecao()
@@ -349,19 +344,18 @@ class ProtecaoParcerias(commands.Cog):
             config["usuarios_confianca"] = []
 
         if member.id not in config["usuarios_confianca"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Não na Lista", f"*{member.display_name} não está na lista de confiança.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Não na Lista", f"*{member.display_name} não está na lista de confiança.*", 0x6B0000))
             return
 
         config["usuarios_confianca"].remove(member.id)
         _salvar_protecao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Removido da Confiança", f"*{member.display_name} foi removido da lista de confiança imperial.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Removido da Confiança", f"*{member.display_name} foi removido da lista de confiança imperial.*", 0x2B0A3D))
 
-    @commands.command(name="bloquear-servidor")
-    async def cmd_bloquear_servidor(self, ctx, guild_id: int):
+    async def cmd_bloquear_servidor(self, message, guild_id: int):
         """Bloqueia um servidor específico."""
-        if ctx.author.id != IMPERADOR_ID:
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode bloquear servidores.*", 0x6B0000))
+        if message.author.id != IMPERADOR_ID:
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode bloquear servidores.*", 0x6B0000))
             return
 
         config = _carregar_protecao()
@@ -369,19 +363,18 @@ class ProtecaoParcerias(commands.Cog):
             config["servidores_bloqueados"] = []
 
         if guild_id in config["servidores_bloqueados"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Já Bloqueado", f"*O servidor {guild_id} já está bloqueado.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Já Bloqueado", f"*O servidor {guild_id} já está bloqueado.*", 0x6B0000))
             return
 
         config["servidores_bloqueados"].append(guild_id)
         _salvar_protecao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Servidor Bloqueado", f"*O servidor {guild_id} foi bloqueado pelo Imperador.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Servidor Bloqueado", f"*O servidor {guild_id} foi bloqueado pelo Imperador.*", 0x2B0A3D))
 
-    @commands.command(name="desbloquear-servidor")
-    async def cmd_desbloquear_servidor(self, ctx, guild_id: int):
+    async def cmd_desbloquear_servidor(self, message, guild_id: int):
         """Desbloqueia um servidor específico."""
-        if ctx.author.id != IMPERADOR_ID:
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode desbloquear servidores.*", 0x6B0000))
+        if message.author.id != IMPERADOR_ID:
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode desbloquear servidores.*", 0x6B0000))
             return
 
         config = _carregar_protecao()
@@ -389,27 +382,26 @@ class ProtecaoParcerias(commands.Cog):
             config["servidores_bloqueados"] = []
 
         if guild_id not in config["servidores_bloqueados"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Não Bloqueado", f"*O servidor {guild_id} não está bloqueado.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Não Bloqueado", f"*O servidor {guild_id} não está bloqueado.*", 0x6B0000))
             return
 
         config["servidores_bloqueados"].remove(guild_id)
         _salvar_protecao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Servidor Desbloqueado", f"*O servidor {guild_id} foi desbloqueado pelo Imperador.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Servidor Desbloqueado", f"*O servidor {guild_id} foi desbloqueado pelo Imperador.*", 0x2B0A3D))
 
-    @commands.command(name="atividade-suspeita")
-    async def cmd_atividade_suspeita(self, ctx, member: Optional[discord.Member] = None):
+    async def cmd_atividade_suspeita(self, message, member: Optional[discord.Member] = None):
         """Verifica atividade suspeita de um usuário."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
-        target = member or ctx.author
+        target = member or message.author
         config = _carregar_protecao()
         atividades = config.get("atividade_suspeita", {}).get(target.id, [])
 
         if not atividades:
-            await ctx.send(embed=embed_imperial("✅ Nenhuma Atividade", f"*{target.display_name} não possui atividades suspeitas registradas.*", 0x2B0A3D))
+            await message.channel.send(embed=embed_imperial("✅ Nenhuma Atividade", f"*{target.display_name} não possui atividades suspeitas registradas.*", 0x2B0A3D))
             return
 
         embed = discord.Embed(
@@ -428,23 +420,22 @@ class ProtecaoParcerias(commands.Cog):
             )
 
         embed.set_footer(text=RODAPE_IMPERIAL)
-        await ctx.send(embed=embed)
+        await message.channel.send(embed=embed)
 
-    @commands.command(name="parceria")
-    async def cmd_parceria(self, ctx, invite_link: str):
+    async def cmd_parceria(self, message, invite_link: str):
         """Gera embed de parceria a partir de link de convite."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem criar propostas de parceria.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem criar propostas de parceria.*", 0x6B0000))
             return
 
-        await ctx.send("🔍 Analisando servidor do link de convite...")
+        await message.channel.send("🔍 Analisando servidor do link de convite...")
 
         info_servidor = await self._extrair_info_servidor(invite_link)
         if not info_servidor:
-            await ctx.send(embed=embed_imperial("❌ Link Inválido", "*Não foi possível obter informações do servidor. Verifique o link de convite.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("❌ Link Inválido", "*Não foi possível obter informações do servidor. Verifique o link de convite.*", 0x6B0000))
             return
 
-        await ctx.send("✨ Gerando proposta de parceria com IA...")
+        await message.channel.send("✨ Gerando proposta de parceria com IA...")
 
         embed = await self._gerar_embed_parceria(info_servidor)
 
@@ -454,25 +445,24 @@ class ProtecaoParcerias(commands.Cog):
             "servidor": info_servidor["nome"],
             "servidor_id": info_servidor["id"],
             "codigo": info_servidor["codigo"],
-            "criado_por": ctx.author.id,
+            "criado_por": message.author.id,
             "timestamp": datetime.now(UTC).isoformat()
         })
         _salvar_parcerias(parcerias)
 
-        await ctx.send(embed=embed)
+        await message.channel.send(embed=embed)
 
-    @commands.command(name="historico-parcerias")
-    async def cmd_historico_parcerias(self, ctx):
+    async def cmd_historico_parcerias(self, message):
         """Mostra histórico de parcerias."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         parcerias = _carregar_parcerias()
         historico = parcerias.get("historico", [])
 
         if not historico:
-            await ctx.send(embed=embed_imperial("📭 Histórico Vazio", "*Nenhuma parceria foi registrada até o momento.*", 0x2B0A3D))
+            await message.channel.send(embed=embed_imperial("📭 Histórico Vazio", "*Nenhuma parceria foi registrada até o momento.*", 0x2B0A3D))
             return
 
         embed = discord.Embed(
@@ -492,7 +482,7 @@ class ProtecaoParcerias(commands.Cog):
             )
 
         embed.set_footer(text=RODAPE_IMPERIAL)
-        await ctx.send(embed=embed)
+        await message.channel.send(embed=embed)
 
     @commands.CogListener()
     async def on_member_join(self, member: discord.Member):
@@ -509,7 +499,7 @@ class ProtecaoParcerias(commands.Cog):
             )
             
             try:
-                await member.ban(reason="Conta fantasma detectada pelo sistema de proteção imperial - Finalização UPP")
+                await member.ban(reason="Conta fantasma detectada pelo sistema de proteção imperial")
                 await self._alertar_imperador(
                     "🚨 Ban Automático - Conta Fantasma",
                     f"O usuário **{member.display_name}** ({member.id}) foi banido automaticamente por ser uma conta fantasma.\n\n"

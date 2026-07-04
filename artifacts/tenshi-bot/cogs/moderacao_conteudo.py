@@ -1,5 +1,5 @@
 """
-Sistema de Moderação de Conteúdo - Finalização UPP
+Sistema de Moderação de Conteúdo
 Análise de imagens, links suspeitos e filtro de segurança
 """
 import re
@@ -350,11 +350,10 @@ class ModeracaoConteudo(commands.Cog):
         
         return False
 
-    @commands.command(name="config-moderacao")
-    async def cmd_config_moderacao(self, ctx):
+    async def cmd_config_moderacao(self, message):
         """Painel de configuração da moderação de conteúdo."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_config_moderacao()
@@ -386,13 +385,12 @@ class ModeracaoConteudo(commands.Cog):
         embed.add_field(name="✅ Domínios Confiança", value=str(len(config.get("dominios_confianca", []))), inline=True)
 
         embed.set_footer(text=RODAPE_IMPERIAL)
-        await ctx.send(embed=embed)
+        await message.channel.send(embed=embed)
 
-    @commands.command(name="bloquear-link")
-    async def cmd_bloquear_link(self, ctx, url: str):
+    async def cmd_bloquear_link(self, message, url: str):
         """Bloqueia um link específico."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_config_moderacao()
@@ -400,19 +398,18 @@ class ModeracaoConteudo(commands.Cog):
             config["links_bloqueados"] = []
 
         if url in config["links_bloqueados"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Já Bloqueado", f"*O link já está na lista de bloqueados.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Já Bloqueado", f"*O link já está na lista de bloqueados.*", 0x6B0000))
             return
 
         config["links_bloqueados"].append(url)
         _salvar_config_moderacao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Link Bloqueado", f"*O link foi adicionado à lista de bloqueados.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Link Bloqueado", f"*O link foi adicionado à lista de bloqueados.*", 0x2B0A3D))
 
-    @commands.command(name="desbloquear-link")
-    async def cmd_desbloquear_link(self, ctx, url: str):
+    async def cmd_desbloquear_link(self, message, url: str):
         """Desbloqueia um link específico."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_config_moderacao()
@@ -420,19 +417,18 @@ class ModeracaoConteudo(commands.Cog):
             config["links_bloqueados"] = []
 
         if url not in config["links_bloqueados"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Não Bloqueado", f"*O link não está na lista de bloqueados.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Não Bloqueado", f"*O link não está na lista de bloqueados.*", 0x6B0000))
             return
 
         config["links_bloqueados"].remove(url)
         _salvar_config_moderacao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Link Desbloqueado", f"*O link foi removido da lista de bloqueados.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Link Desbloqueado", f"*O link foi removido da lista de bloqueados.*", 0x2B0A3D))
 
-    @commands.command(name="adicionar-dominio-confianca")
-    async def cmd_adicionar_dominio_confianca(self, ctx, dominio: str):
+    async def cmd_adicionar_dominio_confianca(self, message, dominio: str):
         """Adiciona um domínio à lista de confiança."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_config_moderacao()
@@ -440,19 +436,18 @@ class ModeracaoConteudo(commands.Cog):
             config["dominios_confianca"] = []
 
         if dominio in config["dominios_confianca"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Já na Lista", f"*O domínio já está na lista de confiança.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Já na Lista", f"*O domínio já está na lista de confiança.*", 0x6B0000))
             return
 
         config["dominios_confianca"].append(dominio)
         _salvar_config_moderacao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Domínio Adicionado", f"*O domínio foi adicionado à lista de confiança.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Domínio Adicionado", f"*O domínio foi adicionado à lista de confiança.*", 0x2B0A3D))
 
-    @commands.command(name="remover-dominio-confianca")
-    async def cmd_remover_dominio_confianca(self, ctx, dominio: str):
+    async def cmd_remover_dominio_confianca(self, message, dominio: str):
         """Remove um domínio da lista de confiança."""
-        if not await self._verificar_acesso_admin(ctx.author):
-            await ctx.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
             return
 
         config = _carregar_config_moderacao()
@@ -460,13 +455,13 @@ class ModeracaoConteudo(commands.Cog):
             config["dominios_confianca"] = []
 
         if dominio not in config["dominios_confianca"]:
-            await ctx.send(embed=embed_imperial("ℹ️ Não na Lista", f"*O domínio não está na lista de confiança.*", 0x6B0000))
+            await message.channel.send(embed=embed_imperial("ℹ️ Não na Lista", f"*O domínio não está na lista de confiança.*", 0x6B0000))
             return
 
         config["dominios_confianca"].remove(dominio)
         _salvar_config_moderacao(config)
 
-        await ctx.send(embed=embed_imperial("✅ Domínio Removido", f"*O domínio foi removido da lista de confiança.*", 0x2B0A3D))
+        await message.channel.send(embed=embed_imperial("✅ Domínio Removido", f"*O domínio foi removido da lista de confiança.*", 0x2B0A3D))
 
 
 async def setup(bot):

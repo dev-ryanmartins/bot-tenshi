@@ -490,9 +490,6 @@ async def on_message(message):
         cmd = partes[0].lower()
         args = partes[1:]
         
-        # Debug: imprimir comando extraído
-        print(f"[DEBUG] Comando extraído: cmd='{cmd}', args={args}, resto_comando='{resto_comando}'")
-        
         # Verificar se o comando pode ser usado no canal atual
         # Comandos de ajuda sempre permitidos em qualquer canal
         if cmd not in ["ajuda", "help", "comandos", "menu"]:
@@ -1106,7 +1103,7 @@ async def on_message(message):
         await level_rewards.handle_add_reward(message, args)
         return
 
-    # ── PROTEÇÃO IMPERIAL - Finalização UPP ───────────────────────────────────
+    # ── PROTEÇÃO IMPERIAL ───────────────────────────────────
     elif cmd in ("protecao-imperial", "protecaoimperial", "config-protecao"):
         await protecao_parcerias.cmd_protecao_imperial(message)
         return
@@ -1162,7 +1159,7 @@ async def on_message(message):
             await protecao_parcerias.cmd_atividade_suspeita(message, None)
         return
 
-    # ── SISTEMA DE PARCERIAS - Finalização UPP ────────────────────────────────
+    # ── SISTEMA DE PARCERIAS ────────────────────────────────
     elif cmd in ("parceria", "partnership", "create-partnership"):
         if args:
             await protecao_parcerias.cmd_parceria(message, args[0])
@@ -1174,7 +1171,7 @@ async def on_message(message):
         await protecao_parcerias.cmd_historico_parcerias(message)
         return
 
-    # ── MODERAÇÃO DE CONTEÚDO - Finalização UPP ───────────────────────────────
+    # ── MODERAÇÃO DE CONTEÚDO ───────────────────────────────
     elif cmd in ("config-moderacao", "configmoderacao", "moderation-config"):
         await moderacao_conteudo.cmd_config_moderacao(message)
         return
