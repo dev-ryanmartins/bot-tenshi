@@ -266,102 +266,114 @@ class ProtecaoParcerias(commands.Cog):
 
     async def cmd_protecao_imperial(self, message):
         """Painel de configuração da proteção imperial."""
-        if not await self._verificar_acesso_admin(message.author):
-            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
-            return
+        try:
+            if not await self._verificar_acesso_admin(message.author):
+                await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+                return
 
-        config = _carregar_protecao()
-        cfg = config["configuracoes"]
+            config = _carregar_protecao()
+            cfg = config["configuracoes"]
 
-        embed = discord.Embed(
-            title="🛡️ Painel de Proteção Imperial",
-            description=f"Status da proteção do servidor e configurações atuais.\n\n{SEP}",
-            color=0x2B0A3D
-        )
+            embed = discord.Embed(
+                title="🛡️ Painel de Proteção Imperial",
+                description=f"Status da proteção do servidor e configurações atuais.\n\n{SEP}",
+                color=0x2B0A3D
+            )
 
-        status = "✅ Ativa" if cfg.get("protecao_ativa", True) else "❌ Inativa"
-        embed.add_field(name="🔒 Status", value=status, inline=True)
-        embed.add_field(name="⚠️ Máx Tentativas", value=str(cfg.get("max_tentativas", 5)), inline=True)
-        embed.add_field(name="⏱️ Tempo Bloqueio", value=f"{cfg.get('tempo_bloqueio', 3600)}s", inline=True)
-        embed.add_field(name="📢 Alertar Imperador", value="✅ Sim" if cfg.get("alertar_imperador", True) else "❌ Não", inline=True)
-        embed.add_field(name="👥 Usuários Confiança", value=str(len(config.get("usuarios_confianca", []))), inline=True)
-        embed.add_field(name="🚫 Servidores Bloqueados", value=str(len(config.get("servidores_bloqueados", []))), inline=True)
-        
-        # Adicionar comandos disponíveis
-        embed.add_field(
-            name="📋 Comandos Disponíveis",
-            value=(
-                "`tenshi ativar-protecao` - Ativa a proteção\n"
-                "`tenshi desativar-protecao` - Desativa a proteção\n"
-                "`tenshi confianca @usuario` - Adiciona usuário confiável\n"
-                "`tenshi remover-confianca @usuario` - Remove usuário confiável\n"
-                "`tenshi bloquear-servidor [id]` - Bloqueia servidor\n"
-                "`tenshi desbloquear-servidor [id]` - Desbloqueia servidor\n"
-                "`tenshi atividade-suspeita @usuario` - Verifica atividade\n"
-                "`tenshi teste-protecao @usuario` - Testa detecção de conta fantasma"
-            ),
-            inline=False
-        )
+            status = "✅ Ativa" if cfg.get("protecao_ativa", True) else "❌ Inativa"
+            embed.add_field(name="🔒 Status", value=status, inline=True)
+            embed.add_field(name="⚠️ Máx Tentativas", value=str(cfg.get("max_tentativas", 5)), inline=True)
+            embed.add_field(name="⏱️ Tempo Bloqueio", value=f"{cfg.get('tempo_bloqueio', 3600)}s", inline=True)
+            embed.add_field(name="📢 Alertar Imperador", value="✅ Sim" if cfg.get("alertar_imperador", True) else "❌ Não", inline=True)
+            embed.add_field(name="👥 Usuários Confiança", value=str(len(config.get("usuarios_confianca", []))), inline=True)
+            embed.add_field(name="🚫 Servidores Bloqueados", value=str(len(config.get("servidores_bloqueados", []))), inline=True)
+            
+            # Adicionar comandos disponíveis
+            embed.add_field(
+                name="📋 Comandos Disponíveis",
+                value=(
+                    "`tenshi ativar-protecao` - Ativa a proteção\n"
+                    "`tenshi desativar-protecao` - Desativa a proteção\n"
+                    "`tenshi confianca @usuario` - Adiciona usuário confiável\n"
+                    "`tenshi remover-confianca @usuario` - Remove usuário confiável\n"
+                    "`tenshi bloquear-servidor [id]` - Bloqueia servidor\n"
+                    "`tenshi desbloquear-servidor [id]` - Desbloqueia servidor\n"
+                    "`tenshi atividade-suspeita @usuario` - Verifica atividade\n"
+                    "`tenshi teste-protecao @usuario` - Testa detecção de conta fantasma"
+                ),
+                inline=False
+            )
 
-        embed.set_footer(text=RODAPE_IMPERIAL)
-        await message.channel.send(embed=embed)
+            embed.set_footer(text=RODAPE_IMPERIAL)
+            await message.channel.send(embed=embed)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro", f"*Ocorreu um erro ao carregar o painel: {e}*", 0x6B0000))
+            print(f"Erro no cmd_protecao_imperial: {e}")
 
     async def cmd_ativar_protecao(self, message):
         """Ativa a proteção imperial."""
-        if not await self._verificar_acesso_admin(message.author):
-            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
-            return
+        try:
+            if not await self._verificar_acesso_admin(message.author):
+                await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+                return
 
-        config = _carregar_protecao()
-        config["configuracoes"]["protecao_ativa"] = True
-        _salvar_protecao(config)
+            config = _carregar_protecao()
+            config["configuracoes"]["protecao_ativa"] = True
+            _salvar_protecao(config)
 
-        embed = discord.Embed(
-            title="✅ Proteção Imperial Ativada",
-            description=(
-                "*A proteção imperial foi ativada com sucesso.*\n\n"
-                f"{SEP}\n\n"
-                "**🔒 Configurações Atuais:**\n"
-                f"• Máx tentativas: {config['configuracoes'].get('max_tentativas', 5)}\n"
-                f"• Tempo de bloqueio: {config['configuracoes'].get('tempo_bloqueio', 3600)}s\n"
-                f"• Alertar Imperador: {'✅ Sim' if config['configuracoes'].get('alertar_imperador', True) else '❌ Não'}\n\n"
-                "**🛡️ Sistema Ativo:**\n"
-                "• Detecção de contas fantasma\n"
-                "• Bloqueio de servidores suspeitos\n"
-                "• Monitoramento de atividade\n"
-                "• Alertas automáticos ao Imperador"
-            ),
-            color=0x2B0A3D
-        )
-        embed.set_footer(text=RODAPE_IMPERIAL)
-        await message.channel.send(embed=embed)
+            embed = discord.Embed(
+                title="✅ Proteção Imperial Ativada",
+                description=(
+                    "*A proteção imperial foi ativada com sucesso.*\n\n"
+                    f"{SEP}\n\n"
+                    "**🔒 Configurações Atuais:**\n"
+                    f"• Máx tentativas: {config['configuracoes'].get('max_tentativas', 5)}\n"
+                    f"• Tempo de bloqueio: {config['configuracoes'].get('tempo_bloqueio', 3600)}s\n"
+                    f"• Alertar Imperador: {'✅ Sim' if config['configuracoes'].get('alertar_imperador', True) else '❌ Não'}\n\n"
+                    "**🛡️ Sistema Ativo:**\n"
+                    "• Detecção de contas fantasma\n"
+                    "• Bloqueio de servidores suspeitos\n"
+                    "• Monitoramento de atividade\n"
+                    "• Alertas automáticos ao Imperador"
+                ),
+                color=0x2B0A3D
+            )
+            embed.set_footer(text=RODAPE_IMPERIAL)
+            await message.channel.send(embed=embed)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro", f"*Ocorreu um erro ao ativar a proteção: {e}*", 0x6B0000))
+            print(f"Erro no cmd_ativar_protecao: {e}")
 
     async def cmd_desativar_protecao(self, message):
         """Desativa a proteção imperial."""
-        if message.author.id != IMPERADOR_ID:
-            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode desativar a proteção.*", 0x6B0000))
-            return
+        try:
+            if message.author.id != IMPERADOR_ID:
+                await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas o Imperador pode desativar a proteção.*", 0x6B0000))
+                return
 
-        config = _carregar_protecao()
-        config["configuracoes"]["protecao_ativa"] = False
-        _salvar_protecao(config)
+            config = _carregar_protecao()
+            config["configuracoes"]["protecao_ativa"] = False
+            _salvar_protecao(config)
 
-        embed = discord.Embed(
-            title="⚠️ Proteção Imperial Desativada",
-            description=(
-                "*A proteção imperial foi desativada pelo Imperador.*\n\n"
-                f"{SEP}\n\n"
-                "**⚠️ Aviso:**\n"
-                "O servidor não está mais protegido contra:\n"
-                "• Contas fantasma\n"
-                "• Servidores suspeitos\n"
-                "• Atividades anômalas\n\n"
-                "Reative a proteção com `tenshi ativar-protecao`"
-            ),
-            color=0xFF6600
-        )
-        embed.set_footer(text=RODAPE_IMPERIAL)
-        await message.channel.send(embed=embed)
+            embed = discord.Embed(
+                title="⚠️ Proteção Imperial Desativada",
+                description=(
+                    "*A proteção imperial foi desativada pelo Imperador.*\n\n"
+                    f"{SEP}\n\n"
+                    "**⚠️ Aviso:**\n"
+                    "O servidor não está mais protegido contra:\n"
+                    "• Contas fantasma\n"
+                    "• Servidores suspeitos\n"
+                    "• Atividades anômalas\n\n"
+                    "Reative a proteção com `tenshi ativar-protecao`"
+                ),
+                color=0xFF6600
+            )
+            embed.set_footer(text=RODAPE_IMPERIAL)
+            await message.channel.send(embed=embed)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro", f"*Ocorreu um erro ao desativar a proteção: {e}*", 0x6B0000))
+            print(f"Erro no cmd_desativar_protecao: {e}")
 
     async def cmd_confianca(self, message, member: discord.Member):
         """Adiciona usuário à lista de confiança."""
@@ -481,46 +493,67 @@ class ProtecaoParcerias(commands.Cog):
         
         await message.channel.send("🔍 Analisando perfil para detecção de conta fantasma...")
         
-        eh_fantasma = await self._eh_conta_fantasma(target)
-        
-        if eh_fantasma:
-            embed = discord.Embed(
-                title="🚨 Conta Fantasma Detectada",
-                description=(
-                    f"**Usuário:** {target.display_name} ({target.id})\n\n"
-                    f"{SEP}\n\n"
-                    "**🔍 Análise:**\n"
-                    f"• Conta criada em: {target.created_at.strftime('%d/%m/%Y %H:%M')}\n"
-                    f"• Entrou no servidor em: {target.joined_at.strftime('%d/%m/%Y %H:%M') if target.joined_at else 'N/A'}\n"
-                    f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
-                    f"• Servidores em comum: {len([g for g in target.mutual_guilds if g.id != message.guild.id])}\n\n"
-                    "**⚠️ Resultado:** Esta conta foi classificada como FANTASMA pelo sistema.\n\n"
-                    "**🛡️ Ação Recomendada:** Banimento automático se a proteção estiver ativa."
-                ),
-                color=0xFF0000
-            )
-            embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
-            embed.set_footer(text=RODAPE_IMPERIAL)
-        else:
-            embed = discord.Embed(
-                title="✅ Conta Legítima",
-                description=(
-                    f"**Usuário:** {target.display_name} ({target.id})\n\n"
-                    f"{SEP}\n\n"
-                    "**🔍 Análise:**\n"
-                    f"• Conta criada em: {target.created_at.strftime('%d/%m/%Y %H:%M')}\n"
-                    f"• Entrou no servidor em: {target.joined_at.strftime('%d/%m/%Y %H:%M') if target.joined_at else 'N/A'}\n"
-                    f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
-                    f"• Servidores em comum: {len([g for g in target.mutual_guilds if g.id != message.guild.id])}\n\n"
-                    "**✅ Resultado:** Esta conta foi classificada como LEGÍTIMA pelo sistema.\n\n"
-                    "**🛡️ Status:** Sem risco de banimento automático."
-                ),
-                color=0x2B0A3D
-            )
-            embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
-            embed.set_footer(text=RODAPE_IMPERIAL)
-        
-        await message.channel.send(embed=embed)
+        try:
+            eh_fantasma = await self._eh_conta_fantasma(target)
+            
+            # Calcular servidores em comum com tratamento de erro
+            try:
+                servidores_comum = len([g for g in target.mutual_guilds if g.id != message.guild.id])
+            except Exception:
+                servidores_comum = 0
+            
+            # Formatar datas com tratamento de erro
+            try:
+                data_criacao = target.created_at.strftime('%d/%m/%Y %H:%M') if target.created_at else 'N/A'
+            except Exception:
+                data_criacao = 'N/A'
+            
+            try:
+                data_entrada = target.joined_at.strftime('%d/%m/%Y %H:%M') if target.joined_at else 'N/A'
+            except Exception:
+                data_entrada = 'N/A'
+            
+            if eh_fantasma:
+                embed = discord.Embed(
+                    title="🚨 Conta Fantasma Detectada",
+                    description=(
+                        f"**Usuário:** {target.display_name} ({target.id})\n\n"
+                        f"{SEP}\n\n"
+                        "**🔍 Análise:**\n"
+                        f"• Conta criada em: {data_criacao}\n"
+                        f"• Entrou no servidor em: {data_entrada}\n"
+                        f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
+                        f"• Servidores em comum: {servidores_comum}\n\n"
+                        "**⚠️ Resultado:** Esta conta foi classificada como FANTASMA pelo sistema.\n\n"
+                        "**🛡️ Ação Recomendada:** Banimento automático se a proteção estiver ativa."
+                    ),
+                    color=0xFF0000
+                )
+                embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
+                embed.set_footer(text=RODAPE_IMPERIAL)
+            else:
+                embed = discord.Embed(
+                    title="✅ Conta Legítima",
+                    description=(
+                        f"**Usuário:** {target.display_name} ({target.id})\n\n"
+                        f"{SEP}\n\n"
+                        "**🔍 Análise:**\n"
+                        f"• Conta criada em: {data_criacao}\n"
+                        f"• Entrou no servidor em: {data_entrada}\n"
+                        f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
+                        f"• Servidores em comum: {servidores_comum}\n\n"
+                        "**✅ Resultado:** Esta conta foi classificada como LEGÍTIMA pelo sistema.\n\n"
+                        "**🛡️ Status:** Sem risco de banimento automático."
+                    ),
+                    color=0x2B0A3D
+                )
+                embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
+                embed.set_footer(text=RODAPE_IMPERIAL)
+            
+            await message.channel.send(embed=embed)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro no Teste", f"*Ocorreu um erro ao analisar o perfil: {e}*", 0x6B0000))
+            print(f"Erro no cmd_teste_protecao: {e}")
 
     async def cmd_parceria(self, message, invite_link: str):
         """Gera embed de parceria a partir de link de convite."""

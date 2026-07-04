@@ -495,8 +495,9 @@ async def on_message(message):
         args = partes[1:]
         
         # Verificar se o comando pode ser usado no canal atual
-        # Comandos de ajuda sempre permitidos em qualquer canal
-        if cmd not in ["ajuda", "help", "comandos", "menu"]:
+        # Comandos de ajuda e proteção imperial sempre permitidos em qualquer canal
+        comandos_liberados = ["ajuda", "help", "comandos", "menu", "protecao-imperial", "protecaoimperial", "config-protecao", "ativar-protecao", "ativarprotecao", "enable-protection", "desativar-protecao", "desativarprotecao", "disable-protection", "confianca", "confiança", "trust", "add-trust", "remover-confianca", "removerconfianca", "remove-trust", "bloquear-servidor", "bloquearservidor", "block-server", "desbloquear-servidor", "desbloquearservidor", "unblock-server", "atividade-suspeita", "atividadesuspeita", "suspicious-activity", "teste-protecao", "testeprotecao", "test-protection", "config-moderacao", "configmoderacao", "bloquear-link", "bloquearlink", "desbloquear-link", "desbloquearlink", "adicionar-dominio-confianca", "adicionardominioconfianca", "remover-dominio-confianca", "removerdominioconfianca"]
+        if cmd not in comandos_liberados:
             if not _verificar_canal_permitido(message, resto_comando.split()[0] if resto_comando else ""):
                 await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
                 return
