@@ -1135,6 +1135,28 @@ async def on_message(message):
             await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi remover-confianca @usuario*", 0x6B0000))
         return
 
+    elif cmd in ("whitelist-fantasma", "whitelistfantasma", "ghost-whitelist"):
+        if args and message.mentions:
+            await protecao_parcerias.cmd_whitelist_fantasma(message, message.mentions[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi whitelist-fantasma @usuario*", 0x6B0000))
+        return
+
+    elif cmd in ("remover-whitelist-fantasma", "removerwhitelistfantasma", "remove-ghost-whitelist"):
+        if args and message.mentions:
+            await protecao_parcerias.cmd_remover_whitelist_fantasma(message, message.mentions[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi remover-whitelist-fantasma @usuario*", 0x6B0000))
+        return
+
+    elif cmd in ("listar-whitelist-fantasma", "listarwhitelistfantasma", "list-ghost-whitelist"):
+        await protecao_parcerias.cmd_listar_whitelist_fantasma(message)
+        return
+
+    elif cmd in ("criar-backup", "criarbackup", "create-backup"):
+        await protecao_parcerias.cmd_criar_backup(message)
+        return
+
     elif cmd in ("bloquear-servidor", "bloquearservidor", "block-server"):
         if args:
             try:

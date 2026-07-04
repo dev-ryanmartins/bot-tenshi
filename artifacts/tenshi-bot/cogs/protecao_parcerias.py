@@ -25,26 +25,40 @@ def _carregar_protecao() -> dict:
             "usuarios_confianca": [],
             "servidores_bloqueados": [],
             "atividade_suspeita": {},
+            "whitelist_fantasma": [],
             "configuracoes": {
                 "protecao_ativa": True,
                 "max_tentativas": 5,
                 "tempo_bloqueio": 3600,
-                "alertar_imperador": True
+                "alertar_imperador": True,
+                "backup_automatico": True,
+                "ultimo_backup": None
             }
         }
     try:
         with open(PROTECAO_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            # Migrate old data structure
+            if "whitelist_fantasma" not in data:
+                data["whitelist_fantasma"] = []
+            if "backup_automatico" not in data["configuracoes"]:
+                data["configuracoes"]["backup_automatico"] = True
+            if "ultimo_backup" not in data["configuracoes"]:
+                data["configuracoes"]["ultimo_backup"] = None
+            return data
     except Exception:
         return {
             "usuarios_confianca": [],
             "servidores_bloqueados": [],
             "atividade_suspeita": {},
+            "whitelist_fantasma": [],
             "configuracoes": {
                 "protecao_ativa": True,
                 "max_tentativas": 5,
                 "tempo_bloqueio": 3600,
-                "alertar_imperador": True
+                "alertar_imperador": True,
+                "backup_automatico": True,
+                "ultimo_backup": None
             }
         }
 
@@ -53,6 +67,51 @@ def _salvar_protecao(data: dict):
     os.makedirs(os.path.dirname(PROTECAO_FILE), exist_ok=True)
     with open(PROTECAO_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _criar_backup():
+    """Cria backup das configurações de proteção."""
+    try:
+        config = _carregar_protecao()
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+        backup_file = f"data/protecao_imperial_backup_{timestamp}.json"
+        
+        os.makedirs(os.path.dirname(backup_file), exist_ok=True)
+        with open(backup_file, "w", encoding="utf-8") as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        
+        # Atualizar timestamp do último backup
+        config["configuracoes"]["ultimo_backup"] = datetime.now(UTC).isoformat()
+        _salvar_protecao(config)
+        
+        print(f"✅ Backup criado: {backup_file}")
+        return True
+    except Exception as e:
+        print(f"❌ Erro ao criar backup: {e}")
+        return False
+
+
+def _verificar_e_criar_backup():
+    """Verifica se é necessário criar backup diário."""
+    try:
+        config = _carregar_protecao()
+        if not config["configuracoes"].get("backup_automatico", True):
+            return False
+        
+        ultimo_backup = config["configuracoes"].get("ultimo_backup")
+        if not ultimo_backup:
+            return _criar_backup()
+        
+        # Verificar se passou 24 horas desde o último backup
+        from datetime import timedelta
+        ultimo_backup_dt = datetime.fromisoformat(ultimo_backup)
+        if datetime.now(UTC) - ultimo_backup_dt > timedelta(hours=24):
+            return _criar_backup()
+        
+        return False
+    except Exception as e:
+        print(f"❌ Erro ao verificar backup: {e}")
+        return False
 
 
 def _carregar_parcerias() -> dict:
@@ -80,6 +139,8 @@ class ProtecaoParcerias(commands.Cog):
     def cog_load(self):
         """Inicializa o cog quando carregado."""
         print("✅ Sistema de Proteção Imperial e Parcerias carregado.")
+        # Verificar backup diário ao carregar
+        _verificar_e_criar_backup()
 
     async def _verificar_acesso_admin(self, member: discord.Member) -> bool:
         """Verifica se o membro tem acesso administrativo."""
@@ -161,24 +222,33 @@ class ProtecaoParcerias(commands.Cog):
 
         return False
 
-    async def _eh_conta_fantasma(self, member: discord.Member) -> bool:
-        """Verifica se a conta é fantasma (muito nova e sem atividade)."""
+    async def _eh_conta_fantasma(self, member: discord.Member) -> Optional[str]:
+        """Verifica se a conta é fantasma e retorna status: 'ban', 'alert', ou None."""
         if not member.created_at:
-            return False
+            return None
 
         try:
+            config = _carregar_protecao()
+            
+            # Verificar whitelist
+            if member.id in config.get("whitelist_fantasma", []):
+                return None
+            
             dias_conta = (datetime.now(UTC) - member.created_at).days
             
-            # Critérios para conta fantasma
-            if dias_conta < 3:  # Menos de 3 dias
-                return True
+            # Novos critérios para conta fantasma
+            if dias_conta < 1:  # Menos de 1 dia = BAN automático
+                return "ban"
             
-            if dias_conta < 7 and not member.avatar:  # Menos de 7 dias sem avatar
-                return True
+            if dias_conta < 3:  # 1-3 dias = ALERTA
+                return "alert"
+            
+            if dias_conta < 7 and not member.avatar:  # Menos de 7 dias sem avatar = ALERTA
+                return "alert"
         except Exception as e:
             print(f"Erro ao verificar conta fantasma: {e}")
         
-        return False
+        return None
 
     async def _extrair_info_servidor(self, invite_link: str) -> Optional[dict]:
         """Extrai informações do servidor a partir do link de convite."""
@@ -296,10 +366,14 @@ class ProtecaoParcerias(commands.Cog):
                     "`tenshi desativar-protecao` - Desativa a proteção\n"
                     "`tenshi confianca @usuario` - Adiciona usuário confiável\n"
                     "`tenshi remover-confianca @usuario` - Remove usuário confiável\n"
+                    "`tenshi whitelist-fantasma @usuario` - Adiciona à whitelist fantasma\n"
+                    "`tenshi remover-whitelist-fantasma @usuario` - Remove da whitelist fantasma\n"
+                    "`tenshi listar-whitelist-fantasma` - Lista whitelist fantasma\n"
                     "`tenshi bloquear-servidor [id]` - Bloqueia servidor\n"
                     "`tenshi desbloquear-servidor [id]` - Desbloqueia servidor\n"
                     "`tenshi atividade-suspeita @usuario` - Verifica atividade\n"
-                    "`tenshi teste-protecao @usuario` - Testa detecção de conta fantasma"
+                    "`tenshi teste-protecao @usuario` - Testa detecção de conta fantasma\n"
+                    "`tenshi criar-backup` - Cria backup manual das configurações"
                 ),
                 inline=False
             )
@@ -413,6 +487,98 @@ class ProtecaoParcerias(commands.Cog):
 
         await message.channel.send(embed=embed_imperial("✅ Removido da Confiança", f"*{member.display_name} foi removido da lista de confiança imperial.*", 0x2B0A3D))
 
+    async def cmd_whitelist_fantasma(self, message, member: discord.Member):
+        """Adiciona usuário à whitelist de contas fantasma."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        if "whitelist_fantasma" not in config:
+            config["whitelist_fantasma"] = []
+
+        if member.id in config["whitelist_fantasma"]:
+            await message.channel.send(embed=embed_imperial("ℹ️ Já na Whitelist", f"*{member.display_name} já está na whitelist de contas fantasma.*", 0x6B0000))
+            return
+
+        config["whitelist_fantasma"].append(member.id)
+        _salvar_protecao(config)
+
+        await message.channel.send(embed=embed_imperial("✅ Adicionado à Whitelist", f"*{member.display_name} foi adicionado à whitelist de contas fantasma e não será analisado.*", 0x2B0A3D))
+
+    async def cmd_remover_whitelist_fantasma(self, message, member: discord.Member):
+        """Remove usuário da whitelist de contas fantasma."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        if "whitelist_fantasma" not in config:
+            config["whitelist_fantasma"] = []
+
+        if member.id not in config["whitelist_fantasma"]:
+            await message.channel.send(embed=embed_imperial("ℹ️ Não na Whitelist", f"*{member.display_name} não está na whitelist de contas fantasma.*", 0x6B0000))
+            return
+
+        config["whitelist_fantasma"].remove(member.id)
+        _salvar_protecao(config)
+
+        await message.channel.send(embed=embed_imperial("✅ Removido da Whitelist", f"*{member.display_name} foi removido da whitelist de contas fantasma.*", 0x2B0A3D))
+
+    async def cmd_listar_whitelist_fantasma(self, message):
+        """Lista todos os usuários na whitelist de contas fantasma."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        whitelist = config.get("whitelist_fantasma", [])
+
+        if not whitelist:
+            await message.channel.send(embed=embed_imperial("📭 Whitelist Vazia", "*Nenhum usuário na whitelist de contas fantasma.*", 0x2B0A3D))
+            return
+
+        embed = discord.Embed(
+            title="📋 Whitelist de Contas Fantasma",
+            description=f"Total de {len(whitelist)} usuários na whitelist.\n\n{SEP}",
+            color=0x2B0A3D
+        )
+
+        for idx, user_id in enumerate(whitelist, 1):
+            user = self.bot.get_user(user_id)
+            username = user.display_name if user else f"ID: {user_id} (Não encontrado)"
+            embed.add_field(
+                name=f"👤 Usuário {idx}",
+                value=f"**{username}**\nID: {user_id}",
+                inline=False
+            )
+
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    async def cmd_criar_backup(self, message):
+        """Cria backup manual das configurações de proteção."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        await message.channel.send("💾 Criando backup das configurações de proteção...")
+
+        if _criar_backup():
+            config = _carregar_protecao()
+            ultimo_backup = config["configuracoes"].get("ultimo_backup", "N/A")
+            await message.channel.send(embed=embed_imperial(
+                "✅ Backup Criado",
+                f"*Backup das configurações de proteção criado com sucesso.*\n\n"
+                f"{SEP}\n\n"
+                f"**📅 Último Backup:** {ultimo_backup[:19] if ultimo_backup != 'N/A' else 'N/A'}\n"
+                f"**💾 Local:** data/protecao_imperial_backup_*.json\n\n"
+                f"O backup automático diário está ativo.",
+                0x2B0A3D
+            ))
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Erro no Backup", "*Ocorreu um erro ao criar o backup das configurações.*", 0x6B0000))
+
     async def cmd_bloquear_servidor(self, message, guild_id: int):
         """Bloqueia um servidor específico."""
         if message.author.id != IMPERADOR_ID:
@@ -494,7 +660,7 @@ class ProtecaoParcerias(commands.Cog):
         await message.channel.send("🔍 Analisando perfil para detecção de conta fantasma...")
         
         try:
-            eh_fantasma = await self._eh_conta_fantasma(target)
+            status_fantasma = await self._eh_conta_fantasma(target)
             
             # Calcular servidores em comum com tratamento de erro
             try:
@@ -513,21 +679,47 @@ class ProtecaoParcerias(commands.Cog):
             except Exception:
                 data_entrada = 'N/A'
             
-            if eh_fantasma:
+            # Calcular dias da conta
+            try:
+                dias_conta = (datetime.now(UTC) - target.created_at).days if target.created_at else 0
+            except Exception:
+                dias_conta = 0
+            
+            if status_fantasma == "ban":
                 embed = discord.Embed(
-                    title="🚨 Conta Fantasma Detectada",
+                    title="🚨 Conta Fantasma - BAN AUTOMÁTICO",
                     description=(
                         f"**Usuário:** {target.display_name} ({target.id})\n\n"
                         f"{SEP}\n\n"
                         "**🔍 Análise:**\n"
                         f"• Conta criada em: {data_criacao}\n"
+                        f"• Idade da conta: {dias_conta} dias\n"
                         f"• Entrou no servidor em: {data_entrada}\n"
                         f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
                         f"• Servidores em comum: {servidores_comum}\n\n"
-                        "**⚠️ Resultado:** Esta conta foi classificada como FANTASMA pelo sistema.\n\n"
+                        "**⚠️ Resultado:** Esta conta será BANIDA automaticamente (< 1 dia).\n\n"
                         "**🛡️ Ação Recomendada:** Banimento automático se a proteção estiver ativa."
                     ),
                     color=0xFF0000
+                )
+                embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
+                embed.set_footer(text=RODAPE_IMPERIAL)
+            elif status_fantasma == "alert":
+                embed = discord.Embed(
+                    title="⚠️ Conta Nova - ALERTA",
+                    description=(
+                        f"**Usuário:** {target.display_name} ({target.id})\n\n"
+                        f"{SEP}\n\n"
+                        "**🔍 Análise:**\n"
+                        f"• Conta criada em: {data_criacao}\n"
+                        f"• Idade da conta: {dias_conta} dias\n"
+                        f"• Entrou no servidor em: {data_entrada}\n"
+                        f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
+                        f"• Servidores em comum: {servidores_comum}\n\n"
+                        "**⚠️ Resultado:** Esta conta gerará ALERTA (1-3 dias).\n\n"
+                        "**🛡️ Ação Recomendada:** Monitoramento. Use `tenshi whitelist-fantasma @usuario` para adicionar à whitelist se for confiável."
+                    ),
+                    color=0xFF6600
                 )
                 embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
                 embed.set_footer(text=RODAPE_IMPERIAL)
@@ -539,11 +731,12 @@ class ProtecaoParcerias(commands.Cog):
                         f"{SEP}\n\n"
                         "**🔍 Análise:**\n"
                         f"• Conta criada em: {data_criacao}\n"
+                        f"• Idade da conta: {dias_conta} dias\n"
                         f"• Entrou no servidor em: {data_entrada}\n"
                         f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
                         f"• Servidores em comum: {servidores_comum}\n\n"
                         "**✅ Resultado:** Esta conta foi classificada como LEGÍTIMA pelo sistema.\n\n"
-                        "**🛡️ Status:** Sem risco de banimento automático."
+                        "**🛡️ Status:** Sem risco de banimento ou alerta automático."
                     ),
                     color=0x2B0A3D
                 )
@@ -624,8 +817,10 @@ class ProtecaoParcerias(commands.Cog):
         if not config["configuracoes"].get("protecao_ativa", True):
             return
 
-        # Verificar se é conta fantasma - BAN AUTOMÁTICO
-        if await self._eh_conta_fantasma(member):
+        # Verificar se é conta fantasma - BAN ou ALERTA
+        status_fantasma = await self._eh_conta_fantasma(member)
+        
+        if status_fantasma == "ban":
             await self._registrar_atividade_suspeita(
                 member.id,
                 f"Conta fantasma detectada - Ban automático"
@@ -654,6 +849,21 @@ class ProtecaoParcerias(commands.Cog):
             except Exception as e:
                 print(f"Erro ao banir conta fantasma: {e}")
                 return
+        
+        elif status_fantasma == "alert":
+            await self._registrar_atividade_suspeita(
+                member.id,
+                f"Conta nova detectada - Alerta (1-3 dias)"
+            )
+            await self._alertar_imperador(
+                "⚠️ Alerta - Conta Nova",
+                f"O usuário **{member.display_name}** ({member.id}) entrou no servidor com uma conta recente (1-3 dias).\n\n"
+                f"**Conta criada em:** {member.created_at}\n"
+                f"**Entrou em:** {member.joined_at}\n"
+                f"**Avatar:** {'Sim' if member.avatar else 'Não'}\n\n"
+                f"⚠️ Esta conta não foi banida automaticamente, mas requer atenção.\n"
+                f"Use `tenshi whitelist-fantasma @usuario` para adicionar à whitelist se for confiável."
+            )
 
         # Verificar comportamento suspeito
         if await self._verificar_comportamento_suspeito(member):
