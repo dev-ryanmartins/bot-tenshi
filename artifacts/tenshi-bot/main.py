@@ -1207,6 +1207,56 @@ async def on_message(message):
         await protecao_parcerias.cmd_modo_teste(message)
         return
 
+    elif cmd in ("reputacao", "reputação", "reputation"):
+        if message.mentions:
+            await protecao_parcerias.cmd_reputacao(message, message.mentions[0])
+        else:
+            await protecao_parcerias.cmd_reputacao(message, None)
+        return
+
+    elif cmd in ("ajustar-reputacao", "ajustarreputacao", "adjust-reputation"):
+        if message.mentions and args:
+            try:
+                pontos = int(args[0])
+                await protecao_parcerias.cmd_ajustar_reputacao(message, message.mentions[0], pontos)
+            except ValueError:
+                await message.channel.send(embed=embed_imperial("❌ Valor Inválido", "*Use: tenshi ajustar-reputacao @usuario [pontos]*", 0x6B0000))
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi ajustar-reputacao @usuario [pontos]*", 0x6B0000))
+        return
+
+    elif cmd in ("whitelist-temp", "whitelisttemp", "temp-whitelist"):
+        if message.mentions and args:
+            try:
+                dias = int(args[0])
+                await protecao_parcerias.cmd_whitelist_temp(message, message.mentions[0], dias)
+            except ValueError:
+                await message.channel.send(embed=embed_imperial("❌ Valor Inválido", "*Use: tenshi whitelist-temp @usuario [dias]*", 0x6B0000))
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi whitelist-temp @usuario [dias]*", 0x6B0000))
+        return
+
+    elif cmd in ("config-quarentena", "configquarentena", "config-quarantine"):
+        if message.channel_mentions:
+            await protecao_parcerias.cmd_config_quarentena(message, message.channel_mentions[0])
+        else:
+            await protecao_parcerias.cmd_config_quarentena(message, None)
+        return
+
+    elif cmd in ("config-honeypot", "confighoneypot", "config-honeypot"):
+        if message.channel_mentions:
+            await protecao_parcerias.cmd_config_honeypot(message, message.channel_mentions[0])
+        else:
+            await protecao_parcerias.cmd_config_honeypot(message, None)
+        return
+
+    elif cmd in ("config-relatorio", "configrelatorio", "config-report"):
+        if args:
+            await protecao_parcerias.cmd_config_relatorio(message, args[0])
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi config-relatorio [diario/semanal/mensal/desativar]*", 0x6B0000))
+        return
+
     elif cmd in ("bloquear-servidor", "bloquearservidor", "block-server"):
         if args:
             try:

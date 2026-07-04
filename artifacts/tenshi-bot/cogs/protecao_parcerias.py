@@ -27,6 +27,8 @@ def _carregar_protecao() -> dict:
             "servidores_bloqueados": [],
             "atividade_suspeita": {},
             "whitelist_fantasma": [],
+            "reputacao_usuarios": {},
+            "whitelist_temporaria": {},
             "estatisticas": {
                 "bans_automaticos": 0,
                 "alertas_enviados": 0,
@@ -44,7 +46,11 @@ def _carregar_protecao() -> dict:
                 "ultimo_backup": None,
                 "canal_alertas": None,
                 "modo_teste": False,
-                "cooldown_alertas": 300
+                "cooldown_alertas": 300,
+                "canal_quarentena": None,
+                "canal_honeypot": None,
+                "relatorio_frequencia": "semanal",
+                "ultimo_relatorio": None
             },
             "alertas_cooldown": {}
         }
@@ -54,6 +60,10 @@ def _carregar_protecao() -> dict:
             # Migrate old data structure
             if "whitelist_fantasma" not in data:
                 data["whitelist_fantasma"] = []
+            if "reputacao_usuarios" not in data:
+                data["reputacao_usuarios"] = {}
+            if "whitelist_temporaria" not in data:
+                data["whitelist_temporaria"] = {}
             if "estatisticas" not in data:
                 data["estatisticas"] = {
                     "bans_automaticos": 0,
@@ -73,6 +83,14 @@ def _carregar_protecao() -> dict:
                 data["configuracoes"]["modo_teste"] = False
             if "cooldown_alertas" not in data["configuracoes"]:
                 data["configuracoes"]["cooldown_alertas"] = 300
+            if "canal_quarentena" not in data["configuracoes"]:
+                data["configuracoes"]["canal_quarentena"] = None
+            if "canal_honeypot" not in data["configuracoes"]:
+                data["configuracoes"]["canal_honeypot"] = None
+            if "relatorio_frequencia" not in data["configuracoes"]:
+                data["configuracoes"]["relatorio_frequencia"] = "semanal"
+            if "ultimo_relatorio" not in data["configuracoes"]:
+                data["configuracoes"]["ultimo_relatorio"] = None
             if "alertas_cooldown" not in data:
                 data["alertas_cooldown"] = {}
             return data
@@ -82,6 +100,8 @@ def _carregar_protecao() -> dict:
             "servidores_bloqueados": [],
             "atividade_suspeita": {},
             "whitelist_fantasma": [],
+            "reputacao_usuarios": {},
+            "whitelist_temporaria": {},
             "estatisticas": {
                 "bans_automaticos": 0,
                 "alertas_enviados": 0,
@@ -99,7 +119,11 @@ def _carregar_protecao() -> dict:
                 "ultimo_backup": None,
                 "canal_alertas": None,
                 "modo_teste": False,
-                "cooldown_alertas": 300
+                "cooldown_alertas": 300,
+                "canal_quarentena": None,
+                "canal_honeypot": None,
+                "relatorio_frequencia": "semanal",
+                "ultimo_relatorio": None
             },
             "alertas_cooldown": {}
         }
@@ -241,6 +265,55 @@ def _definir_cooldown(user_id: int):
     _salvar_protecao(config)
 
 
+def _obter_reputacao(user_id: int) -> int:
+    """Obtém reputação de um usuário (padrão: 0)."""
+    config = _carregar_protecao()
+    return config.get("reputacao_usuarios", {}).get(str(user_id), 0)
+
+
+def _ajustar_reputacao(user_id: int, pontos: int):
+    """Ajusta reputação de um usuário."""
+    config = _carregar_protecao()
+    if "reputacao_usuarios" not in config:
+        config["reputacao_usuarios"] = {}
+    
+    reputacao_atual = config["reputacao_usuarios"].get(str(user_id), 0)
+    nova_reputacao = max(-100, min(100, reputacao_atual + pontos))
+    config["reputacao_usuarios"][str(user_id)] = nova_reputacao
+    _salvar_protecao(config)
+    return nova_reputacao
+
+
+def _verificar_whitelist_temporaria(user_id: int) -> bool:
+    """Verifica se usuário está na whitelist temporária e não expirou."""
+    config = _carregar_protecao()
+    whitelist_temp = config.get("whitelist_temporaria", {})
+    
+    if str(user_id) not in whitelist_temp:
+        return False
+    
+    expiracao = datetime.fromisoformat(whitelist_temp[str(user_id)])
+    if datetime.now(UTC) > expiracao:
+        # Remover entrada expirada
+        del whitelist_temp[str(user_id)]
+        _salvar_protecao(config)
+        return False
+    
+    return True
+
+
+def _adicionar_whitelist_temporaria(user_id: int, dias: int):
+    """Adiciona usuário à whitelist temporária."""
+    from datetime import timedelta
+    config = _carregar_protecao()
+    if "whitelist_temporaria" not in config:
+        config["whitelist_temporaria"] = {}
+    
+    expiracao = datetime.now(UTC) + timedelta(days=dias)
+    config["whitelist_temporaria"][str(user_id)] = expiracao.isoformat()
+    _salvar_protecao(config)
+
+
 def _carregar_parcerias() -> dict:
     if not os.path.exists(PARCERIAS_FILE):
         return {"parcerias": [], "historico": []}
@@ -376,8 +449,12 @@ class ProtecaoParcerias(commands.Cog):
         try:
             config = _carregar_protecao()
             
-            # Verificar whitelist
+            # Verificar whitelist permanente
             if member.id in config.get("whitelist_fantasma", []):
+                return None
+            
+            # Verificar whitelist temporária
+            if _verificar_whitelist_temporaria(member.id):
                 return None
             
             dias_conta = (datetime.now(UTC) - member.created_at).days
@@ -515,6 +592,12 @@ class ProtecaoParcerias(commands.Cog):
                     "`tenshi whitelist-fantasma @usuario` - Adiciona à whitelist fantasma\n"
                     "`tenshi remover-whitelist-fantasma @usuario` - Remove da whitelist fantasma\n"
                     "`tenshi listar-whitelist-fantasma` - Lista whitelist fantasma\n"
+                    "`tenshi whitelist-temp @usuario [dias]` - Whitelist temporária\n"
+                    "`tenshi reputacao @usuario` - Ver reputação do usuário\n"
+                    "`tenshi ajustar-reputacao @usuario [pontos]` - Ajustar reputação\n"
+                    "`tenshi config-quarentena #canal` - Configura canal de quarentena\n"
+                    "`tenshi config-honeypot #canal` - Configura canal honeypot\n"
+                    "`tenshi config-relatorio [freq]` - Configura relatórios automáticos\n"
                     "`tenshi bloquear-servidor [id]` - Bloqueia servidor\n"
                     "`tenshi desbloquear-servidor [id]` - Desbloqueia servidor\n"
                     "`tenshi atividade-suspeita @usuario` - Verifica atividade\n"
@@ -1173,6 +1256,190 @@ Total de Logs: {len(logs)}
                 f"**🛡️ Sistema Normal:**\n"
                 f"• Bans automáticos serão executados normalmente\n"
                 f"• O sistema está operando em modo de produção.",
+                0x2B0A3D
+            ))
+
+    async def cmd_reputacao(self, message, member: discord.Member = None):
+        """Mostra reputação de um usuário."""
+        target = member or message.author
+        
+        reputacao = _obter_reputacao(target.id)
+        
+        # Determinar nível baseado na reputação
+        if reputacao >= 50:
+            nivel = "🌟 Excelente"
+            cor = 0x00FF00
+        elif reputacao >= 20:
+            nivel = "✅ Boa"
+            cor = 0x00AA00
+        elif reputacao >= 0:
+            nivel = "😐 Neutra"
+            cor = 0xFFFF00
+        elif reputacao >= -30:
+            nivel = "⚠️ Baixa"
+            cor = 0xFF6600
+        else:
+            nivel = "🚨 Muito Baixa"
+            cor = 0xFF0000
+        
+        embed = discord.Embed(
+            title=f"⭐ Reputação - {target.display_name}",
+            description=f"{SEP}\n\n"
+            f"**Pontuação:** {reputacao}/100\n"
+            f"**Nível:** {nivel}\n\n"
+            f"{SEP}\n\n"
+            f"**📊 Impacto:**\n"
+            f"• Usuários com reputação baixa são mais monitorados\n"
+            f"• Reputação alta indica confiança no sistema\n"
+            f"• Ajuste manual disponível para administradores",
+            color=cor
+        )
+        
+        embed.set_thumbnail(url=target.display_avatar.url)
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    async def cmd_ajustar_reputacao(self, message, member: discord.Member, pontos: int):
+        """Ajusta reputação de um usuário manualmente."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        if pontos < -50 or pontos > 50:
+            await message.channel.send(embed=embed_imperial("❌ Valor Inválido", "*Pontos devem estar entre -50 e +50*", 0x6B0000))
+            return
+
+        nova_reputacao = _ajustar_reputacao(member.id, pontos)
+        
+        _registrar_log("config", "ajustar_reputacao", f"Reputação de {member.display_name} ajustada em {pontos} pontos (nova: {nova_reputacao})", message.author.id, member.id)
+
+        await message.channel.send(embed=embed_imperial(
+            "✅ Reputação Ajustada",
+            f"*A reputação de {member.display_name} foi ajustada em {pontos} pontos.*\n\n"
+            f"{SEP}\n\n"
+            f"**Nova Reputação:** {nova_reputacao}/100",
+            0x2B0A3D
+        ))
+
+    async def cmd_whitelist_temp(self, message, member: discord.Member, dias: int):
+        """Adiciona usuário à whitelist temporária."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        if dias < 1 or dias > 365:
+            await message.channel.send(embed=embed_imperial("❌ Valor Inválido", "*Dias devem estar entre 1 e 365*", 0x6B0000))
+            return
+
+        _adicionar_whitelist_temporaria(member.id, dias)
+        
+        _registrar_log("whitelist", "whitelist_temporaria", f"{member.display_name} adicionado à whitelist temporária por {dias} dias", message.author.id, member.id)
+
+        await message.channel.send(embed=embed_imperial(
+            "✅ Whitelist Temporária Adicionada",
+            f"*{member.display_name} foi adicionado à whitelist temporária por {dias} dias.*\n\n"
+            f"{SEP}\n\n"
+            f"**⏰ Expira em:** {dias} dias\n"
+            f"**Após expirar:** O usuário voltará a ser analisado normalmente",
+            0x2B0A3D
+        ))
+
+    async def cmd_config_quarentena(self, message, canal: discord.TextChannel = None):
+        """Configura canal de quarentena para usuários suspeitos."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+
+        if canal:
+            config["configuracoes"]["canal_quarentena"] = canal.id
+            _salvar_protecao(config)
+            _registrar_log("config", "config_quarentena", f"Canal de quarentena configurado: {canal.name}", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Canal de Quarentena Configurado",
+                f"*O canal {canal.mention} foi configurado como quarentena.*\n\n"
+                f"{SEP}\n\n"
+                f"**⚠️ Funcionalidade:**\n"
+                f"• Usuários suspeitos podem ser movidos para este canal\n"
+                f"• Sistema de verificação pode ser implementado\n"
+                f"• Útil para triagem de novos membros",
+                0x2B0A3D
+            ))
+        else:
+            config["configuracoes"]["canal_quarentena"] = None
+            _salvar_protecao(config)
+            _registrar_log("config", "remover_quarentena", "Canal de quarentena removido", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Canal de Quarentena Removido",
+                f"*A configuração de canal de quarentena foi removida.*",
+                0x2B0A3D
+            ))
+
+    async def cmd_config_honeypot(self, message, canal: discord.TextChannel = None):
+        """Configura canal honeypot para atrair bots."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+
+        if canal:
+            config["configuracoes"]["canal_honeypot"] = canal.id
+            _salvar_protecao(config)
+            _registrar_log("config", "config_honeypot", f"Canal honeypot configurado: {canal.name}", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Canal Honeypot Configurado",
+                f"*O canal {canal.mention} foi configurado como honeypot.*\n\n"
+                f"{SEP}\n\n"
+                f"**⚠️ Funcionalidade:**\n"
+                f"• Usuários que entrarem neste canal serão banidos\n"
+                f"• Útil para detectar bots e spam\n"
+                f"• Mantenha este canal oculto ou restrito",
+                0xFF6600
+            ))
+        else:
+            config["configuracoes"]["canal_honeypot"] = None
+            _salvar_protecao(config)
+            _registrar_log("config", "remover_honeypot", "Canal honeypot removido", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Canal Honeypot Removido",
+                f"*A configuração de canal honeypot foi removida.*",
+                0x2B0A3D
+            ))
+
+    async def cmd_config_relatorio(self, message, frequencia: str = None):
+        """Configura frequência de relatórios automáticos."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        if frequencia not in ["diario", "semanal", "mensal", "desativar"]:
+            await message.channel.send(embed=embed_imperial("❌ Valor Inválido", "*Use: tenshi config-relatorio [diario/semanal/mensal/desativar]*", 0x6B0000))
+            return
+
+        config = _carregar_protecao()
+        
+        if frequencia == "desativar":
+            config["configuracoes"]["relatorio_frequencia"] = None
+            _registrar_log("config", "desativar_relatorio", "Relatórios automáticos desativados", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Relatórios Desativados",
+                f"*Os relatórios automáticos foram desativados.*",
+                0x2B0A3D
+            ))
+        else:
+            config["configuracoes"]["relatorio_frequencia"] = frequencia
+            _salvar_protecao(config)
+            _registrar_log("config", "config_relatorio", f"Relatórios configurados: {frequencia}", message.author.id)
+            await message.channel.send(embed=embed_imperial(
+                "✅ Relatórios Configurados",
+                f"*Os relatórios automáticos foram configurados para frequência: {frequencia}.*\n\n"
+                f"{SEP}\n\n"
+                f"**📊 O relatório incluirá:**\n"
+                f"• Resumo de bans e alertas\n"
+                f"• Estatísticas do sistema\n"
+                f"• Performance e métricas",
                 0x2B0A3D
             ))
 
