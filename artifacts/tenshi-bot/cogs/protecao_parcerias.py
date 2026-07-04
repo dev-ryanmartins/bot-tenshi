@@ -6,7 +6,7 @@ import json
 import os
 import re
 import time
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from typing import Optional
 
 import discord
@@ -18,6 +18,8 @@ from utils import IMPERADOR_ID, RODAPE_IMPERIAL, SEP, embed_imperial
 PROTECAO_FILE = "data/protecao_imperial.json"
 PARCERIAS_FILE = "data/parcerias.json"
 LOGS_FILE = "data/protecao_logs.json"
+REPUTACAO_FILE = "data/reputacao_usuarios.json"
+WHITELIST_TEMP_FILE = "data/whitelist_temporaria.json"
 
 
 def _carregar_protecao() -> dict:
@@ -237,6 +239,87 @@ def _incrementar_estatistica(chave: str):
     if chave in config["estatisticas"]:
         config["estatisticas"][chave] += 1
     _salvar_protecao(config)
+
+
+def _carregar_reputacao() -> dict:
+    """Carrega reputação dos usuários."""
+    if not os.path.exists(REPUTACAO_FILE):
+        return {}
+    try:
+        with open(REPUTACAO_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _salvar_reputacao(data: dict):
+    """Salva reputação dos usuários."""
+    os.makedirs(os.path.dirname(REPUTACAO_FILE), exist_ok=True)
+    with open(REPUTACAO_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _ajustar_reputacao(user_id: int, pontos: int, motivo: str):
+    """Ajusta reputação de um usuário."""
+    reputacao = _carregar_reputacao()
+    
+    if user_id not in reputacao:
+        reputacao[user_id] = {
+            "pontos": 0,
+            "historico": [],
+            "ultima_atualizacao": None
+        }
+    
+    reputacao[user_id]["pontos"] += pontos
+    reputacao[user_id]["ultima_atualizacao"] = datetime.now(UTC).isoformat()
+    reputacao[user_id]["historico"].append({
+        "pontos": pontos,
+        "motivo": motivo,
+        "timestamp": datetime.now(UTC).isoformat()
+    })
+    
+    # Manter reputação entre -100 e 100
+    reputacao[user_id]["pontos"] = max(-100, min(100, reputacao[user_id]["pontos"]))
+    
+    _salvar_reputacao(reputacao)
+    return reputacao[user_id]["pontos"]
+
+
+def _carregar_whitelist_temp() -> dict:
+    """Carrega whitelist temporária."""
+    if not os.path.exists(WHITELIST_TEMP_FILE):
+        return {}
+    try:
+        with open(WHITELIST_TEMP_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _salvar_whitelist_temp(data: dict):
+    """Salva whitelist temporária."""
+    os.makedirs(os.path.dirname(WHITELIST_TEMP_FILE), exist_ok=True)
+    with open(WHITELIST_TEMP_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _verificar_whitelist_temp(user_id: int) -> bool:
+    """Verifica se usuário está na whitelist temporária e não expirou."""
+    whitelist = _carregar_whitelist_temp()
+    
+    if str(user_id) not in whitelist:
+        return False
+    
+    entrada = whitelist[str(user_id)]
+    expiracao = datetime.fromisoformat(entrada["expiracao"])
+    
+    if datetime.now(UTC) > expiracao:
+        # Remover entrada expirada
+        del whitelist[str(user_id)]
+        _salvar_whitelist_temp(whitelist)
+        return False
+    
+    return True
 
 
 def _verificar_cooldown(user_id: int) -> bool:
@@ -593,11 +676,11 @@ class ProtecaoParcerias(commands.Cog):
                     "`tenshi remover-whitelist-fantasma @usuario` - Remove da whitelist fantasma\n"
                     "`tenshi listar-whitelist-fantasma` - Lista whitelist fantasma\n"
                     "`tenshi whitelist-temp @usuario [dias]` - Whitelist temporária\n"
+                    "`tenshi listar-whitelist-temp` - Lista whitelist temporária\n"
                     "`tenshi reputacao @usuario` - Ver reputação do usuário\n"
                     "`tenshi ajustar-reputacao @usuario [pontos]` - Ajustar reputação\n"
-                    "`tenshi config-quarentena #canal` - Configura canal de quarentena\n"
-                    "`tenshi config-honeypot #canal` - Configura canal honeypot\n"
-                    "`tenshi config-relatorio [freq]` - Configura relatórios automáticos\n"
+                    "`tenshi gerar-imagem [prompt]` - Gera imagem com IA\n"
+                    "`tenshi perguntar-ia [pergunta]` - Faz pergunta à IA\n"
                     "`tenshi bloquear-servidor [id]` - Bloqueia servidor\n"
                     "`tenshi desbloquear-servidor [id]` - Desbloqueia servidor\n"
                     "`tenshi atividade-suspeita @usuario` - Verifica atividade\n"
@@ -1055,6 +1138,216 @@ class ProtecaoParcerias(commands.Cog):
 
         embed.set_footer(text=RODAPE_IMPERIAL)
         await message.channel.send(embed=embed)
+
+    async def cmd_reputacao(self, message, member: discord.Member = None):
+        """Mostra reputação de um usuário."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        target = member or message.author
+        reputacao = _carregar_reputacao()
+        
+        if target.id not in reputacao:
+            await message.channel.send(embed=embed_imperial("📭 Sem Reputação", f"*{target.display_name} ainda não tem reputação registrada.*", 0x2B0A3D))
+            return
+
+        dados = reputacao[target.id]
+        pontos = dados["pontos"]
+        historico = dados.get("historico", [])[-5:]  # Últimas 5 ações
+        
+        # Determinar nível baseado nos pontos
+        if pontos >= 80:
+            nivel = "🌟 Excelente"
+            cor = 0x00FF00
+        elif pontos >= 50:
+            nivel = "✅ Boa"
+            cor = 0x00AA00
+        elif pontos >= 20:
+            nivel = "👍 Positiva"
+            cor = 0x008800
+        elif pontos >= -20:
+            nivel = "😐 Neutra"
+            cor = 0xFFAA00
+        elif pontos >= -50:
+            nivel = "⚠️ Negativa"
+            cor = 0xFF6600
+        else:
+            nivel = "🚨 Péssima"
+            cor = 0xFF0000
+
+        embed = discord.Embed(
+            title=f"📊 Reputação - {target.display_name}",
+            description=f"**Nível:** {nivel}\n**Pontos:** {pontos}/100\n\n{SEP}",
+            color=cor
+        )
+
+        embed.add_field(name="📈 Pontuação", value=f"{pontos} pontos", inline=True)
+        embed.add_field(name="📅 Última Atualização", value=dados.get("ultima_atualizacao", "N/A")[:10] if dados.get("ultima_atualizacao") else "N/A", inline=True)
+
+        if historico:
+            historico_text = ""
+            for idx, h in enumerate(historico, 1):
+                emoji = "📈" if h["pontos"] > 0 else "📉"
+                historico_text += f"{emoji} {h['motivo']} ({h['pontos']} pontos)\n"
+            
+            embed.add_field(name="📜 Histórico Recente", value=historico_text, inline=False)
+
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    async def cmd_ajustar_reputacao(self, message, member: discord.Member = None, pontos: int = 0, *motivo_args):
+        """Ajusta reputação de um usuário."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        if not member:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi ajustar-reputacao @usuario [pontos] [motivo]*", 0x6B0000))
+            return
+
+        motivo = " ".join(motivo_args) if motivo_args else "Ajuste manual"
+        
+        pontos_novos = _ajustar_reputacao(member.id, pontos, motivo)
+        
+        emoji = "📈" if pontos > 0 else "📉"
+        await message.channel.send(embed=embed_imperial(
+            f"{emoji} Reputação Ajustada",
+            f"*{member.display_name} teve sua reputação ajustada em {pontos} pontos.*\n\n"
+            f"{SEP}\n\n"
+            f"**Nova Pontuação:** {pontos_novos}\n"
+            f"**Motivo:** {motivo}",
+            0x2B0A3D if pontos > 0 else 0xFF6600
+        ))
+        
+        _registrar_log("reputacao", "ajustar_reputacao", f"Reputação de {member.display_name} ajustada em {pontos} pontos: {motivo}", message.author.id, member.id)
+
+    async def cmd_whitelist_temp(self, message, member: discord.Member = None, dias: int = 7):
+        """Adiciona usuário à whitelist temporária."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        if not member:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi whitelist-temp @usuario [dias]*", 0x6B0000))
+            return
+
+        whitelist = _carregar_whitelist_temp()
+        expiracao = (datetime.now(UTC) + timedelta(days=dias)).isoformat()
+        
+        whitelist[str(member.id)] = {
+            "user_id": member.id,
+            "username": member.display_name,
+            "expiracao": expiracao,
+            "adicionado_por": message.author.id,
+            "adicionado_em": datetime.now(UTC).isoformat()
+        }
+        
+        _salvar_whitelist_temp(whitelist)
+        
+        await message.channel.send(embed=embed_imperial(
+            "✅ Whitelist Temporária Adicionada",
+            f"*{member.display_name} foi adicionado à whitelist temporária por {dias} dias.*\n\n"
+            f"{SEP}\n\n"
+            f"**Expira em:** {expiracao[:10]}",
+            0x2B0A3D
+        ))
+        
+        _registrar_log("whitelist", "whitelist_temporaria", f"Whitelist temporária adicionada para {member.display_name} por {dias} dias", message.author.id, member.id)
+
+    async def cmd_listar_whitelist_temp(self, message):
+        """Lista whitelist temporária."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        whitelist = _carregar_whitelist_temp()
+        
+        if not whitelist:
+            await message.channel.send(embed=embed_imperial("📭 Whitelist Vazia", "*Nenhum usuário na whitelist temporária.*", 0x2B0A3D))
+            return
+
+        embed = discord.Embed(
+            title="⏰ Whitelist Temporária",
+            description=f"Total de {len(whitelist)} usuários na whitelist temporária.\n\n{SEP}",
+            color=0x2B0A3D
+        )
+
+        for user_id, dados in whitelist.items():
+            expiracao = dados["expiracao"][:10]
+            username = dados.get("username", f"ID: {user_id}")
+            embed.add_field(
+                name=f"👤 {username}",
+                value=f"**Expira em:** {expiracao}\n**Adicionado por:** {dados.get('adicionado_por', 'N/A')}",
+                inline=False
+            )
+
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    async def cmd_gerar_imagem(self, message, *prompt_args):
+        """Gera imagem com IA baseada em um prompt."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        prompt = " ".join(prompt_args)
+        if not prompt:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi gerar-imagem [prompt]*", 0x6B0000))
+            return
+
+        await message.channel.send("🎨 Gerando imagem com IA... Isso pode levar alguns segundos.")
+
+        try:
+            prompt_sistema = (
+                "Você é um especialista em arte digital. Descreva detalhadamente uma imagem que seria gerada "
+                "baseada no prompt fornecido. Seja criativo e descritivo. Responda em português."
+            )
+            
+            descricao = await ia_narrativa(prompt_sistema, f"Gere uma descrição para: {prompt}")
+            
+            embed = discord.Embed(
+                title="🎨 Imagem Gerada com IA",
+                description=f"**Prompt:** {prompt}\n\n{SEP}\n\n**Descrição da Imagem:**\n{descricao}",
+                color=0x2B0A3D
+            )
+            embed.set_footer(text="⚠️ Funcionalidade em desenvolvimento - Integração com API de geração de imagens necessária")
+            await message.channel.send(embed=embed)
+            
+            _registrar_log("ia", "gerar_imagem", f"Imagem gerada com prompt: {prompt}", message.author.id)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro", f"*Ocorreu um erro ao gerar a imagem: {e}*", 0x6B0000))
+            print(f"Erro ao gerar imagem: {e}")
+
+    async def cmd_perguntar_ia(self, message, *pergunta_args):
+        """Faz uma pergunta à IA e recebe uma resposta."""
+        pergunta = " ".join(pergunta_args)
+        if not pergunta:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi perguntar-ia [sua pergunta]*", 0x6B0000))
+            return
+
+        await message.channel.send("🤖 Processando sua pergunta...")
+
+        try:
+            prompt_sistema = (
+                "Você é um assistente IA útil e inteligente. Responda às perguntas de forma clara, "
+                "concisa e útil. Seja amigável e profissional. Responda em português."
+            )
+            
+            resposta = await ia_narrativa(prompt_sistema, pergunta)
+            
+            embed = discord.Embed(
+                title="🤖 Resposta da IA",
+                description=f"**Pergunta:** {pergunta}\n\n{SEP}\n\n**Resposta:**\n{resposta}",
+                color=0x2B0A3D
+            )
+            embed.set_footer(text=f"Pergunta feita por {message.author.display_name}")
+            await message.channel.send(embed=embed)
+            
+            _registrar_log("ia", "pergunta_ia", f"Pergunta feita à IA: {pergunta[:50]}...", message.author.id)
+        except Exception as e:
+            await message.channel.send(embed=embed_imperial("❌ Erro", f"*Ocorreu um erro ao processar sua pergunta: {e}*", 0x6B0000))
+            print(f"Erro ao processar pergunta IA: {e}")
 
     async def cmd_config_canal_alertas(self, message, canal: discord.TextChannel = None):
         """Configura canal para alertas do sistema."""
