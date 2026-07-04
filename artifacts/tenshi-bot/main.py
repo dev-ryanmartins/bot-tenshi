@@ -391,7 +391,7 @@ async def on_ready():
         vizinhanca.cog_load()
         cotidiano.cog_load()
         crime_cog.cog_load()
-        temporadas.cog.load()
+        temporadas.cog_load()
         intel.cog_load()
         estado.cog_load()
         eras_cog.cog_load()

@@ -85,9 +85,10 @@ def embed_categoria(indice: int) -> discord.Embed:
 
 class CategoriaAjudaSelect(discord.ui.Select):
     def __init__(self):
+        # Discord limita a 25 opções por menu
         options = [
             discord.SelectOption(label=nome[:100], value=str(indice), description="Abrir esta categoria")
-            for indice, (nome, _) in enumerate(AJUDA_CATEGORIAS)
+            for indice, (nome, _) in enumerate(AJUDA_CATEGORIAS[:25])  # Limitar a 25 categorias
         ]
         super().__init__(placeholder="Escolha uma categoria de comandos", options=options, row=0)
 
