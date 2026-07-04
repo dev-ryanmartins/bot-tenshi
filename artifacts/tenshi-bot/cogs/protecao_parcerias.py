@@ -286,6 +286,22 @@ class ProtecaoParcerias(commands.Cog):
         embed.add_field(name="📢 Alertar Imperador", value="✅ Sim" if cfg.get("alertar_imperador", True) else "❌ Não", inline=True)
         embed.add_field(name="👥 Usuários Confiança", value=str(len(config.get("usuarios_confianca", []))), inline=True)
         embed.add_field(name="🚫 Servidores Bloqueados", value=str(len(config.get("servidores_bloqueados", []))), inline=True)
+        
+        # Adicionar comandos disponíveis
+        embed.add_field(
+            name="📋 Comandos Disponíveis",
+            value=(
+                "`tenshi ativar-protecao` - Ativa a proteção\n"
+                "`tenshi desativar-protecao` - Desativa a proteção\n"
+                "`tenshi confianca @usuario` - Adiciona usuário confiável\n"
+                "`tenshi remover-confianca @usuario` - Remove usuário confiável\n"
+                "`tenshi bloquear-servidor [id]` - Bloqueia servidor\n"
+                "`tenshi desbloquear-servidor [id]` - Desbloqueia servidor\n"
+                "`tenshi atividade-suspeita @usuario` - Verifica atividade\n"
+                "`tenshi teste-protecao @usuario` - Testa detecção de conta fantasma"
+            ),
+            inline=False
+        )
 
         embed.set_footer(text=RODAPE_IMPERIAL)
         await message.channel.send(embed=embed)
@@ -300,7 +316,25 @@ class ProtecaoParcerias(commands.Cog):
         config["configuracoes"]["protecao_ativa"] = True
         _salvar_protecao(config)
 
-        await message.channel.send(embed=embed_imperial("✅ Proteção Ativada", "*A proteção imperial foi ativada com sucesso.*", 0x2B0A3D))
+        embed = discord.Embed(
+            title="✅ Proteção Imperial Ativada",
+            description=(
+                "*A proteção imperial foi ativada com sucesso.*\n\n"
+                f"{SEP}\n\n"
+                "**🔒 Configurações Atuais:**\n"
+                f"• Máx tentativas: {config['configuracoes'].get('max_tentativas', 5)}\n"
+                f"• Tempo de bloqueio: {config['configuracoes'].get('tempo_bloqueio', 3600)}s\n"
+                f"• Alertar Imperador: {'✅ Sim' if config['configuracoes'].get('alertar_imperador', True) else '❌ Não'}\n\n"
+                "**🛡️ Sistema Ativo:**\n"
+                "• Detecção de contas fantasma\n"
+                "• Bloqueio de servidores suspeitos\n"
+                "• Monitoramento de atividade\n"
+                "• Alertas automáticos ao Imperador"
+            ),
+            color=0x2B0A3D
+        )
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
 
     async def cmd_desativar_protecao(self, message):
         """Desativa a proteção imperial."""
@@ -312,7 +346,22 @@ class ProtecaoParcerias(commands.Cog):
         config["configuracoes"]["protecao_ativa"] = False
         _salvar_protecao(config)
 
-        await message.channel.send(embed=embed_imperial("⚠️ Proteção Desativada", "*A proteção imperial foi desativada pelo Imperador.*", 0xFF6600))
+        embed = discord.Embed(
+            title="⚠️ Proteção Imperial Desativada",
+            description=(
+                "*A proteção imperial foi desativada pelo Imperador.*\n\n"
+                f"{SEP}\n\n"
+                "**⚠️ Aviso:**\n"
+                "O servidor não está mais protegido contra:\n"
+                "• Contas fantasma\n"
+                "• Servidores suspeitos\n"
+                "• Atividades anômalas\n\n"
+                "Reative a proteção com `tenshi ativar-protecao`"
+            ),
+            color=0xFF6600
+        )
+        embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
 
     async def cmd_confianca(self, message, member: discord.Member):
         """Adiciona usuário à lista de confiança."""
@@ -420,6 +469,57 @@ class ProtecaoParcerias(commands.Cog):
             )
 
         embed.set_footer(text=RODAPE_IMPERIAL)
+        await message.channel.send(embed=embed)
+
+    async def cmd_teste_protecao(self, message, member: Optional[discord.Member] = None):
+        """Testa a detecção de conta fantasma em um usuário."""
+        if not await self._verificar_acesso_admin(message.author):
+            await message.channel.send(embed=embed_imperial("🚫 Acesso Negado", "*Apenas administradores podem acessar este comando.*", 0x6B0000))
+            return
+
+        target = member or message.author
+        
+        await message.channel.send("🔍 Analisando perfil para detecção de conta fantasma...")
+        
+        eh_fantasma = await self._eh_conta_fantasma(target)
+        
+        if eh_fantasma:
+            embed = discord.Embed(
+                title="🚨 Conta Fantasma Detectada",
+                description=(
+                    f"**Usuário:** {target.display_name} ({target.id})\n\n"
+                    f"{SEP}\n\n"
+                    "**🔍 Análise:**\n"
+                    f"• Conta criada em: {target.created_at.strftime('%d/%m/%Y %H:%M')}\n"
+                    f"• Entrou no servidor em: {target.joined_at.strftime('%d/%m/%Y %H:%M') if target.joined_at else 'N/A'}\n"
+                    f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
+                    f"• Servidores em comum: {len([g for g in target.mutual_guilds if g.id != message.guild.id])}\n\n"
+                    "**⚠️ Resultado:** Esta conta foi classificada como FANTASMA pelo sistema.\n\n"
+                    "**🛡️ Ação Recomendada:** Banimento automático se a proteção estiver ativa."
+                ),
+                color=0xFF0000
+            )
+            embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
+            embed.set_footer(text=RODAPE_IMPERIAL)
+        else:
+            embed = discord.Embed(
+                title="✅ Conta Legítima",
+                description=(
+                    f"**Usuário:** {target.display_name} ({target.id})\n\n"
+                    f"{SEP}\n\n"
+                    "**🔍 Análise:**\n"
+                    f"• Conta criada em: {target.created_at.strftime('%d/%m/%Y %H:%M')}\n"
+                    f"• Entrou no servidor em: {target.joined_at.strftime('%d/%m/%Y %H:%M') if target.joined_at else 'N/A'}\n"
+                    f"• Avatar: {'✅ Sim' if target.avatar else '❌ Não'}\n"
+                    f"• Servidores em comum: {len([g for g in target.mutual_guilds if g.id != message.guild.id])}\n\n"
+                    "**✅ Resultado:** Esta conta foi classificada como LEGÍTIMA pelo sistema.\n\n"
+                    "**🛡️ Status:** Sem risco de banimento automático."
+                ),
+                color=0x2B0A3D
+            )
+            embed.set_thumbnail(url=target.display_avatar.url if target.avatar else None)
+            embed.set_footer(text=RODAPE_IMPERIAL)
+        
         await message.channel.send(embed=embed)
 
     async def cmd_parceria(self, message, invite_link: str):
