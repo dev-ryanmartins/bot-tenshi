@@ -1159,6 +1159,13 @@ async def on_message(message):
             await protecao_parcerias.cmd_atividade_suspeita(message, None)
         return
 
+    elif cmd in ("teste-protecao", "testeprotecao", "test-protection"):
+        if args and message.mentions:
+            await protecao_parcerias.cmd_teste_protecao(message, message.mentions[0])
+        else:
+            await protecao_parcerias.cmd_teste_protecao(message, None)
+        return
+
     # ── SISTEMA DE PARCERIAS ────────────────────────────────
     elif cmd in ("parceria", "partnership", "create-partnership"):
         if args:
