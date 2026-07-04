@@ -651,10 +651,20 @@ AJUDA_TEXTO = f"""
 `top` `servidor` `ping` `backup` `bandeira` `brasao` `historia-tenshi` `base-historica`
 `status-ia` `aniversario` `ajuda`
 
+**🤖 Inteligência Artificial**
+`gerar-imagem [prompt]` *(gera imagem com IA)* `perguntar-ia [pergunta]` *(faz perguntas à IA)*
+
 **🛡️ Proteção Imperial** *(Admin)*
 `protecao-imperial` *(painel de configuração)* `ativar-protecao` `desativar-protecao`
 `confianca @user` `remover-confianca @user` `bloquear-servidor [id]` `desbloquear-servidor [id]`
 `atividade-suspeita [@user]` *(verifica comportamento suspeito)*
+`whitelist-fantasma @user` `remover-whitelist-fantasma @user` `listar-whitelist-fantasma`
+`whitelist-temp @user [dias]` `listar-whitelist-temp` *(whitelist temporária)*
+`reputacao @user` `ajustar-reputacao @user [pontos]` *(sistema de reputação)*
+`teste-protecao @user` *(testa detecção de conta fantasma)*
+`criar-backup` `listar-backups` `restaurar-backup [arquivo]` *(sistema de backups)*
+`logs-protecao [filtro]` `estatisticas-protecao` `config-canal-alertas #canal`
+`limpar-logs [dias]` `relatorio-protecao` `resetar-estatisticas` `modo-teste`
 
 **🤝 Sistema de Parcerias** *(Admin)*
 `parceria [link-convite]` *(gera embed de parceria com IA)* `historico-parcerias`
