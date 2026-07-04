@@ -391,7 +391,7 @@ async def on_ready():
         vizinhanca.cog_load()
         cotidiano.cog_load()
         crime_cog.cog_load()
-        temporadas.cog.load()
+        temporadas.cog_load()
         intel.cog_load()
         estado.cog_load()
         eras_cog.cog_load()
@@ -489,6 +489,10 @@ async def on_message(message):
             return
         cmd = partes[0].lower()
         args = partes[1:]
+        
+        # Debug: imprimir comando extraído
+        print(f"[DEBUG] Comando extraído: cmd='{cmd}', args={args}, resto_comando='{resto_comando}'")
+        
         # Verificar se o comando pode ser usado no canal atual
         # Comandos de ajuda sempre permitidos em qualquer canal
         if cmd not in ["ajuda", "help", "comandos", "menu"]:
