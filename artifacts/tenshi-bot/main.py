@@ -113,6 +113,8 @@ from cogs.minigames import MiniGames
 from cogs.automod import AutoMod
 from cogs.custom_commands import CustomCommands
 from cogs.level_rewards import LevelRewards
+from cogs.protecao_parcerias import ProtecaoParcerias
+from cogs.moderacao_conteudo import ModeracaoConteudo
 from cogs.event_system import EventSystem
 
 intents = discord.Intents.default()
@@ -160,6 +162,8 @@ juridico    = Juridico(bot)
 intel       = Inteligencia(bot)
 soberano    = Soberano(bot)
 sistema_teste = SistemaTeste(bot)
+protecao_parcerias = ProtecaoParcerias(bot)
+moderacao_conteudo = ModeracaoConteudo(bot)
 geopolitica = Geopolitica(bot)
 estado      = Estado(bot)
 eras_cog    = Eras(bot)
