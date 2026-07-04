@@ -496,7 +496,7 @@ async def on_message(message):
         
         # Verificar se o comando pode ser usado no canal atual
         # Comandos de ajuda e proteção imperial sempre permitidos em qualquer canal
-        comandos_liberados = ["ajuda", "help", "comandos", "menu", "protecao-imperial", "protecaoimperial", "config-protecao", "ativar-protecao", "ativarprotecao", "enable-protection", "desativar-protecao", "desativarprotecao", "disable-protection", "confianca", "confiança", "trust", "add-trust", "remover-confianca", "removerconfianca", "remove-trust", "bloquear-servidor", "bloquearservidor", "block-server", "desbloquear-servidor", "desbloquearservidor", "unblock-server", "atividade-suspeita", "atividadesuspeita", "suspicious-activity", "teste-protecao", "testeprotecao", "test-protection", "config-moderacao", "configmoderacao", "bloquear-link", "bloquearlink", "desbloquear-link", "desbloquearlink", "adicionar-dominio-confianca", "adicionardominioconfianca", "remover-dominio-confianca", "removerdominioconfianca"]
+        comandos_liberados = ["ajuda", "help", "comandos", "menu", "protecao-imperial", "protecaoimperial", "config-protecao", "ativar-protecao", "ativarprotecao", "enable-protection", "desativar-protecao", "desativarprotecao", "disable-protection", "confianca", "confiança", "trust", "add-trust", "remover-confianca", "removerconfianca", "remove-trust", "bloquear-servidor", "bloquearservidor", "block-server", "desbloquear-servidor", "desbloquearservidor", "unblock-server", "atividade-suspeita", "atividadesuspeita", "suspicious-activity", "teste-protecao", "testeprotecao", "test-protection", "config-moderacao", "configmoderacao", "bloquear-link", "bloquearlink", "desbloquear-link", "desbloquearlink", "adicionar-dominio-confianca", "adicionardominioconfianca", "remover-dominio-confianca", "removerdominioconfianca", "reputacao", "reputação", "reputation", "ajustar-reputacao", "ajustarreputacao", "adjust-reputation", "whitelist-temp", "whitelisttemp", "temp-whitelist", "listar-whitelist-temp", "listarwhitelisttemp", "list-temp-whitelist", "gerar-imagem", "gerarimagem", "generate-image", "img-ia", "perguntar-ia", "perguntaria", "ask-ai", "ask-ia"]
         if cmd not in comandos_liberados:
             if not _verificar_canal_permitido(message, resto_comando.split()[0] if resto_comando else ""):
                 await message.channel.send(embed=embed_imperial("🚫 Canal Incorreto", f"O comando só pode ser usado nos canais designados. Use o canal de comandos.", 0x6B0000))
@@ -1199,19 +1199,51 @@ async def on_message(message):
         await protecao_parcerias.cmd_relatorio_protecao(message)
         return
 
+    # ── REPUTAÇÃO ───────────────────────────────────────
+    elif cmd in ("reputacao", "reputação", "reputation"):
+        if args and message.mentions:
+            await protecao_parcerias.cmd_reputacao(message, message.mentions[0])
+        else:
+            await protecao_parcerias.cmd_reputacao(message, None)
+        return
+
+    elif cmd in ("ajustar-reputacao", "ajustarreputacao", "adjust-reputation"):
+        if args and message.mentions:
+            pontos = int(args[1]) if len(args) > 1 else 0
+            motivo = " ".join(args[2:]) if len(args) > 2 else "Ajuste manual"
+            await protecao_parcerias.cmd_ajustar_reputacao(message, message.mentions[0], pontos, motivo)
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi ajustar-reputacao @usuario [pontos] [motivo]*", 0x6B0000))
+        return
+
+    # ── WHITELIST TEMPORÁRIA ───────────────────────────────
+    elif cmd in ("whitelist-temp", "whitelisttemp", "temp-whitelist"):
+        if args and message.mentions:
+            dias = int(args[1]) if len(args) > 1 else 7
+            await protecao_parcerias.cmd_whitelist_temp(message, message.mentions[0], dias)
+        else:
+            await message.channel.send(embed=embed_imperial("❌ Uso Incorreto", "*Use: tenshi whitelist-temp @usuario [dias]*", 0x6B0000))
+        return
+
+    elif cmd in ("listar-whitelist-temp", "listarwhitelisttemp", "list-temp-whitelist"):
+        await protecao_parcerias.cmd_listar_whitelist_temp(message)
+        return
+
+    # ── IA ───────────────────────────────────────────────
+    elif cmd in ("gerar-imagem", "gerarimagem", "generate-image", "img-ia"):
+        await protecao_parcerias.cmd_gerar_imagem(message, *args)
+        return
+
+    elif cmd in ("perguntar-ia", "perguntaria", "ask-ai", "ask-ia"):
+        await protecao_parcerias.cmd_perguntar_ia(message, *args)
+        return
+
     elif cmd in ("resetar-estatisticas", "resetarestatisticas", "reset-stats"):
         await protecao_parcerias.cmd_resetar_estatisticas(message)
         return
 
     elif cmd in ("modo-teste", "modoteste", "test-mode"):
         await protecao_parcerias.cmd_modo_teste(message)
-        return
-
-    elif cmd in ("reputacao", "reputação", "reputation"):
-        if message.mentions:
-            await protecao_parcerias.cmd_reputacao(message, message.mentions[0])
-        else:
-            await protecao_parcerias.cmd_reputacao(message, None)
         return
 
     elif cmd in ("ajustar-reputacao", "ajustarreputacao", "adjust-reputation"):
