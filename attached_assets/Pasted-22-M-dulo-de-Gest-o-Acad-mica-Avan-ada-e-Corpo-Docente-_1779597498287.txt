@@ -1,0 +1,69 @@
+22. Módulo de Gestão Acadêmica Avançada e Corpo Docente por IA (Tenshi Academy):
+
+Implemente este bloco de 50 funcionalidades específicas para a categoria 'Tenshi Academy' e seus respectivos canais (#sala-1a, #clube-de-ocultismo, #secretaria, #diretoria, etc.). O sistema deve rodar via Cogs modulares, salvar o progresso em tabelas escolares no SQLite e usar a API de IA como a Professora Omnipresente, gerando conteúdos inéditos, corrigindo avaliações e emitindo Diplomas.
+
+--- BLOCO 1: MATÉRIAS OFICIAIS E PLANOS DE ESTUDO ---
+1. Grade Curricular de Tática Militar: A IA leciona sobre estratégias de defesa de perímetro e cadeia de comando (Exigido para Recruta da Guarda).
+2. Grade Curricular de História e Lore de Tenshi: A IA ensina a cronologia das Eras do império e a soberania de Alloy (Exigido para Escriba Real).
+3. Grade Curricular de Ciências Esotéricas: A IA leciona sobre alquimia, propriedades de runas e manipulação de éter (Exigido para Alquimista da Corte).
+4. Grade Curricular de Direito Imperial: A IA ensina os artigos do Código de Conduta e hermenêutica jurídica (Exigido para Magistrado).
+5. Grade Curricular de Logística e Engenharia: A IA ministra aulas sobre manutenção de DVRs, switches Intelbras e malha ferroviária.
+6. Comando "Tenshi, matricular [Materia]": O usuário escolhe sua linha de estudo na #secretaria. O bot altera seu status para "Aluno de [Matéria]" e libera o acesso às salas.
+7. Sistema de Presença Computada: O bot monitora se o aluno está digitando nas salas de aula. É necessário registrar presença em 3 aulas diferentes para liberar a prova.
+8. Trancamento de Matrícula: Comando na #secretaria que reseta o progresso da matéria atual caso o aluno queira mudar de carreira, cobrando uma taxa administrativa.
+9. Material Didático por IA: O comando "Tenshi, ler-apostila" faz a IA gerar um sumário executivo técnico e limpo sobre o tópico do dia para o aluno estudar.
+10. Painel de Desempenho Acadêmico: Um Embed no comando status que exibe a nota média do aluno, matérias concluídas e frequência nas aulas.
+
+--- BLOCO 2: DINÂMICA DE AULAS INTERATIVAS (#sala-1a, #sala-1b, #sala-1c) ---
+11. Comando "Tenshi, iniciar-aula": A IA assume o papel do professor, limpa o chat e envia uma exposição teórica formal dividida em 3 partes com intervalos de 1 minuto.
+12. Sistema de Perguntas Espontâneas: Durante a exposição, a IA pode parar a aula e lançar uma pergunta aberta no chat. O primeiro aluno a responder corretamente ganha pontos de bônus na média.
+13. Penalidade por Desordem em Sala: Se um aluno fizer spam ou usar linguagem inadequada durante a aula da IA, o bot aplica um mudo (timeout) automático por quebra de disciplina escolar.
+14. Aulas Práticas de Alquimia: Na sala de ciências, a IA dita uma receita e os alunos devem clicar nos botões dos elementos certos na ordem exata para não explodir o laboratório.
+15. Simulação de Julgamento na Aula de Direito: A IA apresenta um caso real de infração do Código de Conduta e os alunos de direito devem votar no enquadramento correto usando botões.
+
+--- BLOCO 3: SISTEMA DE PROVAS, EXAMES E AVALIAÇÕES ---
+16. Comando "Tenshi, prestar-exame": Abre uma instância privada (canal ephemeral ou thread) onde a IA aplica a prova oficial da matéria para o aluno.
+17. Quiz Dinâmico de Múltipla Escolha: A IA formula 5 questões inéditas baseadas nas apostas e aulas. Cada questão exibe 3 botões de alternativa: [ A ], [ B ], [ C ].
+18. Controle de Tempo Estrito (Cronômetro): O aluno tem exatamente 45 segundos para responder cada questão da IA. Se o tempo esgotar, o bot computa erro automaticamente.
+19. Sistema de Prova Discursiva (Redação): Para cargos de alta patente, a IA exige uma resposta em texto dissertativo sobre a lore. A IA lê a resposta do usuário, avalia a coesão, ortografia e fidelidade histórica antes de dar a nota.
+20. Critério de Aprovação de Estado: O aluno precisa atingir a nota mínima de 7.0 (70% de acerto) para ser aprovado. Reprovados entram em um cooldown de recuperação de 24 horas.
+
+--- BLOCO 4: DOCUMENTAÇÃO, DIPLOMAS E FORMATURA (#secretaria) ---
+21. Emissão Automatizada de Diploma: O bot gera um hash de autenticidade no SQLite para o aluno aprovado, registrando o "Diploma de Formação Profissional".
+22. Histórico Escolar Arquivado: Permite à Staff ou aos Magistrados consultarem todas as notas e tentativas de prova que um usuário já fez no servidor.
+23. Cerimônia de Graduação por IA: Uma vez por semana, a IA lista em #mural-de-avisos os nomes dos novos graduados, gerando um texto solene de felicitações.
+24. Revogação por Inadimplência Disciplinar: Se um aluno for punido por violar o Código de Conduta no Art. 4º, o bot pode suspender temporariamente a validade de seus diplomas.
+25. Taxa de Emissão de Segunda Via: Perder registros ou solicitar revalidação de diploma na secretaria consome Moedas Imperiais da carteira do usuário.
+
+--- BLOCO 5: DIRETORIA, COORDENAÇÃO E REGRAS (#diretoria e #coordenação) ---
+26. Comando "Tenshi, sindicancia-escolar @usuario": A coordenação pode puxar o histórico de mensagens e comportamento de um aluno dentro das salas de aula.
+27. Sistema de Bolsas de Estudo: O Imperador Alloy ou seu cônjuge podem conceder isenção de taxas de matrícula para usuários de nível baixo na #diretoria.
+28. Expulsão Acadêmica: Alunos reincidentes em indisciplina nas salas são suspensos da Tenshi Academy, perdendo o acesso aos canais escolares por 3 dias.
+29. Relatório de Desempenho Docente: Comando de Alloy que faz a IA gerar um balanço de quantos alunos se matricularam, quantos foram aprovados e a taxa de evasão escolar.
+30. Ajuste de Dificuldade dos Exames: O Soberano pode ordenar na diretoria que a IA aumente ou diminua o rigor das perguntas das provas através de comandos de configuração.
+
+--- BLOCO 6: SISTEMA DE CLUBES E ATIVIDADES EXTRA_CURRICULARES ---
+31. Registro de Filiação de Clube (#base-clube): O bot gerencia a entrada de membros nos clubes (#clube-de-ocultismo, #clube-de-programação, etc.) via botões estruturados.
+32. Orçamento de Clube: Cada clube tem um cofre próprio no SQLite. O líder do clube pode usar os fundos para comprar melhorias ou itens na lojinha para os membros.
+33. Competições Interclubes por IA: A IA gera desafios intelectuais ou ganchos de RP entre o Clube de Ciências e o Clube de Programação. O clube que responder com melhor argumentação ganha verba do banco.
+34. Projetos de Extensão Acadêmica: Alunos avançados de programação podem codificar melhorias fictícias para o bot, recebendo notas e prêmios em moedas.
+35. Feira de Ciências Imperial: Um evento sazonal onde a IA avalia ideias de itens criados pelos alunos no laboratório, premiando a melhor invenção.
+
+--- BLOCO 7: INFRAESTRUTURA FÍSICA E LAZER (#pátio, #cantina, #biblioteca, #enfermaria) ---
+36. Sistema de Merenda na Cantina: Comprar alimentos na cantina usando moedas reduz a fadiga e recupera mana dos estudantes de forma imediata.
+37. Silêncio Estrito na Biblioteca: O bot proíbe o uso de comandos de diversão ou comandos de voz na biblioteca. Mensagens inadequadas são deletadas e geram advertência verbal da IA.
+38. Pesquisa Acadêmica por IA: Na biblioteca, o comando "Tenshi, pesquisar [Tema]" faz a IA buscar dados profundos da história do servidor para ajudar o aluno nas redações.
+39. Atendimento de Primeiros Socorros: Alunos feridos em duelos na quadra podem ser curados de forma paliativa na #enfermaria escolar por estagiários de medicina.
+40. Sistema de Armários do Pátio: Concede slots de inventário físico temporários dentro do pátio para os alunos guardarem apostilas e poções sem ocupar espaço na carteira principal.
+
+--- BLOCO 8: FERRAMENTAS DE SUPREMACIA E CONTROLE REAIS (Exclusivos de Alloy) ---
+41. "Tenshi, interditar-escola": Tranca instantaneamente todas as salas de aula e clubes, emitindo uma nota de recesso compulsório por decreto imperial.
+42. "Tenshi, aprovação-forçada @usuario [Materia]": Alloy ignora as notas da IA e concede diretamente o Diploma para o usuário escolhido.
+43. "Tenshi, jubilar @usuario": Remove permanentemente o direito de um usuário estudar na Tenshi Academy, banindo-o da categoria escolar.
+44. "Tenshi, auditar-provas": O bot envia no privado do Soberano as últimas 5 provas aplicadas pela IA para verificar o nível das questões formuladas.
+45. "Tenshi, estatizar-cofre-clube [Clube]": Transfere todas as moedas acumuladas no cofre de um clube diretamente para o Tesouro Real.
+46. "Tenshi, alterar-professor [Materia] [Personalidade]": Permite mudar o tom da IA de uma matéria (ex: tornar o professor de tática militar extremamente rígido ou o de ocultismo sombrio).
+47. "Tenshi, zerar-historico-academico @usuario": Reseta todas as notas, presenças e diplomas do alvo no banco de dados.
+48. "Tenshi, decretar-feriado-escolar": Desativa o comando de assistir aula por 24 horas e dobra a velocidade de regeneração de energia de quem estiver no #pátio ou #jardim.
+49. "Tenshi, criar-materia [Nome] [Requisitos]": Adiciona uma nova disciplina ao banco de dados do bot de forma manual.
+50. "Tenshi, fechar-secretaria": Tranca as funções de matrícula, trancamento e emissão de segundas vias durante períodos de transição ou auditoria econômica.

@@ -1,0 +1,29 @@
+Ajuste e expanda o bot do Discord baseado no universo do "Império Tenshi" para integrar perfeitamente com a estrutura real de canais do servidor. O bot deve usar programação modular (Cogs) com a biblioteca discord.py e se conectar com uma API de IA (Gemini ou OpenAI).
+
+A IA deve ter ciência de contexto absoluto e mudar sua personalidade e funções dependendo da categoria e do ID do canal onde a mensagem foi enviada. Abaixo estão as diretrizes de integração por categoria de canais:
+
+1. Modulo de Convivência e Rotinas (Categoria RPG #off -> canal #GERAL):
+- Todo dia, às 07:00 AM, envie uma mensagem marcando @everyone com uma saudação matinal altamente culta, motivacional e filosófica gerada pela IA.
+- Todo dia, às 19:00 PM, envie uma mensagem de boa noite com uma reflexão profunda sobre o destino e o dia.
+- O comando padrão de conversa com a IA neste canal é "Tenshi, [mensagem]".
+
+2. Módulo de Transporte (Categoria Estação De Trem):
+- Crie o comando "Tenshi, pegar-trem [Estação]". O sistema deve gerenciar cargos e permissões de canais do Discord. Ao mudar de estação (Cidade, Escola, Hotel, Vizinhança), o bot remove a permissão de visualização da categoria antiga e adiciona a da nova, simulando uma viagem de verdade.
+
+3. Módulo Econômico e Comercial (Categoria City -> canais #banco, #cassino, #beco, #cafeteria, #sorveteria):
+- No canal #banco, a IA processa salários automáticos baseados nos empregos do servidor.
+- No canal #cassino, implemente mini-games de apostas baseados em texto e botões (como jogos de dados e cartas) usando as Moedas Imperiais.
+- Nos canais #cafeteria e #sorveteria, crie um menu com botões para comprar itens consumíveis que reduzem os pontos de fadiga do RPG dos jogadores.
+- No canal #beco, permita que comandos de "furtos" ou o "Mercado Negro" místico funcionem apenas durante horários específicos da madrugada.
+
+4. Módulo Acadêmico e de Clubes (Categoria Tenshi Academy e Clubes):
+- Nas salas de aula, habilite o comando "Tenshi, assistir-aula". A IA deve gerar uma mini-explicação educacional imersiva e disparar um quiz com botões [A], [B] e [C]. Acertar concede o "Diploma" daquela matéria no banco de dados, necessário para se candidatar aos empregos do império.
+- Nos canais de Clubes (#clube-de-ocultismo, #clube-de-ciências, etc.), o bot deve aplicar modificadores de status específicos: Membros do clube de ocultismo ganham bônus de sorte nos comandos "Tenshi, tarot" e "Tenshi, runa".
+
+5. Módulo Secreto de Facções (Categoria Máfia):
+- Nos canais da Máfia, a IA adota uma linguagem fria e conspiratória. Ela gerencia o comando exclusivo "Tenshi, contrato-negro" para liberar missões de espionagem e saques de moedas de alta recompensa e alto risco.
+
+6. Módulo Hospitalar (Categoria Hospital):
+- Se um jogador perder uma batalha ou zerar sua barra de energia por fadiga, seu status muda para 'internado'. Ele só recupera a capacidade de usar comandos de treino se aguardar o tempo de cooldown nos canais de Hospital ou pagar taxas médicas pelo bot na #recepção.
+
+Gere toda a estrutura de banco de dados SQLite para armazenar as variáveis de localização dos membros, inventários, saldos, status de saúde, diplomas acadêmicos e filiações de clubes de forma integrada.

@@ -1,0 +1,45 @@
+15. Módulo de Prerrogativas Reais e Controle Absoluto do Soberano (Strict Owner-Only):
+
+Implemente este bloco final de 30 comandos e direitos exclusivos. No código de cada comando deste Cog, deve haver uma checagem estrita de ID do Discord (ctx.author.id == DONO_ID). Se qualquer outro usuário tentar utilizá-los, o bot deve registrar uma tentativa de quebra de segurança em #logs-guarda e ignorar silenciosamente ou emitir uma nota seca de erro.
+
+A) Controle Monetário e Tributário Supremo:
+1. "Tenshi, emitir-moeda [quantia]": Cria Moedas Imperiais do absoluto zero e injeta diretamente no Tesouro Real ou no banco, gerando inflação controlada se necessário.
+2. "Tenshi, confiscar-fortuna @usuario": Transfere instantaneamente 100% do saldo bancário e da carteira de um cidadão para as reservas do Trono.
+3. "Tenshi, congelar-banco @usuario": Bloqueia a conta de um usuário específico, impedindo-o de fazer saques, depósitos, transferências ou receber salários por IA.
+4. "Tenshi, perdoar-divida @usuario": Zera o saldo negativo e os juros acumulados de empréstimos de um usuário no #banco.
+5. "Tenshi, isencao-fiscal @usuario": Concede imunidade tributária permanente a um cidadão, impedindo que o bot recolha o imposto de condomínio ou taxas de Estado dele.
+
+B) Manipulação da Realidade e Status do RPG:
+6. "Tenshi, set-status @usuario [atributo] [valor]": Altera diretamente qualquer status da ficha de um jogador (Vida, Mana, Poder de Luta) de forma manual sem necessidade de treino.
+7. "Tenshi, apagar-ficha @usuario": Deleta permanentemente a ficha, inventário e histórico de um usuário do banco de dados, forçando-o a refazer o processo de imigração.
+8. "Tenshi, conceder-item @usuario [Item] [quantidade]": Insere qualquer arma, relíquia ou consumível místico diretamente no inventário do alvo.
+9. "Tenshi, purificar-status @usuario": Remove instantaneamente todas as condições negativas (como envenenamento, ferimentos de hospital ou status de quarentena) de um jogador.
+10. "Tenshi, imortalidade @usuario": Concede uma flag mística no banco de dados que impede o personagem do usuário de morrer em masmorras ou perder status em duelos.
+
+C) Decretos de Estado e Controle de Canais:
+11. "Tenshi, estado-de-sitio": Tranca a escrita e visualização de todas as categorias do condomínio e da cidade, deixando ativos apenas os canais de portões e o chat geral.
+12. "Tenshi, dissolver-mafia": Comando de força máxima que remove os cargos de todos os membros da Máfia e tranca permanentemente a categoria do subterrâneo.
+13. "Tenshi, estatizar-casa [Casa-X]": Remove o direito de propriedade de qualquer morador de uma das casas do condomínio e devolve o imóvel ao controle do Trono sem reembolso.
+14. "Tenshi, silenciar-geral": Remove a permissão de envio de mensagens de todos os cargos no canal #GERAL, exceto do Soberano e de seu cônjuge.
+15. "Tenshi, anistia-geral": Remove todos os Warns (advertências), históricos criminais e registros de infração de todos os usuários do servidor de uma só vez.
+
+D) Alta Justiça e Intervenção Moderativa:
+16. "Tenshi, exilio-supremo @usuario [motivo]": Ignora todas as etapas de julgamento e aplica um banimento permanente e indestrutível, limpando o histórico de mensagens do alvo.
+17. "Tenshi, perdao-judicial @usuario": Retira um usuário imediatamente do status de isolamento ou masmorra, restaurando seus cargos de cidadania.
+18. "Tenshi, intervir-julgamento [ID] [Culpado/Inocente]": Encerra um julgamento ativo de forma autoritária, definindo o veredito final e aplicando a punição correspondente via bot.
+19. "Tenshi, revogar-diploma @usuario [Materia]": Remove a certificação acadêmica de um usuário, invalidando seu emprego atual por falta de requisitos.
+20. "Tenshi, cassar-cônjuge": Um comando de emergência para dissolver o casamento real de forma sumária, revogando o acesso do parceiro ao painel de gerenciamento do império.
+
+E) Inteligência Artificial e Controle de Conteúdo:
+21. "Tenshi, atualizar-diretriz [texto]": Altera o 'system prompt' básico da IA em tempo real para mudar a postura política ou a narrativa de misticismo que ela adota nos canais.
+22. "Tenshi, apagar-memoria-ia": Limpa o histórico de contexto de mensagens recentes armazenado na memória da API da IA, resetando o fluxo de conversa do #GERAL.
+23. "Tenshi, interceptar-correio @usuario": Faz o bot enviar no privado do Soberano uma cópia de todas as mensagens anônimas enviadas por aquele usuário específico nas últimas 24 horas.
+24. "Tenshi, forçar-cronica [nicho] [tema]": Obriga a IA a gerar um gancho específico de história no canal correspondente para direcionar o RPG para onde o Soberano desejar.
+25. "Tenshi, censurar-termo [palavra]": Adiciona uma palavra ou frase à lista de termos subversivos proibidos pelo sistema de monitoramento automático.
+
+F) Engenharia e Gerenciamento Técnico do Sistema:
+26. "Tenshi, desligar": Executa o encerramento seguro do processo do bot no Replit.
+27. "Tenshi, forçar-pagamento": Antecipa o cronograma da folha de pagamento por IA, depositando os salários de todos os empregos ativos no exato momento da execução.
+28. "Tenshi, exportar-banco": O bot gera o arquivo .db atualizado do SQLite e o envia de forma privada no chat com o Soberano como um backup manual de segurança.
+29. "Tenshi, injetar-sql [comando_sql]": Permite executar uma query direta no banco de dados a partir do chat do Discord para correções estruturais rápidas.
+30. "Tenshi, bypass-cooldown": Ativa um status no perfil do Soberano que anula todos os tempos de espera (cooldowns) de comandos de treino, missões e Tarot para o seu ID.

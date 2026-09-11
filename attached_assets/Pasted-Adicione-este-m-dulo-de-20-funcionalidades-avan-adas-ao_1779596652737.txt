@@ -1,0 +1,61 @@
+Adicione este módulo de 20 funcionalidades avançadas ao ecossistema do bot do Império Tenshi, utilizando a biblioteca discord.py, persistência em SQLite e integração profunda com a API de IA para automação de fluxo de texto nos canais:
+
+1. Sistema de Condomínio Fechado (#portaria):
+- Comando "Tenshi, trancar-casa" e "Tenshi, destrancar-casa" para o dono gerenciar quem pode enviar mensagens na sua respectiva casa (de casa-1 a casa-18) em tempo real.
+
+2. Garagem e Sistema de Veículos (#garagem):
+- Sistema de compra de veículos (carros, motos, montarias místicas). Ter um veículo na garagem diminui o tempo de espera (cooldown) do comando "Tenshi, pegar-trem".
+
+3. Atividades Esportivas e Apostas (#quadra):
+- Comando "Tenshi, basquete @usuario" ou "Tenshi, futebol @usuario" para ativar um mini-game de dados místico na quadra. Jogadores na call de jogos ganham bônus de acerto.
+
+4. Festas e Eventos na Piscina (#piscina):
+- Comando exclusivo de ADM "Tenshi, pool-party". O bot toca música temática de fundo na call de música e duplica o ganho de moedas de quem interagir por texto na piscina pelas próximas 2 horas.
+
+5. Sistema de Pets Avançado (#fichas-pet e #pet-shop):
+- Jogadores podem comprar pets no #pet-shop e registrar suas fichas. O pet acompanha o dono nos status e dá habilidades passivas exclusivas em duelos (ex: cão de guarda aumenta defesa).
+
+6. Sistema de Casamento e Divórcio (#casamento):
+- Comando "Tenshi, casar @usuario". Se aceito via botão, o bot cria um perfil de casal compartilhado no banco de dados, dá um cargo estético e divide os custos de aluguel de casas pela metade. O divórcio custa 50% do saldo do banco.
+
+7. Lavanderia e Limpeza de Itens (#lavanderia):
+- Itens usados em masmorras ou no hospital ficam "sujos" e perdem eficácia. O jogador deve pagar uma taxa na #lavanderia via botões para limpar e restaurar os bônus do equipamento.
+
+8. Laboratório e Fabricação de Tecnologia (#laboratório e #tenshi-enterprise):
+- Membros do Clube de Ciências ou funcionários da Tenshi Enterprise podem usar "Tenshi, sintetizar [item]" para fundir materiais raros e criar implantes tecnológicos ou poções mutagênicas.
+
+9. Sistema de Cinema e Transmissão (#cinema):
+- Comando "Tenshi, cartaz [filme]". O bot cria um Embed de agendamento na categoria de festas/calls com botões de "Confirmar Presença" e notifica os confirmados 10 minutos antes da transmissão começar na call.
+
+10. O Beco e Sistema de Furtos (#beco):
+- Membros da Máfia podem usar "Tenshi, assaltar @usuario" apenas no canal #beco. O sucesso depende da agilidade do ladrao versus a defesa da vítima. Se falhar, o bot envia o infrator direto para o #departamento-policial (prisão).
+
+11. Boletim de Ocorrência e Investigação (#jornal-policial):
+- Toda vez que um roubo no #beco ou no #banco falhar, a IA gera automaticamente uma matéria jornalística criminal no #jornal-policial detalhando o crime e marcando o culpado.
+
+12. Crônicas do Cotidiano (#jornal-dia-a-dia):
+- A IA do bot atua como repórter social. Uma vez por dia, ela seleciona aleatoriamente interações engraçadas ou marcantes que aconteceram no #GERAL ou nas praças e posta um resumo jornalístico no #jornal-dia-a-dia.
+
+13. Consulta Psicológica por IA (#pisicologo):
+- No canal do psicólogo, o usuário pode desabafar com a IA em modo privado (usando botões ephemeral ou canais temporários). A IA responde atuando como uma terapeuta imperial sábia, oferecendo conselhos estoicos profundos.
+
+14. O Bar e Sistema de Embriaguez (#bar):
+- Comando "Tenshi, beber [bebida]". Comprar bebidas no bar altera temporariamente a digitação do usuário (o bot intercepta as mensagens dele no #GERAL e substitui letras aleatoriamente para simular embriaguez) por 30 minutos.
+
+15. Diário de Viagem Global (#viajando-pelo-mundo):
+- Quando um usuário executa "Tenshi, pegar-trem", a IA gera uma pequena narrativa de viagem de 2 parágrafos no canal #viajando-pelo-mundo contando o que o personagem dele vivenciou durante o trajeto de trem.
+
+16. Sistema de Clima Dinâmico Conectado (#clima):
+- O bot altera o clima global a cada 6 horas no canal #clima. Se o clima for "Chuva Ácida", canais abertos como #parque e #praça dão fadiga ao invés de curar, forçando os jogadores a interpretarem em canais fechados como a #cafeteria ou suas próprias casas.
+
+17. Correio Elegante Anônimo (#criar-correio e #correio-anônimo):
+- Um painel com botões no #criar-correio onde o usuário digita uma mensagem e seleciona o destinatário. O bot envia a mensagem de forma 100% anônima em formato de carta luxuosa no #correio-anônimo e grava o histórico em #logs-correio para a staff auditar.
+
+18. Sistema de Estações do Ano (#estações-do-ano):
+- Um ciclo automatizado baseado nos dias reais. No Inverno, as contas de condomínio da #portaria ficam mais baratas (aquecimento místico ativo), mas os treinos na #academia gastam 15% mais fadiga devido ao frio.
+
+19. Entrevistas de Emprego com IA (#entrevista-de-emprego):
+- Para assumir um cargo de funcionário no Banco, Hospital ou Polícia, o usuário clica em um botão no canal. A IA assume o papel do Diretor do local e faz 3 perguntas sobre a lore ou regras. O bot avalia as respostas textuais do usuário antes de liberar a contratação.
+
+20. Central de Emergências Médicas (#chegada-ambulância):
+- Se um jogador for "nocauteado" em um duelo na máfia ou no beco, o bot bloqueia seus comandos e envia um aviso visual de sirene no canal #chegada-ambulância. Um funcionário do Hospital precisa usar o comando "Tenshi, socorrer @usuario" com botões para levá-lo aos corredores e iniciar o tratamento.

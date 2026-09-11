@@ -1,0 +1,63 @@
+# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# compiled output
+dist
+tmp
+out-tsc
+*.tsbuildinfo
+__pycache__/
+*.pyc
+*.py[cod]
+.venv/
+venv/
+.expo
+.expo-shared
+
+# dependencies
+node_modules
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/
+
+# misc
+.env
+.env.*
+!.env.example
+site_stdout.log
+site_stderr.log
+logs/
+artifacts/tenshi-bot/data/status.json
+artifacts/tenshi-bot/data/saudacoes.json
+artifacts/tenshi-bot/data/infracoes.json
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+
+# System Files
+.DS_Store
+Thumbs.db
+
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+
+# Replit
+.replit
+.replitignore
+.replit-artifact/
+**/.replit-artifact/
+.cache/
+.local/

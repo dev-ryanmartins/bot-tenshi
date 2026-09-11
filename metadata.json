@@ -1,0 +1,8 @@
+{
+  "name": "Tenshi Bot",
+  "description": "Site oficial do Tenshi Bot com catálogo de comandos, sistemas de RPG, integração de IA e painel de status.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

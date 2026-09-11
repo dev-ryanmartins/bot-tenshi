@@ -1,0 +1,35 @@
+[2026-09-11 20:48:43 UTC] [INFO   ] [Tenshi] Testando logger estruturado | extra_info=ok
+[2026-09-11 20:48:43 UTC] [WARNING] [Tenshi] Teste de aviso estruturado
+[2026-09-11 20:48:43 UTC] [WARNING] [Tenshi] Falha na tentativa 1/2 com gemini-2.5-flash: __aenter__
+[2026-09-11 20:48:43 UTC] [INFO   ] [Tenshi] Acionando modelo de fallback 'analitica' para 'soberana'.
+[2026-09-11 20:48:43 UTC] [WARNING] [Tenshi] Falha na tentativa 1/2 com gemini-2.5-flash: __aenter__
+[2026-09-11 20:48:43 UTC] [WARNING] [Tenshi] Chamada IA falhou (0ms): Tempo limite ou erro de conexão com a API Gemini | modelo=gemini-2.5-flash, status=ERRO, preview='Prompt de teste...'
+[2026-09-11 21:07:00 UTC] [INFO   ] [Tenshi] Chamada IA concluída em 2943ms | modelo=openrouter/meta-llama/llama-3.1-8b-instruct, status=OK, preview='Diga apenas: OpenRouter Ativo com Sucesso!...'
+[2026-09-11 21:09:52 UTC] [WARNING] [Tenshi] Provedor 'gemini' falhou (HTTP Error 404: Not Found). Tentando próximo da cadeia de contingência...
+[2026-09-11 21:10:16 UTC] [WARNING] [Tenshi] Chamada IA falhou (163ms): HTTP Error 404: Not Found | modelo=gemini/gemini-2.5-flash, status=ERRO, preview='Diga apenas: Gemini OK...'
+[2026-09-11 21:10:34 UTC] [INFO   ] [Tenshi] Chamada IA concluída em 2770ms | modelo=gemini/gemini-3.6-flash, status=OK, preview='Diga apenas: Gemini OK...'
+[2026-09-11 21:10:35 UTC] [INFO   ] [Tenshi] Chamada IA concluída em 567ms | modelo=openrouter/meta-llama/llama-3.1-8b-instruct, status=OK, preview='Diga apenas: OpenRouter OK...'
+[2026-09-11 21:51:48 UTC] [WARNING] [Tenshi] Chamada IA falhou (199ms): HTTP Error 404: Not Found | modelo=openrouter/meta-llama/llama-3.3-70b-instruct:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:51:48 UTC] [WARNING] [Tenshi] Chamada IA falhou (88ms): HTTP Error 404: Not Found | modelo=openrouter/deepseek/deepseek-chat:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:51:48 UTC] [WARNING] [Tenshi] Chamada IA falhou (86ms): HTTP Error 404: Not Found | modelo=openrouter/deepseek/deepseek-r1:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:51:48 UTC] [WARNING] [Tenshi] Chamada IA falhou (88ms): HTTP Error 404: Not Found | modelo=openrouter/mistralai/mistral-small-24b-instruct-2501:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:51:48 UTC] [WARNING] [Tenshi] Chamada IA falhou (106ms): HTTP Error 404: Not Found | modelo=openrouter/meta-llama/llama-3.1-8b-instruct:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:51:48 UTC] [WARNING] [Tenshi] Chamada IA falhou (85ms): HTTP Error 404: Not Found | modelo=openrouter/google/gemini-2.0-flash-exp:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:51:48 UTC] [WARNING] [Tenshi] Chamada IA falhou (82ms): HTTP Error 404: Not Found | modelo=openrouter/meta-llama/llama-3.3-70b-instruct:free, status=ERRO, preview='oi...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (112ms): HTTP Error 404: Not Found | modelo=openrouter/deepseek/deepseek-chat:free, status=ERRO, preview='oi...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (124ms): HTTP Error 404: Not Found | modelo=openrouter/deepseek/deepseek-r1:free, status=ERRO, preview='oi...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (86ms): HTTP Error 404: Not Found | modelo=openrouter/mistralai/mistral-small-24b-instruct-2501:free, status=ERRO, preview='oi...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (95ms): HTTP Error 404: Not Found | modelo=openrouter/meta-llama/llama-3.1-8b-instruct:free, status=ERRO, preview='oi...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (81ms): HTTP Error 404: Not Found | modelo=openrouter/google/gemini-2.0-flash-exp:free, status=ERRO, preview='oi...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (111ms): HTTP Error 404: Not Found | modelo=openrouter/meta-llama/llama-3.3-70b-instruct:free, status=ERRO, preview='como vai o reino?...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (116ms): HTTP Error 404: Not Found | modelo=openrouter/deepseek/deepseek-chat:free, status=ERRO, preview='como vai o reino?...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (99ms): HTTP Error 404: Not Found | modelo=openrouter/deepseek/deepseek-r1:free, status=ERRO, preview='como vai o reino?...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (91ms): HTTP Error 404: Not Found | modelo=openrouter/mistralai/mistral-small-24b-instruct-2501:free, status=ERRO, preview='como vai o reino?...'
+[2026-09-11 21:51:49 UTC] [WARNING] [Tenshi] Chamada IA falhou (85ms): HTTP Error 404: Not Found | modelo=openrouter/meta-llama/llama-3.1-8b-instruct:free, status=ERRO, preview='como vai o reino?...'
+[2026-09-11 21:51:50 UTC] [WARNING] [Tenshi] Chamada IA falhou (104ms): HTTP Error 404: Not Found | modelo=openrouter/google/gemini-2.0-flash-exp:free, status=ERRO, preview='como vai o reino?...'
+[2026-09-11 21:52:40 UTC] [WARNING] [Tenshi] Chamada IA falhou (188ms): HTTP Error 429: Too Many Requests | modelo=openrouter/google/gemma-4-31b-it:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:52:41 UTC] [WARNING] [Tenshi] Chamada IA falhou (239ms): HTTP Error 429: Too Many Requests | modelo=openrouter/google/gemma-4-26b-a4b-it:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:52:57 UTC] [WARNING] [Tenshi] Chamada IA falhou (305ms): HTTP Error 429: Too Many Requests | modelo=openrouter/google/gemma-4-31b-it:free, status=ERRO, preview='me beija...'
+[2026-09-11 21:52:57 UTC] [WARNING] [Tenshi] Chamada IA falhou (188ms): HTTP Error 429: Too Many Requests | modelo=openrouter/google/gemma-4-31b-it:free, status=ERRO, preview='oi...'
+[2026-09-11 21:52:57 UTC] [WARNING] [Tenshi] Chamada IA falhou (90ms): HTTP Error 404: Not Found | modelo=openrouter/meta-llama/llama-3.3-70b-instruct:free, status=ERRO, preview='como vai o reino?...'
+[2026-09-11 21:52:57 UTC] [WARNING] [Tenshi] Chamada IA falhou (224ms): HTTP Error 429: Too Many Requests | modelo=openrouter/google/gemma-4-31b-it:free, status=ERRO, preview='como vai o reino?...'

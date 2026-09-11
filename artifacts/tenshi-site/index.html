@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function() {
+        try {
+          var _f = window.fetch;
+          Object.defineProperty(window, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            get: function() { return _f; },
+            set: function(val) { _f = val; }
+          });
+        } catch (e) {}
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Tenshi Bot</title>
+    <meta name="description" content="Site oficial do Tenshi Bot com catálogo de comandos, sistemas de RPG, integração de IA e painel de status." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="Tenshi Bot" />
+    <meta property="og:description" content="Site oficial do Tenshi Bot com catálogo de comandos, sistemas de RPG, integração de IA e painel de status." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tenshi Bot" />
+    <meta name="twitter:description" content="Site oficial do Tenshi Bot com catálogo de comandos, sistemas de RPG, integração de IA e painel de status." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

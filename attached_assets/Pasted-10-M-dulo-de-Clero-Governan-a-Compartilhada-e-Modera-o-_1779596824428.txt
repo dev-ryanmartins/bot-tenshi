@@ -1,0 +1,21 @@
+10. Módulo de Clero, Governança Compartilhada e Moderação Avançada:
+
+Quero que você implemente um sistema altamente formal e integrado para casamentos, rituais litúrgicos e moderação institucional, utilizando a API de IA para conduzir as cerimônias e o banco de dados SQLite para gerenciar os direitos de governança.
+
+A) Sistema do Clero e Comandos de Liturgia ("Tenshi, padre"):
+- Crie o comando "Tenshi, padre [missa / casamento / batismo / funeral]". Este comando abre uma interface séria e institucional com botões para iniciar o protocolo escolhido.
+- Se o usuário selecionar "missa", a IA deve gerar um pronunciamento litúrgico e filosófico profundo no canal, adequado ao misticismo sério de Tenshi, interagindo com os fiéis presentes no chat.
+
+B) Protocolo Automatizado de Casamento Real:
+- Quando o comando "Tenshi, padre casamento" for ativado, o bot solicitará que o celebrante mencione os dois noivos.
+- O bot iniciará um protocolo formal conduzido pela IA. Ela gerará os votos e o discurso oficial da cerimônia por texto em tempo real, marcando os noivos.
+- Ao final do discurso, o bot exibirá um único Embed sóbrio com dois botões interativos restritos aos noivos: [🟩 Aceito] e [🟥 Recuso].
+- Se ambos clicarem em [Aceito], o bot oficializa o casamento no banco de dados e envia uma certidão imperial com bordas douradas no canal. Se houver recusa, o protocolo é abortado imediatamente com uma nota de cancelamento formal.
+
+C) Governança Compartilhada (Cônjuge Imperial):
+- O banco de dados deve registrar o ID do cônjuge do Imperador Alloy.
+- Uma vez oficializado o casamento do Imperador, o cônjuge ganha automaticamente acesso irrestrito ao comando "Tenshi, imperador".
+- Isso significa que o marido ou mulher terá as mesmas permissões executivas de Estado: gerenciar o banco de dados, pagar salários por IA, adicionar/remover moedas e aplicar punições, atuando como Co-Soberano de Tenshi.
+
+D) Moderação e Auditoria de Alta Patente:
+- Adicione o comando "Tenshi, sindicancia @usuario". A IA analisa todo o histórico de logs de infrações, mensagens apagadas e comportamento daquele usuário em chats de máfia, condomínio e geral, gerando um relatório técnico confidencial para Alloy e seu cônjuge decidirem se o membro deve ser expulso ou rebaixado.

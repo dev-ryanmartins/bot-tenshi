@@ -1,0 +1,39 @@
+14. Módulo de Segurança Nacional, Infraestrutura Crítica e Alta Sociedade:
+
+Implemente este bloco final de 20 funcionalidades inéditas no bot do Império Tenshi. Mantenha o padrão estrito de design minimalista, governança sóbria e tom documental/militarista. Configure as novas interações no banco de dados SQLite e nos Cogs correspondentes:
+
+A) Segurança Nacional e Inteligência Avançada (#departamento-policial e #beco):
+1. Sistema de Mandado de Busca: O comando "Tenshi, mandado @usuario [Casa-X]" (exclusivo para Alloy, Cônjuge e Magistrados) anula temporariamente a tranca de uma casa do condomínio por 2 horas, permitindo que as forças de ordem investiguem mensagens e barrem atividades mafiosas ali dentro.
+2. Protocolo de Monitoramento de Tráfego: A IA gera relatórios automáticos no canal de registros da guarda indicando picos anômalos de comandos de transferência financeira originados do #beco ou #cassino.
+3. Alerta de Foragido da Justiça: Se um usuário falhar em um crime e tentar fugir do #departamento-policial usando comandos de viagem, o bot fixa um Embed institucional em canais públicos notificando que o cidadão está com o status "Foragido", oferecendo recompensa automática para quem o nocautear em duelo.
+
+B) Infraestrutura Urbana e Serviços Essenciais (#loja, #correio-anônimo e #hospital):
+4. Sistema de Encomendas Rastreadas: Substituindo o correio comum, o comando "Tenshi, enviar-carga @usuario [Item]" despacha um equipamento real do inventário. O transporte leva 1 hora real de trem para chegar, gerando notificações formais de trâmite postal no canal.
+5. Licenciamento de Condomínio: Donos de veículos na #garagem devem pagar uma taxa de circulação na #portaria. O não pagamento bloqueia o uso do veículo para reduzir cooldowns de viagem.
+6. Protocolo de Quarentena Médica: Caso um usuário utilize um item contaminado ou veneno místico em masmorras, seu status muda para "Quarentena" no #hospital, bloqueando suas interações com o #GERAL para evitar a propagação de penalidades de status para outros membros.
+
+C) Dinâmicas de Alta Sociedade e Prestígio (Canais de Convivência e Lazer):
+7. Tabela de Imposto sobre Grandes Fortunas: O banco de dados aplica uma alíquota progressiva automatizada sobre os 3 usuários mais ricos do servidor a cada virada de mês, transferindo os fundos para o Tesouro Real de Alloy.
+8. Sistema de Leilão de Imóveis por Inadimplência: Se uma casa for trancada por falta de pagamento de condomínio, o bot não a devolve imediatamente para o mercado; ele abre um leilão automático de 24 horas na #portaria para que outros moradores deem lances pelo imóvel.
+9. Registro de Casamento de Elite (Contrato Pré-Nupcial): Ao executar o casamento, os noivos podem escolher através de botões o regime de bens: Comunhão Total (divide saldo e acesso ao comando imperador caso um deles seja Alloy) ou Separação de Bens (mantém inventários e carteiras isolados).
+
+D) Ocultismo e Ciência Proibida (#clube-de-ocultismo e #laboratório):
+10. Rito de Reversão de Idade/Raça: Um comando místico de alto custo no #clube-de-ocultismo permite ao usuário resetar sua espécie e realocar seus pontos de atributos na ficha de personagem, mantendo apenas seus diplomas acadêmicos.
+11. Criação de Autômatos de Guarda: Especialistas do Clube de Ciências podem fundir materiais e moedas no #laboratório para criar um guarda robótico para suas respectivas casas. O robô impede tentativas de furto de membros da Máfia de forma 100% passiva.
+
+E) Comunicação Oficial e Censura de Estado (Exclusivos de Alloy e Cônjuge):
+12. Comando "Tenshi, interdição [Canal]": Tranca instantaneamente a escrita em um canal específico, substituindo a mensagem de erro por uma nota oficial indicando que o perímetro foi isolado por decreto imperial.
+13. Sistema de Palavras-Chave Subversivas: O bot monitora termos específicos definidos pela staff. Se um usuário tentar organizar uma rebelião ou difamar o império de forma coordenada, a IA deleta a mensagem silenciosamente e envia uma cópia com análise de risco para #comandos-staff.
+14. Transmissão Nacional Obligatória: O comando "Tenshi, irradiar [Mensagem]" faz o bot postar o mesmo comunicado oficial de Alloy em todas as categorias ativas do servidor simultaneamente.
+
+F) Sistema de Crise Mística e Calamidades Globais (Tarefas de Segundo Plano):
+15. Protocolo de Eclipse Total: Evento raro ativado pela IA que desliga os bônus de todos os canais de lazer (#piscina, #quadra, #praça) por 12 horas, aumentando em 30% a força de inimigos em masmorras e o faturamento do #mercado-negro.
+16. Corrida Bancária: Se a economia do reino entrar em colapso devido a excesso de saques, o bot limita o valor diário de retirada por usuário no #banco de forma autônoma até a economia estabilizar.
+
+G) Administração de Pessoal e RH Imperial (Gestão de Cargos por IA):
+17. Auditoria de Desempenho de Servidores Públicos: A IA avalia a atividade de texto e o cumprimento de ordens dos usuários que possuem os empregos de Recruta, Escriba, Alquimista ou Magistrado. Funcionários inativos por mais de 7 dias recebem uma notificação de exoneração automática no #jornal-dia-a-dia.
+18. Fundo de Pensão e Aposentadoria: Cidadãos de nível máximo podem voluntariamente se aposentar de suas funções de combate, travando seu Poder de Luta em troca de um salário fixo diário pago pelo banco sem a necessidade de trabalhar.
+
+H) Ferramentas de Auditoria Estrutural (Exclusivo para o Imperador):
+19. Comando "Tenshi, diagnostico-ia": Fornece um relatório técnico detalhado sobre o tempo de resposta da API de IA, o consumo de memória do banco SQLite no Replit e o status do Keep Alive.
+20. Sistema de Criptografia de Logs: Todos os logs enviados para #logs-guarda e #logs-correio que contenham dados confidenciais de transações ou investigações devem ser salvos com códigos de protocolo únicos, permitindo que a Staff busque registros antigos de forma rápida usando "Tenshi, buscar-protocolo [Código]".
